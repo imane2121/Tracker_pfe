@@ -26,31 +26,10 @@ return new class extends Migration
             // Supervisor-specific attributes
             $table->enum('account_status', ['active', 'inactive', 'under_review'])->nullable();
             $table->string('CNI')->unique()->nullable();
-            $table->string('city')->nullable();
-            $table->enum('organisation', [
-                'WWF (World Wide Fund for Nature)',
-                'Greenpeace',
-                'The Ocean Cleanup',
-                'Associations locales pour la protection des plages et de l’environnement',
-                'Programme des Nations Unies pour l’Environnement (PNUE)'
-            ])->nullable();
-            $table->enum('region', [
-                'Tanger-Tétouan-Al Hoceïma',
-                'Oriental',
-                'Fès-Meknès',
-                'Rabat-Salé-Kénitra',
-                'Béni Mellal-Khénifra',
-                'Casablanca-Settat',
-                'Marrakech-Safi',
-                'Drâa-Tafilalet',
-                'Souss-Massa',
-                'Guelmim-Oued Noun',
-                'Laâyoune-Sakia El Hamra',
-                'Dakhla-Oued Ed-Dahab'
-            ])->nullable();
+            $table->foreignId('organisation_id')->nullable()->constrained('organisations')->onDelete('cascade');
+            $table->foreignId('city_id')->nullable()->constrained('cities')->onDelete('cascade');
             $table->string('organisation_id_card_recto')->nullable();
             $table->string('organisation_id_card_verso')->nullable();
-            $table->foreignId('city_id')->nullable()->constrained()->onDelete('cascade');
 
             // Contributor-specific attributes
             $table->string('phone_number')->nullable();

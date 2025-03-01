@@ -361,7 +361,7 @@ textarea:focus {
 /* Buttons Specific Styles */
 button {
   display: block;
-  width: 80%;
+  width: 30%;
   font-weight: bold;
   background: linear-gradient(45deg, #0e346a 0%, #205490 100%);
   color: white;
@@ -557,9 +557,489 @@ button:active {
   border-radius: 40px;
   padding: 5px 15px;
   border: 5px solid rgb(255, 255, 255);
-  margin: 20px;
+  margin-bottom: 250px;
+  margin-top: 100px;
   display: grid;
   place-items: center;
+}
+.signContainer .SignInBut {
+  max-width: 200px; /* Limits the maximum size */
+  width: 100%; /* Adjusts width responsively */
+  padding: 10px 20px; /* Ensures padding is reasonable */
+  font-size: 1rem; /* Keeps text size consistent */
+}
+        .video {
+            width: 100%;
+            height: auto;
+            max-width: 400px;
+        }
+        .hover-bg-gray:hover {
+            background-color: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+        .grand-box {
+            display: none; 
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 90%;
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+        .petit-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .petit-box h1 {
+            font-size: 20px;
+            text-align: center;
+        }
+        .types-debris {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            align-items: center;
+        }
+        .buttons-container {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 80%;
+            max-width: 350px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            align-items: center;
+        }
+        .btn-option {
+            padding: 10px 20px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-option:hover {
+            background: #ddd;
+            color: black;
+        }
+        .btn-option.active {
+            background-color: #007bff; /* Bouton bleu */
+            color: white;
+        }
+        .sub-types {
+            display: none; /* Masquer les sous-types par défaut */
+            margin-top: 10px;
+        }
+        .sub-types.show {
+            display: block; /* Afficher les sous-types */
+        }
+        .sub-type-btn {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 200px;
+            max-width: 350px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            align-items: center;
+
+        }
+        .sub-type-btn:hover {
+            background: #ddd;
+        }
+        .close-btn {
+            margin-top: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            background-color: #c82333;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .sub-type-btn.selected {
+             background-color: lightgray; /* Fond lightgray pour les sous-types sélectionnés */
+        }
+
+        .btn-option.has-selected {
+    background-color: lightblue; /* Fond lightblue pour le bouton principal */
+        }
+      .main-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#map {
+    width: 100%;
+    height: 200px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: lightgrey;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease-in-out;
+}
+
+#map:hover {
+    background-color: floralwhite;
+}
+
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+#autoLocationBtn, #submitLocationBtn {
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+#autoLocationBtn:hover, #submitLocationBtn:hover {
+    background-color: rgb(61, 170, 207);
+    color: white;
+}
+
+#manualLocationInput {
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    border: none;
+}
+
+#locationStatus {
+    font-size: 12px;
+    color: #333;
+}
+
+.loading {
+    display: none;
+    font-size: 12px;
+    color: #555;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+.image-slider {
+    display: flex;
+    align-items: center; /* Centrer verticalement les flèches et l'image */
+    justify-content: center; /* Centrer horizontalement */
+    gap: 10px; /* Espace entre les flèches et l'image */
+}
+
+#images-wrapper{
+    align-items: center;
+}
+
+.image-container {
+    position: relative;
+    width: 400px; /* Largeur fixe pour l'image */
+    height: 200px; /* Hauteur fixe pour l'image */
+    border: none;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+        .image-container img {
+             width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+        }
+
+        .delete-btn {
+            position: absolute; /* Position absolue par rapport à .image-container */
+            top: 10px; /* Ajustez la position verticale */
+            right: 10px; /* Ajustez la position horizontale */
+            cursor: pointer;
+            color: black;
+            font-size: 20px;
+            z-index: 10;
+            display: none; /* Cache le bouton par défaut */
+        }
+
+        .image-container:hover .delete-btn {
+            display: block;
+        }
+
+        .image-container:hover {
+            background-color: antiquewhite;
+        }
+
+        .ajout-img {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 40px;
+            width: 250px;
+            border-radius: 20px;
+
+        }
+
+    .controls {
+    display: flex;
+    gap: 10px; /* Espace entre les boutons */
+}
+
+
+
+        
+
+.control-btn {
+     padding: 10px;
+    background-color: #7DA0CA;
+    color: white;
+    border: none;
+    border-radius: 50%; /* Boutons ronds */
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Largeur fixe */
+    height: 40px; /* Hauteur fixe */
+}
+
+.control-btn:hover {
+    background-color: #5A636A;
+}
+.titre{
+    margin-bottom: 50px;
+}
+
+/* Styles personnalisés */
+        .QE {
+            color: grey;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: -30px; /* Ajustement de la position */
+        }
+
+        .description-container {
+            margin-top: 20px;
+            max-width: 420px; /* Largeur maximale */
+        }
+
+        .textarea {
+            resize: vertical; /* Permet à l'utilisateur de redimensionner verticalement */
+        }
+
+        .btn-continuer {
+            background-color: #7DA0CA;
+            color: #f4f4f4;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-continuer:hover {
+            background-color: #C1E8FF;
+            color: black;
+        }
+
+        .btn-annuler {
+            background-color: white;
+            color: #7DA0CA;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-annuler:hover {
+            background-color: #5A636A;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                text-align: center;
+            }
+            .video-container video {
+                max-width: 100%;
+            }
+ 
+            .types-debris {
+                gap: 10px;
+            }
+            .grand-box {
+                width: 95%;
+                max-width: 90%;
+                padding: 15px;
+            }
+            .buttons-container {
+                 width: 100%;
+                 max-width: 100%;
+            }
+            .btn-option {
+                 font-size: 14px;
+                 padding: 8px 12px;
+            }
+            .sub-type-btn {
+                width: 100%;
+            }
+            .video-container {
+                display: flex;
+                justify-content: center;
+            }
+            .main-box {
+        padding: 20px;
+        width: 90%;
+    }
+
+    #map {
+        height: 150px;
+    }
+
+    .input-section {
+        gap: 8px;
+    }
+
+    #autoLocationBtn, #submitLocationBtn {
+        width: 90%;
+    }
+
+    #manualLocationInput {
+        width: 90%;
+    }
+
+    .mb-2{
+        font-size: 12px;
+    }
+
+    .btn-success{
+        font-size: 12px;
+
+    }
+
+    
+
+    .image-container {
+       width: 400px; /* Réduire la largeur de l'image */
+        height: 110px; /* Réduire la hauteur de l'image */
+    }
+
+    .delete-btn {
+        top: 5px; /* Ajuster la position du bouton "X" */
+        right: 5px;
+        font-size: 16px; /* Réduire la taille de l'icône */
+    }
+
+    .ajout-img {
+        max-width: 100%; /* Le bouton prend toute la largeur */
+        font-size: 12px; /* Réduire la taille du texte */
+        padding: 8px 16px; /* Ajuster le padding */
+        border-radius: 20px;
+    }
+
+    .control-btn {
+        width: 30px; /* Réduire la taille des boutons */
+        height: 30px;
+        font-size: 10px; /* Réduire la taille des icônes */
+        align-items: center;
+        justify-content: center;
+    }
+
+    .controls {
+        gap: 5px; /* Réduire l'espace entre les boutons */
+    }
+    .petit-para{
+        font-size: 12px;
+    }
+
+    
+        }
+  
+@media (min-width: 1200px) {
+  .signContainer .SignInBut {
+      max-width: 180px; /* Adjusts max size for larger screens */
+      font-size: 0.9rem;
+  }
+}
+/* Modal styles */
+.grand-box {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  width: 90%;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000; /* Ensure it's on top of other elements */
+}
+
+.petit-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background-color: #c82333;
 }
 /*for sign up, sign in with email and sign in with username pages*/
 .signContainer {
@@ -567,7 +1047,7 @@ button:active {
     background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%);
     border-radius: 40px;
     border: 5px solid rgb(255, 255, 255);
-    margin: 20px;
+    padding: 5px 15px;
     display: grid;
     place-items: center;
 }

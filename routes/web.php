@@ -7,8 +7,8 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ChangePasswordController;
-use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\ProfileController;
+//use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\SignalController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
 
@@ -53,7 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::post('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+/*Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard Route
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -61,18 +61,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/under-review', function () {
         return view('auth.under_review');
     })->name('under_review')->middleware('role:supervisor');
-});
-Route::middleware(['web'])->group(function () {
-});
-Auth::routes(['verify' => true]);
+});*/
+//Auth::routes(['verify' => true]);
 // Admin Routes
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
+/*Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
     // Users Management
     Route::resource('users', UsersController::class);
-
     // Approve Supervisor Accounts
     Route::post('/users/{user}/approve', [UsersController::class, 'approve'])->name('admin.users.approve');
-});
+});*/
 Route::get('/debug-session', function () {
     return response()->json(session()->all());
 })->middleware('web');
@@ -83,9 +80,21 @@ Route::get('/test-auth', function () {
     ]);
 })->middleware(['web', 'auth']);
 
-
 Route::get('overview', [HomeController::class, 'overview'])->name('overview');
 // Authenticated User Routes
+
+
+Route::prefix('signal')->group(function () {
+    // Show the form to create a new signal
+    Route::get('/create', [SignalController::class, 'create'])->name('signal.create');
+
+    // Store a new signal
+    Route::post('/store', [SignalController::class, 'store'])->name('signal.store');
+
+    // List all signals (for admin, supervisor, or contributor)
+    Route::get('/', [SignalController::class, 'index'])->name('signal.index');
+});
+
 
 
     // Profile Management Routes

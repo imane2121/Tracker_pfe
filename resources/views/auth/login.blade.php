@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="login-button">Sign In</button>
+                <button type="submit" class="SignInBut">Sign In</button>
 
                 <div class="agreement">
                     <a href="{{ route('password.request') }}">Forgot Password?</a>

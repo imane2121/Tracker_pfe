@@ -10,7 +10,7 @@
   <!-- Favicons -->
   <link href="{{ asset('/assets/img/apple-touch-icon.png') }}" rel="icon">
   <link href="{{ asset('/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
-
+  
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
@@ -128,5 +128,8 @@
 
   <!-- Main JS File -->
   <script src="{{ asset('/assets/js/main.js') }}"></script>
+  <script src="{{ asset('/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('/assets/js/main.js') }}"></script>
+    @stack('scripts') <!-- Include pushed scripts here -->
 </body>
 </html>
