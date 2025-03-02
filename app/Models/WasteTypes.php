@@ -21,7 +21,10 @@ class WasteTypes extends Model
     {
         return $this->hasMany(WasteTypes::class, 'parent_id');
     }
-
+    public function signals()
+    {
+        return $this->belongsToMany(Signal::class, 'signal_waste_types');
+    }
     // Relationship to parent waste type (for specific waste types)
     public function parentWasteType()
     {

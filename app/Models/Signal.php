@@ -9,7 +9,7 @@ class Signal extends Model
     use HasFactory;
 
     protected $fillable = [
-        'contributor_id',
+        'created_by',
         'volume',
         'wasteTypes',
         'location',
@@ -30,7 +30,7 @@ class Signal extends Model
 
     public function wasteTypes()
     {
-        return $this->belongsToMany(WasteTypes::class, 'signal_waste_types');
+        return $this->belongsToMany(WasteTypes::class, 'signal_waste_types', 'signal_id', 'waste_type_id');
     }
 
     public function media()

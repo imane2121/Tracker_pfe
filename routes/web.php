@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 //use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\SignalController;
 use App\Http\Controllers\HomeController;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -46,7 +47,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::get('userVerification/{token}', 'UserVerificationController@approve')->name('userVerification');
+Route::get('Verification/{token}', 'VerificationController@approve')->name('userVerification');
 Route::middleware('auth')->group(function () {
     Route::get('verify', [VerificationController::class, 'show'])->name('verification.notice');
     Route::get('verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
@@ -70,7 +71,7 @@ Route::middleware('auth')->group(function () {
     // Approve Supervisor Accounts
     Route::post('/users/{user}/approve', [UsersController::class, 'approve'])->name('admin.users.approve');
 });*/
-Route::get('/debug-session', function () {
+/*Route::get('/debug-session', function () {
     return response()->json(session()->all());
 })->middleware('web');
 Route::get('/test-auth', function () {
@@ -78,7 +79,7 @@ Route::get('/test-auth', function () {
         'user' => Auth::user(),
         'session' => session()->all(),
     ]);
-})->middleware(['web', 'auth']);
+})->middleware(['web', 'auth']);*/
 
 Route::get('overview', [HomeController::class, 'overview'])->name('overview');
 // Authenticated User Routes
@@ -95,7 +96,7 @@ Route::prefix('signal')->group(function () {
     Route::get('/', [SignalController::class, 'index'])->name('signal.index');
 });
 
-
+Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('signal.thank-you');
 
     // Profile Management Routes
     /*Route::prefix('profile')->group(function () {
@@ -109,10 +110,5 @@ Route::prefix('signal')->group(function () {
     Route::post('/password/change', [ChangePasswordController::class, 'update']);
 
     // Under Review Notification
-    
-
-
-
-
 // Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

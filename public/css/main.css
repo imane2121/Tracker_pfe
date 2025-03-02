@@ -1,0 +1,87 @@
+.wsf-btn-option {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 4px;
+    border: none;
+    border-radius: 20px;
+    background-color: #3490dc;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wsf-btn-option:hover {
+    background-color: #2779bd;
+    transform: translateY(-1px);
+}
+
+.wsf-btn-option.active {
+    background-color: #38c172;
+}
+
+.wsf-btn-option.has-selected {
+    background-color: #38c172;
+}
+
+.wsf-type-group {
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.wsf-subtypes {
+    display: none;
+    margin-left: 20px;
+    margin-top: 8px;
+    padding-left: 10px;
+    border-left: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.wsf-subtypes.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.wsf-subtype-item {
+    margin: 8px 0;
+}
+
+.wsf-specific-type {
+    background-color: #4299e1 !important;
+    font-size: 0.95em;
+    padding: 6px 14px;
+}
+
+.wsf-specific-type:hover {
+    background-color: #3182ce !important;
+}
+
+.wsf-specific-type.selected {
+    background-color: #2c5282 !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wsf-hidden {
+    display: none !important;
+}
+
+/* Transition for showing/hiding waste type groups */
+.wsf-type-group {
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.wsf-type-group[style*="display: none"] {
+    opacity: 0;
+    transform: translateY(-10px);
+} 
