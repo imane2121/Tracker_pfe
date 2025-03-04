@@ -2403,72 +2403,101 @@ section,
 /* Waste Signal Form Styles */
 .wsf-buttons-container {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
-    max-width: 600px;
-    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
 }
 
 .wsf-type-group {
-    position: relative;
-    width: 100%;
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .wsf-btn-option.wsf-general-type {
     width: 100%;
-    padding: 15px 25px;
-    text-align: center;
-    font-size: 1.1em;
-    color: white !important;
-    background-color: #1a4b84 !important;
-    border: none !important;
-    border-radius: 50px !important;
+    padding: 1rem;
+    border: 2px solid #0e346a;
+    border-radius: 10px;
+    background-color: white;
+    color: #0e346a;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    text-decoration: none !important;
-    display: block !important;
-    line-height: normal;
-    margin: 0;
-    outline: none;
-    font-weight: normal !important;
-    text-transform: none !important;
-    letter-spacing: normal;
+    position: relative;
+    overflow: hidden;
 }
 
 .wsf-btn-option.wsf-general-type:hover {
-    background-color: #2c5c95 !important;
+    background-color: #f5f9fc;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.1);
 }
 
 .wsf-btn-option.wsf-general-type.active {
-    background-color: #2c5c95 !important;
-}
-
-.wsf-btn-option.wsf-general-type.has-selected {
-    background-color: #28a745 !important;
+    background-color: #0e346a;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.2);
 }
 
 .wsf-subtypes {
-    display: none !important;
-    margin-top: 10px;
-    padding: 10px 20px;
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.wsf-subtypes.show {
-    display: block !important;
-    opacity: 1;
-    visibility: visible;
+    display: none;
+    background-color: #f5f9fc;
+    border-radius: 10px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
     animation: slideDown 0.3s ease-out;
 }
 
+.wsf-subtypes.show {
+    display: block;
+}
+
+.wsf-subtype-item {
+    margin: 0.5rem 0;
+}
+
+.wsf-btn-option.wsf-specific-type {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #0e346a;
+    border-radius: 8px;
+    background-color: white;
+    color: #0e346a;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wsf-btn-option.wsf-specific-type:hover {
+    background-color: #f0f5fa;
+}
+
+.wsf-btn-option.wsf-specific-type.active {
+    background-color: #0e346a;
+    color: white;
+}
+
+.wsf-hidden {
+    display: none !important;
+}
+
+#autreInputContainer {
+    margin-top: 0.5rem;
+}
+
+#autreInput {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #0e346a;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Animation for subtypes */
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -2480,91 +2509,135 @@ section,
     }
 }
 
-.wsf-subtype-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    margin: 5px 0;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    background: none;
-}
-
-.wsf-subtype-item:hover {
-    background-color: #f8f9fa;
-}
-
-.wsf-subtype-label {
-    margin-left: 15px;
-    font-size: 1em;
-    color: #333;
-    cursor: pointer;
-    font-weight: normal;
-    text-transform: none;
-}
-
-.wsf-checkbox {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    appearance: checkbox;
-    -webkit-appearance: checkbox;
-    position: static;
-}
-
-.wsf-checkbox:checked + .wsf-subtype-label {
-    color: #1a4b84;
-    font-weight: 600;
-}
-
-#autreInputContainer {
-    margin-top: 10px;
-    width: 100%;
-}
-
-.wsf-hidden {
-    display: none;
-}
-
-/* Image container styles */
+/* Media Upload Section */
 .waste-signal-form .image-container {
     position: relative;
-    width: 100%;
-    height: 200px;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
+    width: 150px;
+    height: 150px;
+    margin: 0.5rem;
+    border: 2px dashed #0e346a;
+    border-radius: 10px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.waste-signal-form .image-container:hover {
+    border-color: #205490;
+    background-color: #f5f9fc;
 }
 
 .waste-signal-form .image-container img,
 .waste-signal-form .image-container video {
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .waste-signal-form .delete-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.8);
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    padding: 5px;
-    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #dc3545;
+    border: none;
+    transition: all 0.3s ease;
 }
 
-/* Additional overrides */
-.wsf-btn-option.wsf-general-type::before,
-.wsf-btn-option.wsf-general-type::after {
-    display: none;
+.waste-signal-form .delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
 }
 
-.wsf-type-group + .wsf-type-group {
-    margin-top: 10px;
+/* Location Section */
+.waste-signal-form #map {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.1);
+}
+
+.waste-signal-form .input-section {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.waste-signal-form #manualLocationInput {
+    margin: 1rem 0;
+}
+
+/* Volume and Description Section */
+.waste-signal-form .form-control {
+    border: 1px solid #0e346a;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.waste-signal-form .form-control:focus {
+    border-color: #205490;
+    box-shadow: 0 0 0 0.2rem rgba(14, 52, 106, 0.25);
+}
+
+/* Submit Buttons */
+.waste-signal-form .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.waste-signal-form .btn-primary {
+    background-color: #0e346a;
+    border-color: #0e346a;
+}
+
+.waste-signal-form .btn-primary:hover {
+    background-color: #205490;
+    border-color: #205490;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.2);
+}
+
+.waste-signal-form .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.waste-signal-form .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(108, 117, 125, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .wsf-buttons-container {
+        gap: 0.5rem;
+    }
+
+    .wsf-type-group {
+        flex: 1 1 100%;
+    }
+
+    .wsf-btn-option.wsf-general-type,
+    .wsf-btn-option.wsf-specific-type {
+        padding: 0.75rem;
+    }
+
+    .waste-signal-form .image-container {
+        width: 120px;
+        height: 120px;
+    }
 }

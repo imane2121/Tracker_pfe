@@ -13,7 +13,9 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Verified;
-class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVerifyEmail
+use App\Notifications\VerifyUserNotification;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
     use SoftDeletes, Notifiable, HasFactory;
 
@@ -65,10 +67,24 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         'credibility_score', // Added
     ];
 
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'verified' => 'boolean',
+    ];
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
     }
+
+    /**
+     * Get all signals created by the user.
+     */
+    public function signals()
+{
+    return $this->hasMany(Signal::class, 'created_by');
+}
 
     /**
      * Check if the user is an admin.
@@ -78,9 +94,9 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         return $this->role === 'admin';
     }
     public function hasVerifiedEmail()
-{
-    return !is_null($this->email_verified_at);
-}
+    {
+        return !is_null($this->email_verified_at);
+    }
 
     /**
      * Check if the user is a contributor.
@@ -176,17 +192,20 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
         $this->attributes['verified_at'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
     }
     public function markEmailAsVerified()
-{
-    if (!$this->hasVerifiedEmail()) {
-        $this->forceFill([
-            'email_verified_at' => now(),
-            'verified' => 1, // Mark as verified
-            'account_status' => 'active', // Activate the account
-        ])->save();
-
-        event(new Verified($this));
+    {
+        if (!$this->hasVerifiedEmail()) {
+            $this->forceFill([
+                'email_verified_at' => $this->freshTimestamp(),
+                'verified' => 1,
+            ])->save();
+        }
     }
-}
+
+    public function getEmailForVerification()
+    {
+        return $this->email;
+    }
+
     /**
      * Relationship with Role model.
      */
@@ -201,5 +220,10 @@ class User extends Authenticatable implements \Illuminate\Contracts\Auth\MustVer
     public function city()
     {
         return $this->belongsTo(City::class, 'city_id'); // Updated from 'villes_id'
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyUserNotification($this));
     }
 }

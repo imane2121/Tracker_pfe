@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -25,7 +27,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/dashboard';
 
     /**
      * Create a new controller instance.
@@ -35,6 +37,26 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-        $this->middleware('auth')->only('logout');
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
+        if ($user->role === 'supervisor' && $user->account_status === 'under_review') {
+            auth()->logout();
+            return redirect()->route('login')
+                ->with('error', 'Votre compte est en cours d\'examen par un administrateur.');
+        }
+
+        if ($user->account_status !== 'active') {
+            auth()->logout();
+            return redirect()->route('login')
+                ->with('error', 'Votre compte n\'est pas actif.');
+        }
+
+        return redirect()->intended($this->redirectTo);
     }
 }

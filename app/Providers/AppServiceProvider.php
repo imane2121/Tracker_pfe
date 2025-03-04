@@ -4,6 +4,7 @@ namespace App\Providers;
 use App\Models\Signal;
 use App\Observers\SignalObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,10 +19,13 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
- 
-    
     public function boot()
     {
         Signal::observe(SignalObserver::class);
+        
+        // Force HTTPS for assets when running through ngrok
+        if(str_contains(config('app.url'), 'ngrok')) {
+            URL::forceScheme('https');
+        }
     }
 }

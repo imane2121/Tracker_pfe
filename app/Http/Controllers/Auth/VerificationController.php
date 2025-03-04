@@ -3,70 +3,70 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\VerifiesEmails;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyEmail;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
 
 class VerificationController extends Controller
 {
     use VerifiesEmails;
 
-    protected $redirectTo = RouteServiceProvider::HOME;
+    protected $redirectTo = '/dashboard';
 
     public function __construct()
     {
         $this->middleware('auth');
         $this->middleware('signed')->only('verify');
-        $this->middleware('throttle:6,1')->only('verify', 'resend');
     }
 
-    public function verified(Request $request)
+    public function show(Request $request)
     {
-        $user = $request->user();
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect($this->redirectTo);
+        }
 
-        // Mark email as verified and update account status
-        if (!$user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            $user->verified = 1;
-            $user->account_status = 'active';
+        return view('auth.verify-email');
+    }
+
+    public function verify(Request $request)
+    {
+        if ($request->route('id') != $request->user()->getKey()) {
+            throw new \InvalidArgumentException;
+        }
+
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect($this->redirectTo);
+        }
+
+        if ($request->user()->markEmailAsVerified()) {
+            event(new Verified($request->user()));
+            
+            // Update account status based on role
+            $user = $request->user();
+            if ($user->role === 'contributor') {
+                $user->account_status = 'active';
+            } else {
+                $user->account_status = 'under_review';
+            }
             $user->save();
         }
 
-        return redirect('/dashboard')->with('success', 'Your email has been verified.');
-    }
-
-    // Redirect the user to a custom page based on their role
-    protected function redirectTo()
-    {
-        if (auth()->user()->role === 'contributor') {
-            return route('contributor.dashboard');
+        if ($request->user()->role === 'supervisor') {
+            return redirect($this->redirectTo)->with('status', 'Your email has been verified. Your account is under review by an administrator.');
         }
 
-        if (auth()->user()->role === 'supervisor') {
-            return route('supervisor.dashboard');
-        }
-
-        return $this->redirectTo;
+        return redirect($this->redirectTo)->with('status', 'Your email has been verified!');
     }
 
-    // Generate verification link and send it via email
-    protected function registered(Request $request, $user)
+    public function resend(Request $request)
     {
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(config('auth.verification.expire', 60)),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->email)
-            ]
-        );
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect($this->redirectTo);
+        }
 
-        // Send email with the verification URL
-        Mail::to($user->email)->send(new VerifyEmail($verificationUrl));
+        $request->user()->sendEmailVerificationNotification();
 
-        return redirect()->route('login')->with('success', 'Please check your email to verify your account.');
+        return back()->with('resent', true);
     }
 }

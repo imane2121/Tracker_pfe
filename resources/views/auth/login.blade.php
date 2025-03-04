@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
 <main class="main">
     <section id="starter-section" class="starter-section">

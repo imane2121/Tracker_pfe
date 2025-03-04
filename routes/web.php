@@ -7,11 +7,10 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ChangePasswordController;
-//use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\SignalController;
 use App\Http\Controllers\HomeController;
 use Database\Seeders\RoleSeeder;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DashboardController;
 
 
 /*
@@ -47,23 +46,27 @@ Route::middleware('guest')->group(function () {
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::get('Verification/{token}', 'VerificationController@approve')->name('userVerification');
+// Email Verification Routes
 Route::middleware('auth')->group(function () {
-    Route::get('verify', [VerificationController::class, 'show'])->name('verification.notice');
-    Route::get('verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
-    Route::post('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
+    Route::get('/email/verify', [VerificationController::class, 'show'])
+        ->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+        ->name('verification.verify')
+        ->middleware(['signed', 'throttle:30,1']);
+
+    Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
+        ->name('verification.resend')
+        ->middleware('throttle:3,1');
 });
 
-/*Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard Route
+// Dashboard Route - Protected by auth and verified middleware
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    Route::get('/under-review', function () {
-        return view('auth.under_review');
-    })->name('under_review')->middleware('role:supervisor');
-});*/
-//Auth::routes(['verify' => true]);
+});
+
 // Admin Routes
 /*Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
     // Users Management
@@ -112,3 +115,5 @@ Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('si
     // Under Review Notification
 // Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

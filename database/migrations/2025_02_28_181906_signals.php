@@ -24,12 +24,20 @@ return new class extends Migration
             $table->boolean('anomalyFlag')->default(false);
             $table->timestamp('signalDate')->useCurrent();
             $table->enum('status', ['pending', 'validated', 'rejected'])->default('pending');
-           // $table->string('manual_location')->nullable();
             $table->timestamps();
         });
+
+        // Create pivot table for waste types
+        Schema::create('signal_waste_types', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('signal_id')->constrained()->onDelete('cascade');
+            $table->foreignId('waste_type_id')->constrained('waste_types')->onDelete('cascade');
+            $table->timestamps();
+        });
+
         Schema::create('signal_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('signal_id')->constrained('signals')->onDelete('cascade');
+            $table->foreignId('signal_id')->constrained()->onDelete('cascade');
             $table->string('media_type'); // photo/video
             $table->string('file_path'); // file location on the server
             $table->timestamps();
@@ -41,6 +49,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('signal_waste_types');
         Schema::dropIfExists('signal_media');
         Schema::dropIfExists('signals');
     }
