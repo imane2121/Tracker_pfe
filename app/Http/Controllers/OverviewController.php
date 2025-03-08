@@ -13,8 +13,13 @@ class OverviewController extends Controller
 {
     public function index()
     {
-        // Get upcoming collectes
-        $collectes = Collecte::with(['signal', 'signal.wasteTypes', 'contributors'])
+        // Get all collectes for the map
+        $mapCollectes = Collecte::with(['signal', 'signal.wasteTypes', 'contributors'])
+            ->whereHas('signal') // Ensure signal exists
+            ->get();
+
+        // Get upcoming collectes for the slider
+        $upcomingCollectes = Collecte::with(['signal', 'signal.wasteTypes', 'contributors'])
             ->where('starting_date', '>', Carbon::now())
             ->where('status', 'planned')
             ->orderBy('starting_date')
@@ -58,6 +63,6 @@ class OverviewController extends Controller
                 ];
             });
 
-        return view('overview', compact('collectes', 'articles', 'locations', 'wasteTypes'));
+        return view('overview', compact('mapCollectes', 'upcomingCollectes', 'articles', 'locations', 'wasteTypes'));
     }
 } 

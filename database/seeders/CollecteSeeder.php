@@ -6,12 +6,20 @@ use Illuminate\Database\Seeder;
 use App\Models\Collecte;
 use App\Models\User;
 use App\Models\Signal;
+use App\Models\WasteTypes;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CollecteSeeder extends Seeder
 {
     public function run(): void
     {
+        // Clear existing data
+        DB::table('collecte_contributor')->delete();
+        DB::table('collectes')->delete();
+        DB::table('signal_waste_types')->delete();
+        DB::table('signals')->delete();
+
         // Get some users with admin or supervisor role for creators
         $creators = User::whereHas('roles', function($query) {
             $query->whereIn('title', ['admin', 'supervisor']);
@@ -22,74 +30,161 @@ class CollecteSeeder extends Seeder
             $creators = User::take(1)->get();
         }
 
-        // Get some signals to associate with collectes
-        $signals = Signal::all();
-
-        // If no signals exist, we can't create collectes
-        if ($signals->isEmpty()) {
-            echo "No signals found. Please run SignalSeeder first.\n";
-            return;
+        if ($creators->isEmpty()) {
+            throw new \Exception('No users found in the database. Please run UserSeeder first.');
         }
 
-        // Regions in Morocco
-        $regions = [
-            'Tanger-Tétouan-Al Hoceïma',
-            'Oriental',
-            'Fès-Meknès',
-            'Rabat-Salé-Kénitra',
-            'Béni Mellal-Khénifra',
-            'Casablanca-Settat',
-            'Marrakech-Safi',
-            'Drâa-Tafilalet',
-            'Souss-Massa',
-            'Guelmim-Oued Noun',
-            'Laâyoune-Sakia El Hamra',
-            'Dakhla-Oued Ed-Dahab'
+        echo "Found " . $creators->count() . " creators\n";
+        foreach ($creators as $creator) {
+            echo "Creator ID: {$creator->id}, Name: {$creator->name}\n";
+        }
+
+        // Use the first creator as a fallback
+        $defaultCreator = $creators->first();
+        echo "Using default creator ID: {$defaultCreator->id}\n";
+
+        // Get waste types for signals
+        $wasteTypes = WasteTypes::all();
+        if ($wasteTypes->isEmpty()) {
+            throw new \Exception('No waste types found. Please run WasteTypesSeeder first.');
+        }
+
+        // Moroccan beaches with accurate coordinates
+        $beaches = [
+            [
+                'name' => 'Plage Ain Diab',
+                'lat' => 33.6044,
+                'lng' => -7.7089,
+                'region' => 'Casablanca-Settat',
+                'city' => 'Casablanca'
+            ],
+            [
+                'name' => 'Plage Lalla Meryem',
+                'lat' => 33.5989,
+                'lng' => -7.7028,
+                'region' => 'Casablanca-Settat',
+                'city' => 'Casablanca'
+            ],
+            [
+                'name' => 'Plage Municipale',
+                'lat' => 35.7885,
+                'lng' => -5.8126,
+                'region' => 'Tanger-Tétouan-Al Hoceïma',
+                'city' => 'Tangier'
+            ],
+            [
+                'name' => 'Plage Taghazout',
+                'lat' => 30.5451,
+                'lng' => -9.7088,
+                'region' => 'Souss-Massa',
+                'city' => 'Agadir'
+            ],
+            [
+                'name' => "Plage d'Agadir",
+                'lat' => 30.4202,
+                'lng' => -9.6024,
+                'region' => 'Souss-Massa',
+                'city' => 'Agadir'
+            ],
+            [
+                'name' => 'Plage Essaouira',
+                'lat' => 31.5130,
+                'lng' => -9.7667,
+                'region' => 'Marrakech-Safi',
+                'city' => 'Essaouira'
+            ],
+            [
+                'name' => 'Plage El Haouzia',
+                'lat' => 33.2537,
+                'lng' => -8.5214,
+                'region' => 'Casablanca-Settat',
+                'city' => 'El Jadida'
+            ],
+            [
+                'name' => 'Plage Martil',
+                'lat' => 35.6167,
+                'lng' => -5.2667,
+                'region' => 'Tanger-Tétouan-Al Hoceïma',
+                'city' => 'Tetouan'
+            ]
         ];
 
-        // Create 20 collectes with different statuses
-        foreach(range(1, 20) as $index) {
-            $signal = $signals->random();
-            $startingDate = Carbon::now()->addDays(rand(-30, 30)); // Some past, some future
-            
-            $collecte = Collecte::create([
-                'signal_id' => $signal->id,
-                'user_id' => $creators->random()->id,
-                'region' => $regions[array_rand($regions)],
-                'location' => $signal->location,
-                'image' => $signal->media()->first()?->path, // Use one of the signal's images
-                'description' => "Clean-up operation for " . $signal->waste_type . " at " . $signal->location,
-                'latitude' => $signal->latitude,
-                'longitude' => $signal->longitude,
-                'nbrContributors' => rand(10, 30), // Set max capacity
-                'current_contributors' => rand(0, 35), // Model will automatically cap this if too high
-                'status' => $this->getStatusBasedOnDate($startingDate),
-                'starting_date' => $startingDate,
-                'end_date' => $startingDate->copy()->addHours(rand(2, 8))
-            ]);
+        $collectes = collect([]);
 
-            // Add some contributors - but only up to the current_contributors count
-            $contributors = User::whereHas('roles', function($query) {
-                $query->where('title', 'contributor');
-            })
-            ->inRandomOrder()
-            ->take($collecte->current_contributors) // Take exactly the number of current_contributors
-            ->get();
+        // Create signals for each beach first
+        foreach ($beaches as $beach) {
+            try {
+                echo "\nProcessing beach: {$beach['name']}\n";
+                
+                // Always use the default creator for consistency
+                $timestamp = now()->format('Y-m-d H:i:s');
+                
+                echo "Creating signal with creator ID: {$defaultCreator->id}\n";
 
-            if ($contributors->isNotEmpty()) {
-                foreach($contributors as $contributor) {
-                    // For past events, mark some contributors as completed
-                    $status = $startingDate->isPast() 
-                        ? array_rand(['approved' => 1, 'completed' => 2])
-                        : array_rand(['pending' => 0, 'approved' => 1]);
+                // Select 2-3 random waste types for this signal
+                $selectedWasteTypes = $wasteTypes->random(rand(2, 3));
+                $wasteTypeIds = $selectedWasteTypes->pluck('id')->toArray();
+                
+                // Create signal using DB facade to ensure proper timestamp handling
+                $signalId = DB::table('signals')->insertGetId([
+                    'location' => $beach['name'],
+                    'description' => "Waste collection point at {$beach['name']}, {$beach['city']}",
+                    'latitude' => $beach['lat'],
+                    'longitude' => $beach['lng'],
+                    'volume' => rand(20, 150),
+                    'created_by' => $defaultCreator->id,
+                    'waste_types' => json_encode($wasteTypeIds),
+                    'status' => 'validated',
+                    'signal_date' => $timestamp,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp
+                ]);
 
-                    $collecte->contributors()->attach($contributor->id, [
-                        'status' => $status,
-                        'joined_at' => Carbon::now()->subDays(rand(1, 10))
+                echo "Created signal with ID: {$signalId}\n";
+
+                // Attach waste types to signal
+                foreach ($wasteTypeIds as $wasteTypeId) {
+                    DB::table('signal_waste_types')->insert([
+                        'signal_id' => $signalId,
+                        'waste_type_id' => $wasteTypeId
                     ]);
                 }
+
+                // Create 2-3 collectes for each signal
+                foreach(range(1, rand(2, 3)) as $index) {
+                    $startingDate = Carbon::now()->addDays(rand(-30, 30));
+                    $status = $this->getStatusBasedOnDate($startingDate);
+                    
+                    // Create collecte using DB facade
+                    $collecteId = DB::table('collectes')->insertGetId([
+                        'signal_id' => $signalId,
+                        'user_id' => $defaultCreator->id,
+                        'region' => $beach['region'],
+                        'location' => $beach['name'],
+                        'description' => "Beach cleanup event at {$beach['name']}. Join us in keeping our beaches clean!",
+                        'latitude' => $beach['lat'],
+                        'longitude' => $beach['lng'],
+                        'nbrContributors' => rand(10, 30),
+                        'current_contributors' => 0,
+                        'status' => $status,
+                        'starting_date' => $startingDate->format('Y-m-d H:i:s'),
+                        'end_date' => $startingDate->copy()->addHours(rand(2, 8))->format('Y-m-d H:i:s'),
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp
+                    ]);
+
+                    $collectes->push($collecteId);
+                    echo "Created collecte with ID: {$collecteId}\n";
+                }
+            } catch (\Exception $e) {
+                echo "Error creating data for {$beach['name']}: " . $e->getMessage() . "\n";
+                echo "Stack trace: " . $e->getTraceAsString() . "\n";
             }
         }
+
+        // Store collectes in a temporary file for the ContributorSeeder
+        file_put_contents(storage_path('collectes.json'), json_encode($collectes->toArray()));
+        echo "\nSeeding completed. Created " . $collectes->count() . " collectes.\n";
     }
 
     private function getStatusBasedOnDate($startingDate): string

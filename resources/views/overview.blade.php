@@ -21,7 +21,7 @@
     <div class="container">
         <div class="swiper collectesSwiper">
             <div class="swiper-wrapper">
-                @foreach ($collectes as $collecte)
+                @foreach ($upcomingCollectes as $collecte)
                     <div class="swiper-slide">
                         <div class="collecte-card">
                             <div class="collecte-image">
@@ -84,7 +84,7 @@
 </section>
 
 <!-- Collecte Modals -->
-@foreach ($collectes as $collecte)
+@foreach ($upcomingCollectes as $collecte)
     <div class="modal fade" id="collecteModal{{ $collecte->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -370,7 +370,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Debug logging
-    console.log('Full collectes data:', @json($collectes));
+    console.log('Full collectes data:', @json($mapCollectes));
 
     // Initialize map centered on Morocco
     var map = L.map('map').setView([31.7917, -7.0926], 6);
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Get collectes data
-    var collectes = @json($collectes);
+    var collectes = @json($mapCollectes);
     console.log('Number of collectes:', collectes ? collectes.length : 0);
     
     // Function to get icon based on volume
@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p><strong>Status:</strong> ${collecte.status || 'Unknown'}</p>
                                 <p><strong>Date:</strong> ${collecte.starting_date ? new Date(collecte.starting_date).toLocaleDateString() : 'N/A'}</p>
                                 <p><strong>Waste Types:</strong> ${getWasteTypesText(collecte.signal)}</p>
-                                <p><strong>Volunteers:</strong> ${collecte.contributors ? collecte.contributors.length : 0} / ${collecte.nbrContributors || 0}</p>
+                                <p><strong>Volunteers:</strong> ${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0}</p>
                             </div>
                         `);
                         marker.addTo(map);
@@ -548,25 +548,29 @@ document.addEventListener('DOMContentLoaded', function() {
             var filteredCollectes = collectes.filter(function(collecte) {
                 if (!collecte) return false;
 
-                var matchStatus = status === 'all' || 
-                    (collecte.status && collecte.status.toLowerCase() === status.toLowerCase());
-                
-                var matchWasteType = wasteType === 'all' || 
-                    (collecte.signal && collecte.signal.wasteTypes && 
-                     collecte.signal.wasteTypes.some(wt => wt && wt.id === parseInt(wasteType)));
-                
+                // Status filtering
+                var matchStatus = status === 'all' || collecte.status.toLowerCase() === status.toLowerCase();
+
+                // Waste type filtering
+                var matchWasteType = wasteType === 'all';
+                if (!matchWasteType && collecte.signal && collecte.signal.wasteTypes) {
+                    matchWasteType = collecte.signal.wasteTypes.some(wt => wt.id === parseInt(wasteType));
+                }
+
+                // Date filtering
                 var matchDate = true;
-                if (dateFrom && dateTo && collecte.starting_date) {
+                if (dateFrom && dateTo) {
                     var collecteDate = new Date(collecte.starting_date);
                     var fromDate = new Date(dateFrom);
                     var toDate = new Date(dateTo);
+                    toDate.setHours(23, 59, 59); // Include the entire end day
                     matchDate = collecteDate >= fromDate && collecteDate <= toDate;
                 }
 
                 return matchStatus && matchWasteType && matchDate;
             });
 
-            console.log('Filtered collectes:', filteredCollectes.length);
+            console.log('Filtered collectes:', filteredCollectes);
             addMarkersToMap(filteredCollectes);
         } catch (error) {
             console.error('Error in updateMap:', error);
@@ -575,7 +579,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial map population
     if (collectes && collectes.length > 0) {
-        console.log('Initializing map with collectes');
+        console.log('Initializing map with collectes:', collectes);
+        
+        // Set default filter values
+        document.getElementById('status-filter').value = 'all';
+        document.getElementById('waste-type-filter').value = 'all';
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        
         updateMap();
     } else {
         console.log('No collectes available');
