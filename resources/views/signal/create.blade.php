@@ -1,21 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container my-5">
+<div class="container my-5 mb-7">
     <!-- Encouraging Message -->
     <div class="text-center mb-5">
-        <div class="encouragement-container position-relative">
-            <div class="ocean-wave"></div>
-            <h2 class="display-4 fw-bold text-primary mb-3">
-                <span class="d-block">Few Steps to</span>
-                <span class="d-block text-success">Save Our Ocean</span>
+        <div class="encouragement-card">
+            <div class="wave-animation">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <div class="card-content">
+                <h2 class="title">
+                    <span class="highlight">Few Steps to</span>
+                    <span class="highlight">A Cleaner Ocean</span>
             </h2>
-            <p class="lead text-muted mb-0">
-                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+                <p class="message">
                 Your report helps us protect marine life
-                <br class="d-none d-md-block">
                 and keep our waters clean
             </p>
+            </div>
         </div>
     </div>
 
@@ -24,7 +28,7 @@
         
         <!-- Waste Types Section -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h4 class="mb-0">Please Select Waste Type</h4>
             </div>
             <div class="card-body">
@@ -69,44 +73,49 @@
 
         <!-- Location Section -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h4 class="mb-0">Location Details</h4>
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
                         <label for="location" class="form-label">Location Name</label>
-                        <input type="text" class="form-control" id="location" name="location" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="volume" class="form-label">Volume (m³)</label>
-                        <input type="number" class="form-control" id="volume" name="volume" min="0" step="0.1" required>
+                            <div class="location-input-group">
+                                <input type="text" class="form-control" id="location" name="location" required placeholder="Enter or validate a location">
+                                <button type="button" class="btn" id="validateLocationBtn" title="Validate Location">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
                     </div>
                 </div>
-                <div class="row">
+                        <div class="mb-3 volume-input">
+                            <label for="volume" class="form-label">Volume (m³)</label>
+                            <input type="number" class="form-control" id="volume" name="volume" min="0" step="0.1" required placeholder="Enter waste volume">
+                        </div>
+                        <div class="row coordinate-inputs">
                     <div class="col-md-6 mb-3">
                         <label for="latitude" class="form-label">Latitude</label>
-                        <input type="number" class="form-control" id="latitude" name="latitude" step="any" required>
+                                <input type="number" class="form-control" id="latitude" name="latitude" step="any" required placeholder="Latitude">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="longitude" class="form-label">Longitude</label>
-                        <input type="number" class="form-control" id="longitude" name="longitude" step="any" required>
+                                <input type="number" class="form-control" id="longitude" name="longitude" step="any" required placeholder="Longitude">
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-primary btn-lg flex-grow-1" id="useLocationBtn">
+                        <button type="button" class="btn btn-primary w-100 use-location-btn" id="useLocationBtn">
                         <i class="bi bi-geo-alt"></i> Use My Location
                     </button>
-                    <button type="button" class="btn btn-outline-primary btn-lg" id="validateLocationBtn">
-                        <i class="bi bi-check-circle"></i> Validate Location
-                    </button>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="locationMap" class="rounded shadow-sm" style="height: 400px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Media Section -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h4 class="mb-0">Add Photos/Videos</h4>
             </div>
             <div class="card-body">
@@ -125,7 +134,7 @@
 
         <!-- Description Section -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
                 <h4 class="mb-0">Additional Details</h4>
             </div>
             <div class="card-body">
@@ -151,7 +160,13 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
+    /* Add spacing utility class */
+    .mb-7 {
+        margin-bottom: 7rem !important;
+    }
+
     .waste-signal-form .card {
         border: none;
         transition: transform 0.2s;
@@ -164,6 +179,8 @@
     .waste-signal-form .card-header {
         border-bottom: none;
         padding: 1rem;
+        background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        color: white;
     }
 
     .wsf-btn-option {
@@ -197,6 +214,42 @@
     .wsf-type-group {
         margin-bottom: 0.5rem;
         transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .wsf-back-button {
+        position: absolute;
+        top: 0;
+        left: -30px;
+        padding: 5px 8px;
+        background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+
+    .wsf-back-button:hover {
+        transform: scale(1.1);
+    }
+
+    .wsf-back-button.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
     .wsf-subtypes {
@@ -292,120 +345,160 @@
             width: 120px;
             height: 120px;
         }
-    }
 
-    /* New styles for the encouragement section */
-    .encouragement-container {
-        padding: 2rem 1rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .encouragement-container h2 {
-        font-size: calc(1.5rem + 1.5vw);
-        line-height: 1.2;
-        margin-bottom: 1rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .encouragement-container .lead {
-        font-size: calc(1rem + 0.3vw);
-        line-height: 1.6;
-        position: relative;
-        z-index: 1;
-    }
-
-    .ocean-wave {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 20px;
-        background: linear-gradient(45deg, #0d6efd 25%, transparent 25%),
-                    linear-gradient(-45deg, #0d6efd 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, #0d6efd 75%),
-                    linear-gradient(-45deg, transparent 75%, #0d6efd 75%);
-        background-size: 20px 20px;
-        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-        opacity: 0.1;
-        animation: wave 20s linear infinite;
-    }
-
-    @keyframes wave {
-        0% {
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-        }
-        100% {
-            background-position: 40px 0, 40px 10px, 50px -10px, 30px 0px;
-        }
-    }
-
-    /* Mobile-specific adjustments */
-    @media (max-width: 768px) {
-        .encouragement-container {
-            padding: 1.5rem 1rem;
-            margin: 0 -1rem;
-            border-radius: 0;
-        }
-
-        .encouragement-container h2 {
-            font-size: calc(1.25rem + 0.5vw);
-            margin-bottom: 0.75rem;
-        }
-
-        .encouragement-container .lead {
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-
-        /* Adjust card spacing for mobile */
-        .waste-signal-form .card {
-            margin-left: -1rem;
-            margin-right: -1rem;
-            border-radius: 0;
-        }
-
-        .waste-signal-form .card-header {
-            border-radius: 0;
-        }
-
-        /* Make buttons more touch-friendly */
-        .btn-lg {
-            padding: 1rem 1.5rem;
-            font-size: 1.1rem;
-        }
-
-        /* Adjust waste type buttons for better mobile layout */
-        .wsf-buttons-container {
-            gap: 0.5rem;
-        }
-
-        .wsf-btn-option {
-            padding: 0.75rem 1rem;
+        .location-input-group .form-control {
             font-size: 0.95rem;
         }
 
-        /* Improve media upload container on mobile */
-        .image-container {
-            width: 100%;
-            height: 120px;
-            margin-bottom: 1rem;
+        .use-location-btn {
+            margin-top: 1rem;
         }
     }
 
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-        .encouragement-container {
-            background: linear-gradient(135deg, #2d3436 0%, #1e272e 100%);
+    #locationMap {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    #locationMap:hover {
+        border-color: var(--primary-color);
+    }
+
+    .location-marker {
+        animation: markerPulse 1.5s infinite;
+    }
+
+    @keyframes markerPulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .map-tooltip {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Location Input Styles */
+    .location-input-group {
+        position: relative;
+    }
+
+    .location-input-group .form-control {
+        padding-right: 45px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .location-input-group .form-control:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 0.2rem rgba(32, 84, 144, 0.1);
+    }
+
+    .location-input-group .btn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .location-input-group .btn:hover {
+        color: var(--primary-gradient-start);
+        background-color: rgba(32, 84, 144, 0.1);
+    }
+
+    .location-input-group .btn.btn-success {
+        color: #fff;
+        background-color: #198754;
+    }
+
+    .location-input-group .btn.btn-success:hover {
+        background-color: #157347;
+    }
+
+    .location-input-group .btn i {
+            font-size: 1.1rem;
         }
 
-        .encouragement-container .lead {
-            color: #a0aec0 !important;
-        }
+    /* Volume Input Styles */
+    .volume-input {
+        position: relative;
+    }
+
+    .volume-input .form-control {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .volume-input .form-control:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 0.2rem rgba(32, 84, 144, 0.1);
+    }
+
+    /* Coordinate Inputs */
+    .coordinate-inputs .form-control {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .coordinate-inputs .form-control:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 0.2rem rgba(32, 84, 144, 0.1);
+    }
+
+    /* Use Location Button */
+    .use-location-btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        border: none;
+    }
+
+    .use-location-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .use-location-btn:active {
+        transform: translateY(0);
+    }
+
+    .use-location-btn i {
+        margin-right: 0.5rem;
+    }
+
+    /* Map Container */
+    #locationMap {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 </style>
 @endpush
@@ -414,13 +507,55 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Location handling
-        const useLocationBtn = document.getElementById('useLocationBtn');
-        const validateLocationBtn = document.getElementById('validateLocationBtn');
-        const locationInput = document.getElementById('location');
-        const latitudeInput = document.getElementById('latitude');
-        const longitudeInput = document.getElementById('longitude');
+        // Initialize map
+        const map = L.map('locationMap').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
+        let marker = null;
+
+        function updateMarker(lat, lng) {
+            if (marker) {
+                marker.remove();
+            }
+            marker = L.marker([lat, lng], {
+                title: 'Selected Location',
+                draggable: true
+            }).addTo(map);
+
+            marker.on('dragend', function(e) {
+                const position = e.target.getLatLng();
+                updateLocationInputs(position.lat, position.lng);
+                reverseGeocode(position.lat, position.lng);
+            });
+
+            map.setView([lat, lng], 15);
+        }
+
+        function updateLocationInputs(lat, lng) {
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+        }
+
+        function reverseGeocode(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('location').value = data.display_name;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Map click handler
+        map.on('click', function(e) {
+            updateMarker(e.latlng.lat, e.latlng.lng);
+            updateLocationInputs(e.latlng.lat, e.latlng.lng);
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Use My Location button
+        const useLocationBtn = document.getElementById('useLocationBtn');
         useLocationBtn.addEventListener('click', function() {
             if (navigator.geolocation) {
                 useLocationBtn.disabled = true;
@@ -428,53 +563,51 @@
                 
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        latitudeInput.value = position.coords.latitude;
-                        longitudeInput.value = position.coords.longitude;
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
                         
-                        // Reverse geocode to get location name
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                locationInput.value = data.display_name;
+                        updateMarker(lat, lng);
+                        updateLocationInputs(lat, lng);
+                        reverseGeocode(lat, lng);
+                        
                                 useLocationBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Use My Location';
                                 useLocationBtn.disabled = false;
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                useLocationBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Use My Location';
-                                useLocationBtn.disabled = false;
-                            });
                     },
                     function(error) {
                         console.error('Error:', error);
-                        alert('Unable to get your location. Please enter it manually.');
+                        alert('Unable to get your location. Please select on the map or enter manually.');
                         useLocationBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Use My Location';
                         useLocationBtn.disabled = false;
                     }
                 );
             } else {
-                alert('Geolocation is not supported by your browser. Please enter location manually.');
+                alert('Geolocation is not supported by your browser. Please select on the map or enter manually.');
             }
         });
 
+        // Validate Location button
+        const validateLocationBtn = document.getElementById('validateLocationBtn');
         validateLocationBtn.addEventListener('click', function() {
-            const location = locationInput.value.trim();
+            const location = document.getElementById('location').value.trim();
             if (!location) {
                 alert('Please enter a location name.');
                 return;
             }
 
             validateLocationBtn.disabled = true;
-            validateLocationBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Validating...';
+            validateLocationBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
 
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.length > 0) {
-                        latitudeInput.value = data[0].lat;
-                        longitudeInput.value = data[0].lon;
-                        locationInput.value = data[0].display_name;
-                        validateLocationBtn.innerHTML = '<i class="bi bi-check-circle"></i> Location Validated';
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        
+                        updateMarker(lat, lng);
+                        updateLocationInputs(lat, lng);
+                        document.getElementById('location').value = data[0].display_name;
+                        
                         validateLocationBtn.classList.add('btn-success');
                         validateLocationBtn.classList.remove('btn-outline-primary');
                     } else {
@@ -487,11 +620,30 @@
                 })
                 .finally(() => {
                     validateLocationBtn.disabled = false;
-                    if (!validateLocationBtn.classList.contains('btn-success')) {
-                        validateLocationBtn.innerHTML = '<i class="bi bi-check-circle"></i> Validate Location';
-                    }
+                    validateLocationBtn.innerHTML = '<i class="bi bi-check-circle"></i>';
+                    setTimeout(() => {
+                        validateLocationBtn.classList.remove('btn-success');
+                        validateLocationBtn.classList.add('btn-outline-primary');
+                    }, 2000);
                 });
         });
+
+        // Watch for manual input changes
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+
+        function handleCoordinateChange() {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updateMarker(lat, lng);
+                reverseGeocode(lat, lng);
+            }
+        }
+
+        latInput.addEventListener('change', handleCoordinateChange);
+        lngInput.addEventListener('change', handleCoordinateChange);
 
         // Media upload handling
         const mediaContainer = document.getElementById('mediaContainer');
@@ -564,6 +716,20 @@
         document.querySelectorAll('.wsf-specific-input').forEach(input => {
             input.disabled = true;
         });
+
+        function showAllGeneralTypes() {
+            allWasteTypeGroups.forEach(group => {
+                group.style.display = 'block';
+            });
+        }
+
+        function hideOtherGeneralTypes(currentGroup) {
+            allWasteTypeGroups.forEach(group => {
+                if (group !== currentGroup) {
+                    group.style.display = 'none';
+                }
+            });
+        }
         
         wasteTypeButtons.forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -572,50 +738,72 @@
                 const currentGroup = btn.closest('.wsf-type-group');
                 const subTypesContainer = isAutreBtn ? null : document.getElementById('subTypes_' + wasteTypeId);
                 const generalTypeInput = currentGroup.querySelector('.wsf-type-input');
+                let backButton = currentGroup.querySelector('.wsf-back-button');
                 const isActive = btn.classList.contains('active');
+                
+                // Create back button if it doesn't exist
+                if (!backButton && !isActive) {
+                    backButton = document.createElement('button');
+                    backButton.type = 'button';
+                    backButton.className = 'wsf-back-button';
+                    backButton.innerHTML = '<i class="bi bi-arrow-left"></i>';
+                    
+                    // Add back button functionality
+                    backButton.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const currentGroup = this.closest('.wsf-type-group');
+                        const subTypesContainer = currentGroup.querySelector('.wsf-subtypes');
+                        
+                        // Hide subtypes but keep selections
+                        if (subTypesContainer) {
+                            subTypesContainer.classList.remove('show');
+                        }
+                        
+                        // Show all general types
+                        showAllGeneralTypes();
+                        
+                        // Remove back button
+                        this.remove();
+
+                        // If it's the "Other" button
+                        if (btn.id === 'autreBtn') {
+                            document.getElementById('autreInputContainer').classList.add('wsf-hidden');
+                        }
+                    });
+                    
+                    currentGroup.insertBefore(backButton, currentGroup.firstChild);
+                }
                 
                 // Handle Autre button differently
                 if (isAutreBtn) {
                     const autreContainer = document.getElementById('autreInputContainer');
                     const isHidden = autreContainer.classList.contains('wsf-hidden');
                     
-                    // Reset all other buttons and show all groups
-                    resetAllTypes();
-                    showAllGroups();
-                    
-                    // Toggle autre button and input
-                    btn.classList.toggle('active', isHidden);
-                    autreContainer.classList.toggle('wsf-hidden');
+                    if (!isActive) {
+                        hideOtherGeneralTypes(currentGroup);
+                        btn.classList.add('active');
+                        autreContainer.classList.remove('wsf-hidden');
+                        backButton.classList.add('show');
+                    }
                     return;
                 }
 
-                if (isActive) {
-                    // If already active, deactivate and show all groups
-                    btn.classList.remove('active');
-                    if (subTypesContainer) {
-                        subTypesContainer.classList.remove('show');
-                        // Clear specific type selections
-                        subTypesContainer.querySelectorAll('.wsf-specific-input').forEach(input => {
-                            input.disabled = true;
-                        });
-                        subTypesContainer.querySelectorAll('.wsf-btn-option.wsf-specific-type').forEach(btn => {
-                            btn.classList.remove('active');
-                        });
-                    }
-                    generalTypeInput.value = '';
-                    showAllGroups();
-                } else {
-                    // Reset all types first
-                    resetAllTypes();
-                    
-                    // Activate current button and hide other groups
+                if (!isActive) {
+                    // Activate current button
                     btn.classList.add('active');
                     generalTypeInput.value = wasteTypeId;
-                    hideOtherGroups(currentGroup);
+                    backButton.classList.add('show');
+                    
+                    // Hide other general types
+                    hideOtherGeneralTypes(currentGroup);
                     
                     // Show subtypes if they exist
                     if (subTypesContainer) {
                         subTypesContainer.classList.add('show');
+                        // Enable specific type inputs for this group
+                        subTypesContainer.querySelectorAll('.wsf-specific-input').forEach(input => {
+                            input.disabled = false;
+                        });
                     }
                 }
             });
@@ -627,128 +815,9 @@
                 const specificId = btn.dataset.specificId;
                 const parentId = btn.dataset.parentId;
                 const input = btn.parentElement.querySelector('.wsf-specific-input');
-                const isActive = btn.classList.contains('active');
                 
                 btn.classList.toggle('active');
                 input.disabled = !btn.classList.contains('active');
-            });
-        });
-
-        function resetAllTypes() {
-            // Reset all general type buttons and inputs
-            wasteTypeButtons.forEach(btn => {
-                btn.classList.remove('active');
-                const group = btn.closest('.wsf-type-group');
-                const input = group.querySelector('.wsf-type-input');
-                if (input) input.value = '';
-            });
-            
-            // Reset all specific type buttons and inputs
-            document.querySelectorAll('.wsf-btn-option.wsf-specific-type').forEach(btn => {
-                btn.classList.remove('active');
-                const input = btn.parentElement.querySelector('.wsf-specific-input');
-                if (input) input.disabled = true;
-            });
-            
-            // Hide all subtypes
-            document.querySelectorAll('.wsf-subtypes').forEach(container => {
-                container.classList.remove('show');
-            });
-            
-            // Reset autre
-            document.getElementById('autreInputContainer').classList.add('wsf-hidden');
-            document.getElementById('autreInput').value = '';
-        }
-
-        function hideOtherGroups(currentGroup) {
-            allWasteTypeGroups.forEach(group => {
-                if (group !== currentGroup) {
-                    group.style.display = 'none';
-                }
-            });
-        }
-
-        function showAllGroups() {
-            allWasteTypeGroups.forEach(group => {
-                group.style.display = '';
-            });
-        }
-
-        // Form validation before submit
-        document.querySelector('.waste-signal-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(this);
-            
-            // Validate location
-            const latitude = document.getElementById('latitude').value;
-            const longitude = document.getElementById('longitude').value;
-            
-            if (!latitude || !longitude) {
-                alert('Please select a location.');
-                return;
-            }
-            
-            // Get all selected general types
-            const selectedGeneralTypes = Array.from(document.querySelectorAll('.wsf-general-type.active'))
-                .map(btn => btn.dataset.wasteType)
-                .filter(id => id);
-            
-            // Get all checked specific types
-            const selectedSpecificTypes = Array.from(document.querySelectorAll('.wsf-specific-type:checked'))
-                .map(cb => cb.value);
-            
-            // Get custom type if entered
-            const autreInput = document.getElementById('autreInput');
-            const customType = autreInput.value.trim();
-            
-            // Validate waste types
-            if (selectedGeneralTypes.length === 0 && selectedSpecificTypes.length === 0 && !customType) {
-                alert('Please select at least one waste type or enter a custom type.');
-                return;
-            }
-            
-            // Clear existing general waste types from FormData
-            formData.delete('general_waste_type[]');
-            
-            // Add selected general types
-            selectedGeneralTypes.forEach(typeId => {
-                formData.append('general_waste_type[]', typeId);
-            });
-            
-            // If all validations pass, submit the form
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                credentials: 'same-origin' // Include cookies (for CSRF token)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(text);
-                    });
-                }
-                return response;
-            })
-            .then(response => {
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json().then(data => {
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        } else {
-                            window.location.href = '{{ route("signal.thank-you") }}';
-                        }
-                    });
-                } else {
-                    window.location.href = '{{ route("signal.thank-you") }}';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while submitting the form. Please try again.');
             });
         });
     });

@@ -15,10 +15,19 @@
 :root { 
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
   --default-color: #444444; /* Default color used for the majority of the text content across the entire website */
-  --heading-color: #051c41; /* Color for headings, subheadings and title throughout the website */
-  --accent-color: #0e346a; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
-  --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
+  --heading-color: #0e346a; /* Color for headings, subheadings and title throughout the website */
+  --accent-color: #205490; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+  --surface-color: #f5f9fc; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
+  
+  /* Additional Theme Colors */
+  --primary-gradient-start: #0e346a;
+  --primary-gradient-end: #205490;
+  --secondary-color: #051c41;
+  --text-muted: #6c757d;
+  --border-color: rgba(14, 52, 106, 0.1);
+  --shadow-color: rgba(14, 52, 106, 0.15);
+  --hover-shadow: rgba(14, 52, 106, 0.2);
 }
 
 /* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
@@ -27,8 +36,8 @@
   --nav-hover-color: #0e346a; /* Applied to main navmenu links when they are hovered over or active */
   --nav-mobile-background-color: #ffffff; /* Used as the background color for mobile navigation menu */
   --nav-dropdown-background-color: #ffffff; /* Used as the background color for dropdown items that appear when hovering over primary navigation items */
-  --nav-dropdown-color: #444444; /* Used for navigation links of the dropdown items in the navigation menu. */
-  --nav-dropdown-hover-color: #0e346a; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
+  --nav-dropdown-color: #0e346a; /* Used for navigation links of the dropdown items in the navigation menu. */
+  --nav-dropdown-hover-color: #205490; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
 }
 /* General Styles */
 body {
@@ -150,17 +159,20 @@ body {
 }
 
 .account-button {
-  background: #0e346a;
-  color: #ffffff;
+  background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  color: var(--contrast-color);
   padding: 10px 20px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--shadow-color);
 }
 
 .account-button:hover {
-  background: #205490;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--hover-shadow);
+  background: linear-gradient(45deg, var(--primary-gradient-end) 0%, var(--primary-gradient-start) 100%);
 }
 
 /* Rewards Dashboard */
@@ -483,20 +495,21 @@ button:active {
     display: block;
     width: 80%;
     font-weight: bold;
-    background: linear-gradient(45deg, #0e346a 0%, #205490 100%);
-    color: white;
+    background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    color: var(--contrast-color);
     padding-block: 15px;
     margin: 20px auto;
     border-radius: 20px;
     box-shadow: rgba(133, 189, 215, 0.8784313725) 0px 20px 10px -15px;
     border: none;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease;
   
 }
 
 .form .login-button:hover {
-    transform: scale(1.03);
-    box-shadow: #205490 0px 23px 10px -20px;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--hover-shadow);
+    background: linear-gradient(45deg, var(--primary-gradient-end) 0%, var(--primary-gradient-start) 100%);
 }
 
 .form .login-button:active {
@@ -561,12 +574,11 @@ body {
 a {
   color: var(--accent-color);
   text-decoration: none;
-  transition: 0.3s;
+  transition: color 0.3s ease;
 }
 
 a:hover {
-  color: color-mix(in srgb, var(--accent-color), transparent 25%);
-  text-decoration: none;
+  color: var(--primary-gradient-start);
 }
 
 h1,
@@ -664,6 +676,7 @@ h6 {
   padding: 15px 0;
   transition: all 0.7s;
   z-index: 997;
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
 }
 
 .header .logo {
@@ -696,10 +709,123 @@ h6 {
 # Navigation Menu
 --------------------------------------------------------------*/
 /* Desktop Navigation */
+.navmenu {
+  padding: 0;
+}
 
+.navmenu ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  list-style: none;
+  align-items: center;
+}
+
+.navmenu li {
+  position: relative;
+}
+
+.navmenu a,
+.navmenu a:focus {
+  color: var(--nav-color);
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: 0.3s;
+  text-decoration: none;
+}
+
+.navmenu a:hover,
+.navmenu .active {
+  color: var(--nav-hover-color);
+  text-decoration: none;
+}
 
 /* Mobile Navigation */
+.mobile-nav-toggle {
+  display: none;
+  color: var(--nav-color);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 0;
+  transition: 0.5s;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
+@media (max-width: 991px) {
+  .mobile-nav-toggle {
+    display: block;
+  }
+
+  .navmenu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    padding: 60px 0 0 0;
+    transition: 0.3s;
+    z-index: 9998;
+    overflow-y: auto;
+  }
+
+  .navmenu.active {
+    right: 0;
+  }
+
+  .navmenu ul {
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+  }
+
+  .navmenu li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .navmenu li:last-child {
+    border-bottom: none;
+  }
+
+  .navmenu a,
+  .navmenu a:focus {
+    display: block;
+    padding: 15px 25px;
+    font-size: 15px;
+    color: var(--nav-color);
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .navmenu a:hover,
+  .navmenu .active {
+    color: var(--contrast-color);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-nav-active {
+    overflow: hidden;
+  }
+
+  .mobile-nav-active .mobile-nav-toggle {
+    position: fixed;
+    right: 15px;
+    top: 15px;
+    z-index: 9999;
+    color: var(--contrast-color);
+  }
+
+  .mobile-nav-active .navmenu {
+    right: 0;
+  }
+}
 
 /*--------------------------------------------------------------
 # Global Footer
@@ -709,6 +835,7 @@ h6 {
   background-color: var(--background-color);
   font-size: 14px;
   position: relative;
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-gradient-start) 100%);
 }
 
 .footer .footer-top {
@@ -1877,7 +2004,9 @@ section,
   transition: 0.4s;
   border-radius: 50px;
 }
-
+.wsf-btn-option.wsf-general-type, .wsf-btn-option.wsf-specific-type {
+  background: #6495be;
+}
 .contact .php-email-form button[type=submit]:hover {
   background: color-mix(in srgb, var(--accent-color), transparent 25%);
 }
@@ -2419,10 +2548,10 @@ section,
 .wsf-btn-option.wsf-general-type {
     width: 100%;
     padding: 1rem;
-    border: 2px solid #0e346a;
+    border: 2px solid var(--primary-gradient-start);
     border-radius: 10px;
     background-color: white;
-    color: #0e346a;
+    color: var(--primary-gradient-start);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -2431,16 +2560,13 @@ section,
 }
 
 .wsf-btn-option.wsf-general-type:hover {
-    background-color: #f5f9fc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.1);
+    background-color: var(--surface-color);
+    box-shadow: 0 4px 6px var(--shadow-color);
 }
 
 .wsf-btn-option.wsf-general-type.active {
-    background-color: #0e346a;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(14, 52, 106, 0.2);
+    background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    color: var(--contrast-color);
 }
 
 .wsf-subtypes {
@@ -2585,8 +2711,8 @@ section,
 }
 
 .waste-signal-form .form-control:focus {
-    border-color: #205490;
-    box-shadow: 0 0 0 0.2rem rgba(14, 52, 106, 0.25);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem var(--shadow-color);
 }
 
 /* Submit Buttons */
@@ -2639,5 +2765,141 @@ section,
     .waste-signal-form .image-container {
         width: 120px;
         height: 120px;
+    }
+}
+
+/* Enhanced Encouragement Card Styles */
+.container .encouragement-card {
+    position: relative;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f9fc 100%);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(14, 52, 106, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin: 2rem auto;
+    max-width: 800px;
+    border: 1px solid rgba(14, 52, 106, 0.1);
+}
+
+.container .encouragement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(14, 52, 106, 0.2);
+}
+
+.container .encouragement-card .card-content {
+    position: relative;
+    z-index: 2;
+}
+
+.container .encouragement-card .title {
+    font-size: calc(2rem + 1vw);
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 1.5rem;
+    font-family: var(--heading-font);
+}
+
+.container .encouragement-card .title .highlight {
+    display: block;
+    background: linear-gradient(120deg, #0e346a, #205490);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.container .encouragement-card .title .highlight.accent {
+    background: linear-gradient(120deg, #205490, #0e346a);
+}
+
+.container .encouragement-card .message {
+    font-size: calc(1.1rem + 0.2vw);
+    color: var(--default-color);
+    line-height: 1.6;
+    margin: 0;
+    font-family: var(--default-font);
+}
+
+/* Wave Animation */
+.container .encouragement-card .wave-animation {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.container .encouragement-card .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(14, 52, 106, 0.08) 0%, rgba(32, 84, 144, 0.05) 100%);
+    border-radius: 50% 50% 0 0;
+    animation: wave 8s linear infinite;
+}
+
+.container .encouragement-card .wave:nth-child(2) {
+    animation-delay: -2s;
+    opacity: 0.7;
+}
+
+.container .encouragement-card .wave:nth-child(3) {
+    animation-delay: -4s;
+    opacity: 0.5;
+}
+
+@keyframes wave {
+    0% {
+        transform: translateX(0) translateZ(0) scaleY(1);
+    }
+    50% {
+        transform: translateX(-25%) translateZ(0) scaleY(0.8);
+    }
+    100% {
+        transform: translateX(-50%) translateZ(0) scaleY(1);
+    }
+}
+
+/* Mobile Responsiveness for Encouragement Card */
+@media (max-width: 768px) {
+    .container .encouragement-card {
+        padding: 2rem 1rem;
+        margin: 1rem -0.5rem;
+        border-radius: 15px;
+    }
+
+    .container .encouragement-card .title {
+        font-size: calc(1.5rem + 1vw);
+    }
+
+    .container .encouragement-card .message {
+        font-size: 1rem;
+        padding: 0 0.5rem;
+    }
+
+    .container .encouragement-card .wave-animation {
+        height: 80px;
+    }
+}
+
+/* Dark Mode Support for Encouragement Card */
+@media (prefers-color-scheme: dark) {
+    .container .encouragement-card {
+        background: linear-gradient(135deg, #051c41 0%, #0e346a 100%);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .container .encouragement-card .message {
+        color: #a0aec0;
+    }
+
+    .container .encouragement-card .wave {
+        background: linear-gradient(135deg, rgba(73, 155, 234, 0.15) 0%, rgba(73, 155, 234, 0.1) 100%);
     }
 }

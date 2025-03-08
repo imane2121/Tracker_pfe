@@ -15,23 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->integer('volume')->default(0);
-            $table->json('wasteTypes');
+            $table->json('waste_types');
             $table->string('location');
-            $table->string('customType');
+            $table->string('custom_type')->nullable();
             $table->text('description')->nullable();
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
-            $table->boolean('anomalyFlag')->default(false);
-            $table->timestamp('signalDate')->useCurrent();
+            $table->boolean('anomaly_flag')->default(false);
+            $table->timestamp('signal_date')->useCurrent();
             $table->enum('status', ['pending', 'validated', 'rejected'])->default('pending');
-            $table->timestamps();
-        });
-
-        // Create pivot table for waste types
-        Schema::create('signal_waste_types', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('signal_id')->constrained()->onDelete('cascade');
-            $table->foreignId('waste_type_id')->constrained('waste_types')->onDelete('cascade');
             $table->timestamps();
         });
 
@@ -49,7 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('signal_waste_types');
         Schema::dropIfExists('signal_media');
         Schema::dropIfExists('signals');
     }

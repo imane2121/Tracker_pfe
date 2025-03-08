@@ -53,7 +53,7 @@ class SignalController extends Controller
                 'general_waste_type.*' => 'nullable|exists:waste_types,id',
                 'media.*' => 'nullable|file|mimes:jpg,jpeg,png,mp4|max:10240',
                 'volume' => 'required|numeric|min:0',
-                'customType' => 'nullable|string',
+                'custom_type' => 'nullable|string',
                 'description' => 'nullable|string|max:1000',
             ]);
 
@@ -122,11 +122,12 @@ class SignalController extends Controller
                 'latitude' => $validated['latitude'],
                 'longitude' => $validated['longitude'],
                 'volume' => $validated['volume'],
-                'customType' => $validated['customType'] ?? '',
+                'custom_type' => $validated['custom_type'] ?? '',
                 'description' => $validated['description'] ?? null,
                 'status' => $status,
-                'signalDate' => now(),
-                'anomalyFlag' => $anomalyFlag,
+                'signal_date' => now(),
+                'anomaly_flag' => $anomalyFlag,
+                'waste_types' => json_encode($allWasteTypes)
             ];
 
             // Log the data we're about to save

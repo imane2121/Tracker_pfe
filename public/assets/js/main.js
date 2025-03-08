@@ -66,14 +66,37 @@ document.addEventListener("DOMContentLoaded", function () {
   /**
    * Mobile nav toggle
    */
-  const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
+  const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+  const body = document.querySelector('body');
+  const navMenu = document.querySelector('.navmenu');
 
-  function mobileNavToogle() {
-    document.querySelector('body').classList.toggle('mobile-nav-active');
-    mobileNavToggleBtn.classList.toggle('bi-list');
-    mobileNavToggleBtn.classList.toggle('bi-x');
+  if (mobileNavToggle) {
+    mobileNavToggle.addEventListener('click', function(e) {
+      body.classList.toggle('mobile-nav-active');
+      this.classList.toggle('bi-list');
+      this.classList.toggle('bi-x');
+      e.stopPropagation();
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!navMenu.contains(e.target) && !mobileNavToggle.contains(e.target)) {
+        body.classList.remove('mobile-nav-active');
+        mobileNavToggle.classList.add('bi-list');
+        mobileNavToggle.classList.remove('bi-x');
+      }
+    });
+
+    // Close menu when clicking on a nav link
+    const navLinks = document.querySelectorAll('.navmenu a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        body.classList.remove('mobile-nav-active');
+        mobileNavToggle.classList.add('bi-list');
+        mobileNavToggle.classList.remove('bi-x');
+      });
+    });
   }
-  mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
 
   /**
    * Hide mobile nav on same-page/hash links
@@ -81,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
     navmenu.addEventListener('click', () => {
       if (document.querySelector('.mobile-nav-active')) {
-        mobileNavToogle();
+        mobileNavToggle.click();
       }
     });
 

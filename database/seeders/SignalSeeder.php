@@ -6,6 +6,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Faker\Factory as Faker;
+use App\Models\Signal;
+use App\Models\WasteTypes;
+
 
 class SignalSeeder extends Seeder
 {
@@ -36,13 +39,13 @@ class SignalSeeder extends Seeder
             $signalId = DB::table('signals')->insertGetId([
                 'created_by' => $createdBy,  // Tracks who created the signal
                 'volume' => $volume,
-                'wasteTypes' => json_encode($randomWasteTypes),  // Convert array of waste types to JSON
+                'waste_types' => json_encode($randomWasteTypes),  // Convert array of waste types to JSON
                 'location' => $location,
-                'customType' => $customType,
+                'custom_type' => $customType,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
-                'anomalyFlag' => $anomalyFlag,  // Boolean value (true/false)
-                'signalDate' => $signalDate,
+                'anomaly_flag' => $anomalyFlag,  // Boolean value (true/false)
+                'signal_date' => $signalDate,
                 'status' => 'pending',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

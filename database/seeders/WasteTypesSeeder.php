@@ -8,14 +8,16 @@ class WasteTypesSeeder extends Seeder
 {
     public function run()
     {
-        // General Waste Types
+        // General Waste Types from cahier des charges
         $generalWasteTypes = [
-            'Plastic',
-            'Glass',
-            'Organic',
-            'Metal',
-            'Paper',
-            'Electronic'
+            'Plastiques',
+            'Métaux',
+            'Verre',
+            'Déchets dangereux',
+            'Matériel de pêche abandonné',
+            'Déchets de bois',
+            'Déchets organiques',
+            'Textiles'
         ];
 
         // Insert General Waste Types
@@ -48,12 +50,46 @@ class WasteTypesSeeder extends Seeder
     private function getSpecificWasteTypes($generalWasteType)
     {
         $specificWasteTypes = [
-            'Plastic' => ['Plastic Bottle', 'Plastic Bag', 'Plastic Wrapper'],
-            'Glass' => ['Glass Bottle', 'Glass Jar'],
-            'Organic' => ['Food Waste', 'Plant Waste'],
-            'Metal' => ['Aluminum Can', 'Iron Scrap'],
-            'Paper' => ['Newspaper', 'Cardboard', 'Magazine'],
-            'Electronic' => ['Phone', 'TV', 'Laptop']
+            'Plastiques' => [
+                'Bouteilles en plastique',
+                'Emballages alimentaires',
+                'Sachets et sacs en plastique',
+                'Microplastiques'
+            ],
+            'Métaux' => [
+                'Canettes et boîtes métalliques',
+                'Fragments de ferraille',
+                'Matériaux de construction'
+            ],
+            'Verre' => [
+                'Bouteilles en verre',
+                'Fragments de verre cassé'
+            ],
+            'Déchets dangereux' => [
+                'Piles et batteries',
+                'Huiles usagées',
+                'Contenants de produits chimiques'
+            ],
+            'Matériel de pêche abandonné' => [
+                'Filets de pêche perdus',
+                'Cordes et lignes de pêche',
+                'Hameçons et plombs'
+            ],
+            'Déchets de bois' => [
+                'Bois traité',
+                'Bois naturel',
+                'Objets en bois'
+            ],
+            'Déchets organiques' => [
+                'Restes alimentaires',
+                'Algues',
+                'Débris végétaux'
+            ],
+            'Textiles' => [
+                'Vêtements',
+                'Morceaux de tissu',
+                'Articles textiles'
+            ]
         ];
 
         return $specificWasteTypes[$generalWasteType] ?? [];

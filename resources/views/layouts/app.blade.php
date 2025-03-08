@@ -52,14 +52,28 @@
         <img src="{{ asset('/assets/img/apple-touch-icon.png') }}" alt="" class="logo-img">
         <span class="logo-text">AquaScan</span>
       </a>
+
+      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="{{ route('overview') }}#about">About</a></li>
           <li><a href="{{ route('overview') }}#services">Services</a></li>
-          <li><a href="">Log in</a></li>
+          @auth
+            <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+            <li>
+              <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+              </form>
+            </li>
+          @else
+            <li><a href="{{ route('login') }}">Log in</a></li>
+          @endauth
           <li><a href="{{ route('overview') }}#contact">Contact</a></li>
         </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
     </div>
   </header>
@@ -104,7 +118,7 @@
     }
 
     .navmenu a {
-      color: #fff;
+      color: #28266c !important;
       text-decoration: none;
       font-size: 1rem;
       font-weight: 500;
@@ -116,6 +130,32 @@
     .navmenu a:hover {
       color: #f8f9fa;
       background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Logout button styles */
+    .navmenu form {
+      margin: 0;
+      padding: 0;
+    }
+
+    .navmenu .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #28266c !important;
+      padding: 8px 15px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    .navmenu .nav-link:hover {
+      color: #f8f9fa !important;
+      background-color: rgba(255, 255, 255, 0.1);
+      text-decoration: none;
+    }
+
+    .navmenu .nav-link i {
+      font-size: 1.1rem;
     }
 
     /* Mobile Navigation Toggle */

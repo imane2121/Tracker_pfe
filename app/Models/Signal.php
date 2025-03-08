@@ -12,22 +12,24 @@ class Signal extends Model
     protected $fillable = [
         'created_by',
         'volume',
+        'waste_types',
         'location',
-        'customType',
+        'custom_type',
         'latitude',
         'longitude',
-        'anomalyFlag',
-        'signalDate',
+        'anomaly_flag',
+        'signal_date',
         'status',
         'description'
     ];
 
     protected $casts = [
-        'anomalyFlag' => 'boolean',
-        'signalDate' => 'datetime',
+        'anomaly_flag' => 'boolean',
+        'signal_date' => 'datetime',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
-        'volume' => 'integer'
+        'volume' => 'integer',
+        'waste_types' => 'array'
     ];
 
     // Relationships
