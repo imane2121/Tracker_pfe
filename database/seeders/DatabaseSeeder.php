@@ -18,5 +18,14 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
+            WasteTypesSeeder::class,
+            SignalSeeder::class,
+            ArticleSeeder::class, // Articles before Collectes as they're independent
+            CollecteSeeder::class, // Collectes depend on Signals and Users
+        ]);
     }
 }

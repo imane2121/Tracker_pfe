@@ -21,9 +21,8 @@
   <link href="{{ asset('/assets/vendor/aos/aos.css') }}" rel="stylesheet">
   <link href="{{ asset('/assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ asset('/assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
-  <link href="{{ asset('/assets/vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="{{ asset('/assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
-  <link href="{{ asset('/assets/vendor/remixicon/remixicon.css') }}" rel="stylesheet">
   <link href="{{ asset('/assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
   <!-- Leaflet CSS -->
@@ -351,19 +350,13 @@
   <script src="{{ asset('/assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
   <script src="{{ asset('/assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
   <script src="{{ asset('/assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
-  <script src="{{ asset('/assets/vendor/php-email-form/validate.js') }}"></script>
 
-  <!-- Leaflet JS -->
+  <!-- Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <!-- Confetti JS -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
   <!-- Template Main JS File -->
   <script src="{{ asset('/assets/js/main.js') }}"></script>
-
-  <!-- Waste Signal Form JS -->
-  <script src="{{ asset('/assets/js/waste-signal-form.js') }}"></script>
 
   <!-- Initialize Scripts -->
   <script>
@@ -376,39 +369,32 @@
         mirror: false
       });
 
-      // Initialize other plugins
+      // Initialize Swiper
+      var collectesSwiper = new Swiper('.collectesSwiper', {
+        slidesPerView: 1,
+        spaceBetween: 30,
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true
+        },
+        breakpoints: {
+          640: {
+            slidesPerView: 1,
+          },
+          768: {
+            slidesPerView: 2,
+          },
+          1024: {
+            slidesPerView: 3,
+          }
+        }
+      });
+
+      // Initialize GLightbox
       if (typeof GLightbox !== 'undefined') {
         GLightbox({
           selector: '.glightbox'
         });
-      }
-
-      // Initialize Swiper if it exists
-      if (typeof Swiper !== 'undefined') {
-        new Swiper('.swiper', {
-          slidesPerView: 1,
-          spaceBetween: 30,
-          loop: true,
-          pagination: {
-            el: '.swiper-pagination',
-            clickable: true
-          },
-          navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev'
-          }
-        });
-      }
-
-      // Initialize Isotope if it exists
-      if (typeof Isotope !== 'undefined') {
-        const grid = document.querySelector('.portfolio-grid');
-        if (grid) {
-          new Isotope(grid, {
-            itemSelector: '.portfolio-item',
-            layoutMode: 'fitRows'
-          });
-        }
       }
     });
   </script>

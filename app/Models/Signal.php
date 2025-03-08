@@ -48,6 +48,11 @@ class Signal extends Model
         return $this->hasMany(Media::class);
     }
 
+    public function collecte()
+    {
+        return $this->hasOne(Collecte::class);
+    }
+
     /**
      * Calculate distance between two points in kilometers using Haversine formula
      */

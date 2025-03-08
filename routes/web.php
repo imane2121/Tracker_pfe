@@ -11,6 +11,9 @@ use App\Http\Controllers\SignalController;
 use App\Http\Controllers\HomeController;
 use Database\Seeders\RoleSeeder;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OverviewController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\CollecteController;
 
 
 /*
@@ -24,10 +27,9 @@ use App\Http\Controllers\DashboardController;
 |
 */
 
-// Home Route
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Home and Overview Routes
+Route::get('/', [OverviewController::class, 'index'])->name('home');
+Route::get('/overview', [OverviewController::class, 'index'])->name('overview');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -84,19 +86,16 @@ Route::get('/test-auth', function () {
     ]);
 })->middleware(['web', 'auth']);*/
 
-Route::get('overview', [HomeController::class, 'overview'])->name('overview');
-// Authenticated User Routes
-
-
 Route::prefix('signal')->group(function () {
     // Show the form to create a new signal
     Route::get('/create', [SignalController::class, 'create'])->name('signal.create');
-
-    // Store a new signal
     Route::post('/store', [SignalController::class, 'store'])->name('signal.store');
-
-    // List all signals (for admin, supervisor, or contributor)
     Route::get('/', [SignalController::class, 'index'])->name('signal.index');
+});
+
+// Collecte routes
+Route::prefix('collectes')->middleware(['auth'])->group(function () {
+    Route::post('/{collecte}/join', [CollecteController::class, 'join'])->name('collecte.join');
 });
 
 Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('signal.thank-you');
@@ -117,3 +116,12 @@ Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('si
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Article routes
+Route::prefix('articles')->group(function () {
+    Route::get('/', [ArticleController::class, 'index'])->name('articles.index');
+    Route::get('/featured', [ArticleController::class, 'featured'])->name('articles.featured');
+    Route::get('/category/{category}', [ArticleController::class, 'byCategory'])->name('articles.category');
+    Route::get('/tag/{slug}', [ArticleController::class, 'byTag'])->name('articles.tag');
+    Route::get('/{id}', [ArticleController::class, 'show'])->name('articles.show');
+});
