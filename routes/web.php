@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CollecteController;
+use App\Http\Controllers\Admin\SignalManagementController;
 
 
 /*
@@ -124,4 +125,13 @@ Route::prefix('articles')->group(function () {
     Route::get('/category/{category}', [ArticleController::class, 'byCategory'])->name('articles.category');
     Route::get('/tag/{slug}', [ArticleController::class, 'byTag'])->name('articles.tag');
     Route::get('/{id}', [ArticleController::class, 'show'])->name('articles.show');
+});
+
+// Admin routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/signals', [SignalManagementController::class, 'index'])->name('signals.index');
+    Route::get('/signals/{signal}', [SignalManagementController::class, 'show'])->name('signals.show');
+    Route::post('/signals/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('signals.update-status');
+    Route::get('/signals/export', [SignalManagementController::class, 'export'])->name('signals.export');
+    Route::get('/signals/statistics', [SignalManagementController::class, 'getStatistics'])->name('signals.statistics');
 });

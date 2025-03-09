@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Signal;
 use App\Models\Media;
 use App\Models\WasteTypes;
+use App\Services\SignalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class SignalController extends Controller
 {
-    public function __construct()
+    protected $signalService;
+
+    public function __construct(SignalService $signalService)
     {
         $this->middleware('auth');
+        $this->signalService = $signalService;
     }
 
     public function create()
@@ -57,48 +61,6 @@ class SignalController extends Controller
                 'description' => 'nullable|string|max:1000',
             ]);
 
-            // Check for anomaly based on user's last report
-            $lastReport = Signal::where('created_by', $user->id)
-                ->where('status', '!=', 'rejected')
-                ->latest()
-                ->first();
-
-            $anomalyFlag = false;
-            $status = 'pending';
-
-            if ($lastReport) {
-                // Calculate time difference in minutes
-                $timeDiff = now()->diffInMinutes($lastReport->signalDate);
-                
-                // Calculate distance in kilometers
-                $distance = Signal::calculateDistance(
-                    $lastReport->latitude,
-                    $lastReport->longitude,
-                    $validated['latitude'],
-                    $validated['longitude']
-                );
-
-                // Define thresholds (adjust these values based on your requirements)
-                $timeThreshold = 30; // minutes
-                $speedThreshold = 60; // km/h
-
-                // Calculate required time based on distance and maximum reasonable speed
-                $requiredTimeInMinutes = ($distance / $speedThreshold) * 60;
-
-                // Check if the time taken is unreasonably short for the distance
-                if ($timeDiff < $requiredTimeInMinutes && $distance > 1) { // Only flag if distance > 1km
-                    $anomalyFlag = true;
-                    $status = 'rejected';
-                    
-                    // Add a flash message to notify the user
-                    session()->flash('warning', 'Your report has been flagged for review due to unusual travel time between locations. The distance between your last report and this one would require at least ' . 
-                        ceil($requiredTimeInMinutes) . ' minutes to travel.');
-                }
-            }
-
-            // Log validated data
-            Log::info('Validated data:', $validated);
-
             // Combine and filter waste types
             $generalTypes = array_filter($validated['general_waste_type'] ?? []);
             $specificTypes = array_filter($validated['waste_types'] ?? []);
@@ -124,9 +86,7 @@ class SignalController extends Controller
                 'volume' => $validated['volume'],
                 'custom_type' => $validated['custom_type'] ?? '',
                 'description' => $validated['description'] ?? null,
-                'status' => $status,
                 'signal_date' => now(),
-                'anomaly_flag' => $anomalyFlag,
                 'waste_types' => json_encode($allWasteTypes)
             ];
 
@@ -160,7 +120,7 @@ class SignalController extends Controller
 
                 DB::commit();
 
-                if ($anomalyFlag) {
+                if ($signal->status === 'rejected') {
                     return redirect()->route('signal.index')
                         ->with('warning', 'Your report has been submitted but has been flagged for review due to unusual travel time between locations.');
                 }

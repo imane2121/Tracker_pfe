@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Services\CollecteService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Collecte extends Model
 {
@@ -36,9 +38,9 @@ class Collecte extends Model
     ];
 
     // Relationships
-    public function signal()
+    public function signal(): BelongsTo
     {
-        return $this->belongsTo(Signal::class);
+        return $this->belongsTo(Signal::class)->withTrashed();
     }
 
     public function creator()
@@ -115,7 +117,18 @@ class Collecte extends Model
     {
         parent::boot();
 
-        static::saving(function ($collecte) {
+        static::creating(function ($collecte) {
+            $collecteService = app(CollecteService::class);
+            
+            if (!$collecteService->canCreateCollecte(
+                $collecte->creator, 
+                $collecte->signal,
+                $collecte->latitude,
+                $collecte->longitude
+            )) {
+                throw new \Exception('Insufficient signals in the area to create a collection.');
+            }
+
             // Ensure current_contributors never exceeds nbrContributors
             if ($collecte->current_contributors > $collecte->nbrContributors) {
                 $collecte->current_contributors = $collecte->nbrContributors;

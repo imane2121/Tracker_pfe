@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Services\SignalService;
 
 class Signal extends Model
 {
@@ -70,5 +71,15 @@ class Signal extends Model
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         
         return $earthRadius * $c;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($signal) {
+            $signalService = app(SignalService::class);
+            $signal->status = $signalService->determineSignalStatus($signal, $signal->creator);
+        });
     }
 }
