@@ -154,6 +154,200 @@
         border-color: #0e346a !important;
         color: #fff !important;
     }
+
+    /* Leaflet Controls Fix */
+    .admin-signals .leaflet-control-zoom {
+        border: none !important;
+        margin: 15px !important;
+    }
+
+    .admin-signals .leaflet-control-zoom a {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        color: #333 !important;
+        font-size: 16px !important;
+        background-color: white !important;
+        border: none !important;
+        border-radius: 4px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Action Buttons Fix */
+    .admin-signals .action-buttons {
+        display: flex !important;
+        gap: 5px !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+    }
+
+    .admin-signals .action-buttons .btn {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+        border-radius: 0.2rem !important;
+        white-space: nowrap !important;
+        min-width: 32px !important;
+    }
+
+    /* Export Button Fix */
+    .admin-signals .export-dropdown .dropdown-menu {
+        min-width: 100px !important;
+        padding: 0.5rem 0 !important;
+        margin: 0.125rem 0 0 !important;
+        font-size: 0.875rem !important;
+    }
+
+    .admin-signals .export-dropdown .dropdown-item {
+        padding: 0.5rem 1rem !important;
+        color: #333 !important;
+    }
+
+    .admin-signals .export-dropdown .dropdown-item:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        .admin-signals .action-buttons {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 4px !important;
+        }
+
+        .admin-signals .action-buttons .btn {
+            width: 100% !important;
+            padding: 0.375rem !important;
+        }
+
+        .admin-signals .export-dropdown {
+            width: 100% !important;
+        }
+
+        .admin-signals .export-dropdown .btn {
+            width: 100% !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .admin-signals .table td {
+            white-space: normal !important;
+            min-width: 100px !important;
+        }
+    }
+
+    /* Table Responsive Fix */
+    .admin-signals .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .admin-signals .table th,
+    .admin-signals .table td {
+        vertical-align: middle !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Action Buttons Container */
+    .action-buttons {
+        display: flex !important;
+        gap: 0.5rem !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+    }
+
+    .action-buttons .btn {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+        border-radius: 0.25rem !important;
+        white-space: nowrap !important;
+    }
+
+    /* Export Dropdown */
+    .export-dropdown {
+        position: relative !important;
+    }
+
+    .export-dropdown .dropdown-menu {
+        min-width: 10rem !important;
+        padding: 0.5rem 0 !important;
+        margin: 0.125rem 0 0 !important;
+        background-color: #fff !important;
+        border: 1px solid rgba(0,0,0,.15) !important;
+        border-radius: 0.25rem !important;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175) !important;
+    }
+
+    .export-dropdown .dropdown-item {
+        display: block !important;
+        width: 100% !important;
+        padding: 0.5rem 1rem !important;
+        clear: both !important;
+        font-weight: 400 !important;
+        color: #212529 !important;
+        text-align: inherit !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        background-color: transparent !important;
+        border: 0 !important;
+    }
+
+    .export-dropdown .dropdown-item:hover {
+        color: #16181b !important;
+        background-color: #f8f9fa !important;
+    }
+
+    /* Mobile Responsive Table */
+    @media (max-width: 768px) {
+        .table-responsive {
+            margin-bottom: 1rem !important;
+            border: 0 !important;
+        }
+
+        .table-responsive table {
+            border: 0 !important;
+        }
+
+        .table-responsive th {
+            display: none !important;
+        }
+
+        .table-responsive tr {
+            margin-bottom: 1rem !important;
+            display: block !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 0.25rem !important;
+        }
+
+        .table-responsive td {
+            display: block !important;
+            text-align: right !important;
+            padding: 0.75rem !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .table-responsive td::before {
+            content: attr(data-label) !important;
+            float: left !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            font-size: 0.85em !important;
+        }
+
+        .table-responsive td:last-child {
+            border-bottom: 0 !important;
+        }
+
+        .action-buttons {
+            justify-content: center !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .action-buttons .btn {
+            flex: 1 1 auto !important;
+            text-align: center !important;
+        }
+    }
 </style>
 @endsection
 
@@ -273,13 +467,20 @@
                     Signals List
                 </div>
                 <div>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                            Export
+                    <div class="export-dropdown dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download me-1"></i> Export
                         </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'csv']) }}">CSV</a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'pdf']) }}">PDF</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'csv']) }}">
+                                <i class="fas fa-file-csv me-1"></i> Export as CSV
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'excel']) }}">
+                                <i class="fas fa-file-excel me-1"></i> Export as Excel
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'pdf']) }}">
+                                <i class="fas fa-file-pdf me-1"></i> Export as PDF
+                            </a></li>
                         </ul>
                     </div>
                 </div>
@@ -287,13 +488,12 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Location</th>
                             <th>Reporter</th>
-                            <th>Waste Types</th>
                             <th>Status</th>
                             <th>Date</th>
                             <th>Actions</th>
@@ -302,26 +502,31 @@
                     <tbody>
                         @foreach($signals as $signal)
                         <tr>
-                            <td>{{ $signal->id }}</td>
-                            <td>{{ $signal->location }}</td>
-                            <td>{{ $signal->creator->name }}</td>
-                            <td>{{ $signal->wasteTypes->pluck('name')->implode(', ') }}</td>
-                            <td>
+                            <td data-label="ID">#{{ $signal->id }}</td>
+                            <td data-label="Location">{{ Str::limit($signal->location, 30) }}</td>
+                            <td data-label="Reporter">{{ $signal->creator->name ?? 'Unknown' }}</td>
+                            <td data-label="Status">
                                 <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
                                     {{ ucfirst($signal->status) }}
                                 </span>
                             </td>
-                            <td>{{ $signal->signal_date->format('Y-m-d H:i') }}</td>
-                            <td>
-                                <a href="{{ route('admin.signals.show', $signal) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-success" onclick="updateStatus('{{ $signal->id }}', 'validated')">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger" onclick="updateStatus('{{ $signal->id }}', 'rejected')">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                            <td data-label="Date">{{ $signal->signal_date->format('Y-m-d H:i') }}</td>
+                            <td data-label="Actions">
+                                <div class="action-buttons">
+                                    <a href="{{ route('admin.signals.show', $signal) }}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye me-1"></i> View
+                                    </a>
+                                    <a href="{{ route('admin.signals.edit', $signal) }}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit me-1"></i> Edit
+                                    </a>
+                                    <form action="{{ route('admin.signals.destroy', $signal) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                                            <i class="fas fa-trash me-1"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
@@ -415,6 +620,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            // Create custom marker icon
+            const customIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            // Use custom icon for markers
+            if (points && points.length > 0) {
+                points.forEach(point => {
+                    L.marker([point[0], point[1]], { icon: customIcon })
+                        .bindPopup(`Signal at ${point[0]}, ${point[1]}`)
+                        .addTo(map);
+                });
+            }
+
             // Add resize handler
             window.addEventListener('resize', function() {
                 map.invalidateSize(true);
@@ -454,6 +678,12 @@ document.addEventListener('DOMContentLoaded', function() {
             form.submit();
         }
     };
+
+    // Initialize Bootstrap dropdowns
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl);
+    });
 });
 </script>
 @endpush 

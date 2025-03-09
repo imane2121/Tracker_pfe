@@ -131,6 +131,9 @@ Route::prefix('articles')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/signals', [SignalManagementController::class, 'index'])->name('signals.index');
     Route::get('/signals/{signal}', [SignalManagementController::class, 'show'])->name('signals.show');
+    Route::get('/signals/{signal}/edit', [SignalManagementController::class, 'edit'])->name('signals.edit');
+    Route::put('/signals/{signal}', [SignalManagementController::class, 'update'])->name('signals.update');
+    Route::delete('/signals/{signal}', [SignalManagementController::class, 'destroy'])->name('signals.destroy');
     Route::post('/signals/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('signals.update-status');
     Route::get('/signals/export', [SignalManagementController::class, 'export'])->name('signals.export');
     Route::get('/signals/statistics', [SignalManagementController::class, 'getStatistics'])->name('signals.statistics');

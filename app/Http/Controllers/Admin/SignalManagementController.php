@@ -8,6 +8,7 @@ use App\Models\WasteTypes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class SignalManagementController extends Controller
 {
@@ -211,5 +212,56 @@ class SignalManagementController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function edit(Signal $signal)
+    {
+        $signal->load(['creator', 'wasteTypes', 'media']);
+        $wasteTypes = WasteTypes::all();
+        return view('admin.signals.edit', compact('signal', 'wasteTypes'));
+    }
+
+    public function update(Request $request, Signal $signal)
+    {
+        $validated = $request->validate([
+            'location' => 'required|string|max:255',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'volume' => 'required|numeric|min:0',
+            'waste_types' => 'required|array',
+            'waste_types.*' => 'exists:waste_types,id',
+            'description' => 'nullable|string|max:1000',
+            'status' => 'required|in:pending,validated,rejected',
+            'admin_note' => 'nullable|string|max:500'
+        ]);
+
+        $signal->update([
+            'location' => $validated['location'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'volume' => $validated['volume'],
+            'description' => $validated['description'],
+            'status' => $validated['status'],
+            'admin_note' => $validated['admin_note']
+        ]);
+
+        $signal->wasteTypes()->sync($validated['waste_types']);
+
+        return redirect()->route('admin.signals.show', $signal)
+            ->with('success', 'Signal updated successfully.');
+    }
+
+    public function destroy(Signal $signal)
+    {
+        // Delete associated media files
+        foreach ($signal->media as $media) {
+            Storage::disk('public')->delete($media->file_path);
+            $media->delete();
+        }
+
+        $signal->delete();
+
+        return redirect()->route('admin.signals.index')
+            ->with('success', 'Signal deleted successfully.');
     }
 } 

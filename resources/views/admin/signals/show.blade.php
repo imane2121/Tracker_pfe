@@ -173,6 +173,48 @@
         font-weight: 500 !important;
         border-radius: 4px !important;
     }
+
+    /* Leaflet Controls Fix */
+    .admin-signal-details .leaflet-control-zoom {
+        border: none !important;
+        margin: 15px !important;
+    }
+
+    .admin-signal-details .leaflet-control-zoom a {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        color: #333 !important;
+        font-size: 16px !important;
+        background-color: white !important;
+        border: none !important;
+        border-radius: 4px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Reporter Info Styles */
+    .admin-signal-details .reporter-info {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .admin-signal-details .reporter-info .name {
+        font-weight: 600 !important;
+        color: #333 !important;
+    }
+
+    .admin-signal-details .reporter-info .email {
+        color: #666 !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        .admin-signal-details .reporter-info {
+            margin-bottom: 1rem !important;
+        }
+    }
 </style>
 @endsection
 
@@ -201,7 +243,10 @@
                         </div>
                         <div class="col-md-6">
                             <h5>Reporter</h5>
-                            <p>{{ $signal->creator->name }} ({{ $signal->creator->email }})</p>
+                            <div class="reporter-info">
+                                <span class="name">{{ $signal->creator->name ?? 'Unknown' }}</span>
+                                <span class="email">{{ $signal->creator->email ?? 'No email provided' }}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -376,32 +421,56 @@ document.addEventListener('DOMContentLoaded', function() {
             map.invalidateSize(true);
 
             try {
+                // Create custom marker icon
+                const customIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
                 // Add marker for current signal with custom icon
                 const currentMarker = L.marker([{{ $signal->latitude }}, {{ $signal->longitude }}], {
+                    icon: customIcon,
                     title: 'Signal #{{ $signal->id }}'
                 })
                 .bindPopup(`
-                    <strong>Current Signal #{{ $signal->id }}</strong><br>
-                    Location: {{ Str::limit($signal->location, 30) }}<br>
-                    Status: <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
-                        {{ ucfirst($signal->status) }}
-                    </span>
+                    <div class="popup-content">
+                        <strong>Signal #{{ $signal->id }}</strong><br>
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ Str::limit($signal->location, 30) }}<br>
+                        <i class="fas fa-user me-1"></i> {{ $signal->creator->name ?? 'Unknown' }}<br>
+                        <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
+                            {{ ucfirst($signal->status) }}
+                        </span>
+                    </div>
                 `)
                 .addTo(map);
 
-                // Add markers for nearby signals with custom icons and interactive popups
+                // Add markers for nearby signals with custom icons
+                const nearbyIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
                 @foreach($nearbySignals as $nearby)
                     L.marker([{{ $nearby->latitude }}, {{ $nearby->longitude }}], {
+                        icon: nearbyIcon,
                         title: 'Signal #{{ $nearby->id }}'
                     })
                     .bindPopup(`
                         <div class="popup-content">
                             <strong>Signal #{{ $nearby->id }}</strong><br>
-                            <i class="fas fa-map-marker-alt"></i> {{ Str::limit($nearby->location, 30) }}<br>
-                            <i class="fas fa-ruler-horizontal"></i> {{ number_format($nearby->distance, 1) }}km<br>
-                            <i class="fas fa-clock"></i> {{ $nearby->signal_date->format('Y-m-d H:i') }}<br>
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ Str::limit($nearby->location, 30) }}<br>
+                            <i class="fas fa-ruler-horizontal me-1"></i> {{ number_format($nearby->distance, 1) }}km<br>
+                            <i class="fas fa-clock me-1"></i> {{ $nearby->signal_date->format('Y-m-d H:i') }}<br>
                             <a href="{{ route('admin.signals.show', $nearby) }}" class="btn btn-sm btn-info mt-2 w-100">
-                                <i class="fas fa-eye"></i> View Details
+                                <i class="fas fa-eye me-1"></i> View Details
                             </a>
                         </div>
                     `)
