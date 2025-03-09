@@ -1122,7 +1122,7 @@ section,
 .section {
   color: var(--default-color);
   background-color: var(--background-color);
-  /*padding: 60px 0;*/
+  padding: 100px 0 !important;
   scroll-margin-top: 74px;
   overflow: clip;
 }
@@ -2249,7 +2249,7 @@ section,
   @media (max-width: 768px) {
     
     .footer {
-      font-size: 12px; /* Slightly smaller text */
+      font-size: 12px;
     }
   
     .footer .footer-top .row {

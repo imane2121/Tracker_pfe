@@ -260,11 +260,11 @@
   </script>
 
 <!-- Page Title -->
-    <div class="page-title accent-background">
+   <!-- <div class="page-title accent-background">-->
       <div class="container position-relative">
         <nav class="breadcrumbs">
         </nav>
-      </div>
+      <!--</div>-->
     </div><!-- End Page Title -->
   <!-- Main Content -->
   <main class="main">
@@ -293,27 +293,7 @@
           </div>
         </div>
 
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Useful Links</h4>
-          <ul>
-            <li><a href="{{ route('overview') }}">Home</a></li>
-            <li><a href="#">About us</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Terms of service</a></li>
-            <li><a href="#">Privacy policy</a></li>
-          </ul>
-        </div>
-
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><a href="#">Web Design</a></li>
-            <li><a href="#">Web Development</a></li>
-            <li><a href="#">Product Management</a></li>
-            <li><a href="#">Marketing</a></li>
-            <li><a href="#">Graphic Design</a></li>
-          </ul>
-        </div>
+      
 
         <div class="col-lg-4 col-md-6 footer-newsletter">
           <h4>Our Newsletter</h4>
