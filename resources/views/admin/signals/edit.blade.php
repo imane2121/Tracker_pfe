@@ -277,7 +277,7 @@
                     Reporter Information
                 </div>
                 <div class="card-body">
-                    <p><strong>Name:</strong> {{ $signal->creator->name ?? 'Unknown' }}</p>
+                    <p><strong>Name:</strong> {{ $signal->creator->full_name ?? 'Unknown' }}</p>
                     <p><strong>Email:</strong> {{ $signal->creator->email ?? 'No email provided' }}</p>
                     <p><strong>Reported On:</strong> {{ $signal->signal_date->format('Y-m-d H:i') }}</p>
                 </div>

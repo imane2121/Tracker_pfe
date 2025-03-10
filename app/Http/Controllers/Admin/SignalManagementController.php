@@ -19,29 +19,45 @@ class SignalManagementController extends Controller
 
     public function index(Request $request)
     {
-        $query = Signal::with(['creator', 'wasteTypes', 'media'])
-            ->when($request->status, function($q, $status) {
-                return $q->where('status', $status);
-            })
-            ->when($request->date_from, function($q, $date) {
-                return $q->where('signal_date', '>=', Carbon::parse($date));
-            })
-            ->when($request->date_to, function($q, $date) {
-                return $q->where('signal_date', '<=', Carbon::parse($date));
-            })
-            ->when($request->waste_type, function($q, $wasteType) {
-                return $q->whereJsonContains('waste_types', $wasteType);
-            })
-            ->when($request->region, function($q, $region) {
-                return $q->where('location', 'like', "%$region%");
-            });
+        $query = Signal::with(['creator', 'wasteTypes', 'media']);
 
-        // Handle anomaly filter
+        // Handle status filter - show all signals when no status is selected
+        if ($request->filled('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        // Only apply date filters if they are provided
+        if ($request->filled('date_from')) {
+            $query->where('signal_date', '>=', Carbon::parse($request->date_from)->startOfDay());
+        }
+        if ($request->filled('date_to')) {
+            $query->where('signal_date', '<=', Carbon::parse($request->date_to)->endOfDay());
+        }
+
+        // Only apply waste type filter if a specific type is selected
+        if ($request->filled('waste_type') && $request->waste_type !== '') {
+            $query->whereHas('wasteTypes', function($q) use ($request) {
+                $q->where('waste_types.id', $request->waste_type);
+            });
+        }
+
+        // Only apply region filter if a value is provided
+        if ($request->filled('region') && $request->region !== '') {
+            $query->where('location', 'like', "%{$request->region}%");
+        }
+
+        // Handle anomaly filter - explicitly handle both checked and unchecked states
         if ($request->has('anomaly')) {
             $query->where('anomaly_flag', true);
         }
 
+        // Clone the query for markers (we want all signals for markers)
+        $markersQuery = clone $query;
+        $allSignals = $markersQuery->get();
+
+        // Get paginated signals for the table
         $signals = $query->latest()->paginate(10);
+        
         $wasteTypes = WasteTypes::all();
 
         // Get statistics
@@ -49,21 +65,43 @@ class SignalManagementController extends Controller
             'total' => Signal::count(),
             'pending' => Signal::where('status', 'pending')->count(),
             'validated' => Signal::where('status', 'validated')->count(),
-            'rejected' => Signal::where('status', 'rejected')->count(),
             'anomalies' => Signal::where('anomaly_flag', true)->count(),
         ];
 
-        // Get heatmap data
-        $heatmapData = Signal::select(
+        // Get heatmap data with the same filters as the main query
+        $heatmapQuery = Signal::select(
             'latitude', 
             'longitude',
             DB::raw('count(*) as intensity')
-        )
-        ->groupBy('latitude', 'longitude')
-        ->get();
+        );
+
+        // Apply the same filters to heatmap data
+        if ($request->filled('status') && $request->status !== '') {
+            $heatmapQuery->where('status', $request->status);
+        }
+        if ($request->filled('date_from')) {
+            $heatmapQuery->where('signal_date', '>=', Carbon::parse($request->date_from)->startOfDay());
+        }
+        if ($request->filled('date_to')) {
+            $heatmapQuery->where('signal_date', '<=', Carbon::parse($request->date_to)->endOfDay());
+        }
+        if ($request->filled('waste_type') && $request->waste_type !== '') {
+            $heatmapQuery->whereHas('wasteTypes', function($q) use ($request) {
+                $q->where('waste_types.id', $request->waste_type);
+            });
+        }
+        if ($request->filled('region') && $request->region !== '') {
+            $heatmapQuery->where('location', 'like', "%{$request->region}%");
+        }
+        if ($request->has('anomaly')) {
+            $heatmapQuery->where('anomaly_flag', true);
+        }
+
+        $heatmapData = $heatmapQuery->groupBy('latitude', 'longitude')->get();
 
         return view('admin.signals.index', compact(
-            'signals', 
+            'signals',
+            'allSignals', // Add all signals for markers
             'wasteTypes', 
             'statistics',
             'heatmapData'

@@ -13,17 +13,16 @@
         height: 400px !important;
         width: 100% !important;
         z-index: 1 !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
     }
 
-    .admin-signals #map { 
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+    .admin-signals #map {
         height: 100% !important;
         width: 100% !important;
-        border-radius: 4px !important;
+        z-index: 1 !important;
+        background-color: #f8f9fa !important;
     }
 
     /* Custom Leaflet Controls Styling */
@@ -504,7 +503,7 @@
                         <tr>
                             <td data-label="ID">#{{ $signal->id }}</td>
                             <td data-label="Location">{{ Str::limit($signal->location, 30) }}</td>
-                            <td data-label="Reporter">{{ $signal->creator->name ?? 'Unknown' }}</td>
+                            <td data-label="Reporter">{{ $signal->creator->full_name ?? 'Unknown' }}</td>
                             <td data-label="Status">
                                 <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
                                     {{ ucfirst($signal->status) }}
@@ -544,146 +543,254 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function initializeMap() {
-        const mapContainer = document.getElementById('map');
-        if (!mapContainer) {
-            console.error('Map container not found');
-            return;
-        }
+let map = null;
 
-        // Force the container to have dimensions
-        mapContainer.style.height = '400px';
-        mapContainer.style.width = '100%';
+function ensureMapContainer() {
+    const container = document.getElementById('map');
+    if (!container) return false;
 
-        try {
-            // Initialize map with custom options
-            const map = L.map('map', {
-                zoomControl: true,
-                scrollWheelZoom: true,
-                dragging: true,
-                tap: true
-            }).setView([{{ $signals->first()?->latitude ?? 31.7917 }}, {{ $signals->first()?->longitude ?? -7.0926 }}], 7);
-            
-            // Add OpenStreetMap tiles with custom options
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+    // Force container dimensions
+    container.style.height = '400px';
+    container.style.width = '100%';
+    return true;
+}
 
-            // Force a resize to ensure proper rendering
-            map.invalidateSize(true);
-
-            // Prepare heatmap data
-            const points = @json($heatmapData->map(function($point) {
-                return [
-                    floatval($point->latitude),
-                    floatval($point->longitude),
-                    intval($point->intensity)
-                ];
-            }));
-
-            if (points && points.length > 0) {
-                try {
-                    // Configure heatmap layer
-                    const maxIntensity = Math.max(...points.map(p => p[2] || 0));
-                    const heat = L.heatLayer(points, {
-                        radius: 25,
-                        blur: 15,
-                        maxZoom: 10,
-                        max: maxIntensity > 0 ? maxIntensity : 1,
-                        gradient: {
-                            0.4: 'blue',
-                            0.6: 'lime',
-                            0.8: 'yellow',
-                            1.0: 'red'
-                        }
-                    }).addTo(map);
-
-                    // Add legend
-                    const legend = L.control({ position: 'bottomright' });
-                    legend.onAdd = function(map) {
-                        const div = L.DomUtil.create('div', 'info legend');
-                        div.style.backgroundColor = 'white';
-                        div.style.padding = '6px';
-                        div.style.borderRadius = '4px';
-                        div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-                        div.innerHTML = '<h4 style="margin:0 0 5px 0;font-size:14px;">Signal Density</h4>' +
-                            '<div style="background: linear-gradient(to right, blue, lime, yellow, red);height:20px;width:100px;"></div>' +
-                            '<div style="display:flex;justify-content:space-between;width:100px;font-size:12px;">' +
-                            '<span>Low</span><span>High</span></div>';
-                        return div;
-                    };
-                    legend.addTo(map);
-                } catch (error) {
-                    console.error('Error initializing heatmap:', error);
-                }
-            }
-
-            // Create custom marker icon
-            const customIcon = L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
-
-            // Use custom icon for markers
-            if (points && points.length > 0) {
-                points.forEach(point => {
-                    L.marker([point[0], point[1]], { icon: customIcon })
-                        .bindPopup(`Signal at ${point[0]}, ${point[1]}`)
-                        .addTo(map);
-                });
-            }
-
-            // Add resize handler
-            window.addEventListener('resize', function() {
-                map.invalidateSize(true);
-            });
-
-        } catch (error) {
-            console.error('Error initializing map:', error);
-        }
+function initializeMap() {
+    if (!ensureMapContainer()) {
+        console.error('Map container not found or not properly sized');
+        return;
     }
 
-    // Try to initialize map immediately
+    try {
+        if (map !== null) {
+            map.remove(); // Clean up existing map instance if any
+        }
+
+        // Center coordinates for Morocco (approximately center of the country)
+        const initialLat = {{ $signals->first() ? (float) $signals->first()->latitude : 31.7917 }};
+        const initialLng = {{ $signals->first() ? (float) $signals->first()->longitude : -7.0926 }};
+        const initialZoom = {{ $signals->first() ? 7 : 6 }}; // Zoom out more when no signals
+
+        // Initialize map with custom options
+        map = L.map('map', {
+            zoomControl: true,
+            scrollWheelZoom: true,
+            dragging: true,
+            tap: true
+        }).setView([initialLat, initialLng], initialZoom);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Set map bounds to Morocco's approximate boundaries
+        const moroccoBounds = L.latLngBounds(
+            L.latLng(20.7, -17.1), // Southwest corner
+            L.latLng(36.0, 1.2)    // Northeast corner
+        );
+
+        // If no signals, set view to Morocco's bounds
+        if (!{{ $signals->first() ? 'true' : 'false' }}) {
+            map.fitBounds(moroccoBounds);
+        }
+
+        // Force a resize
+        map.invalidateSize(true);
+
+        // Add markers and heatmap after ensuring map is properly initialized
+        setTimeout(() => {
+            addMarkersAndHeatmap();
+        }, 100);
+    } catch (error) {
+        console.error('Error initializing map:', error);
+    }
+}
+
+function addMarkersAndHeatmap() {
+    try {
+        // Prepare heatmap data with proper floating point conversion
+        const points = @json($heatmapData->map(function($point) {
+            return [
+                (float) $point->latitude,
+                (float) $point->longitude,
+                (int) $point->intensity
+            ];
+        }));
+
+        if (points && points.length > 0) {
+            // Configure heatmap layer
+            const maxIntensity = Math.max(...points.map(p => p[2] || 0));
+            const heat = L.heatLayer(points, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 10,
+                max: maxIntensity > 0 ? maxIntensity : 1,
+                gradient: {
+                    0.4: 'blue',
+                    0.6: 'lime',
+                    0.8: 'yellow',
+                    1.0: 'red'
+                }
+            }).addTo(map);
+        }
+
+        // Add markers for each signal with proper floating point conversion
+        @foreach($allSignals as $signal)
+            (function() {
+                const lat = {{ (float) $signal->latitude }};
+                const lng = {{ (float) $signal->longitude }};
+                
+                // Create custom marker icon based on status
+                const markerColor = '{{ $signal->status === "validated" ? "green" : ($signal->status === "pending" ? "orange" : "red") }}';
+                const customIcon = L.icon({
+                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const signalMarker = L.marker([lat, lng], {
+                    icon: customIcon,
+                    title: 'Signal #{{ $signal->id }}'
+                });
+
+                const popupContent = `
+                    <div class="signal-popup" style="min-width: 200px; padding: 10px;">
+                        <h6 style="margin: 0 0 10px 0; color: #0e346a; font-weight: 600;">Signal #{{ $signal->id }}</h6>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-map-marker-alt" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ Str::limit($signal->location, 30) }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-map-pin" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">${lat}, ${lng}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-user" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ $signal->creator->full_name ?? 'Unknown' }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-calendar" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ $signal->signal_date->format('Y-m-d H:i') }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-trash" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">
+                                @foreach($signal->wasteTypes as $type)
+                                    {{ $type->name }}{{ !$loop->last ? ', ' : '' }}
+                                @endforeach
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}" 
+                                  style="padding: 5px 10px; font-size: 12px;">
+                                {{ ucfirst($signal->status) }}
+                            </span>
+                            @if($signal->anomaly_flag)
+                                <span class="badge bg-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">
+                                    Anomaly
+                                </span>
+                            @endif
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{{ route('admin.signals.show', $signal) }}" 
+                               class="btn btn-info btn-sm" 
+                               style="flex: 1; font-size: 12px; padding: 4px 8px; text-decoration: none; color: white; border-radius: 4px; text-align: center;">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a href="{{ route('admin.signals.edit', $signal) }}" 
+                               class="btn btn-warning btn-sm" 
+                               style="flex: 1; font-size: 12px; padding: 4px 8px; text-decoration: none; color: white; border-radius: 4px; text-align: center;">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                signalMarker.bindPopup(popupContent);
+                signalMarker.addTo(map);
+            })();
+        @endforeach
+
+        // If there are markers, fit the map bounds to show all markers
+        if ({{ $allSignals->count() }} > 0) {
+            const bounds = [];
+            @foreach($allSignals as $signal)
+                bounds.push([{{ (float) $signal->latitude }}, {{ (float) $signal->longitude }}]);
+            @endforeach
+            map.fitBounds(bounds);
+        }
+
+    } catch (error) {
+        console.error('Error adding markers and heatmap:', error);
+    }
+}
+
+// Initialize map when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial initialization
     initializeMap();
 
-    // Also try after a short delay to ensure container is ready
+    // Reinitialize after a short delay to ensure proper rendering
     setTimeout(initializeMap, 500);
+});
 
-    // Existing status update function
-    window.updateStatus = function(signalId, status) {
-        if (confirm('Are you sure you want to ' + status + ' this signal?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/admin/signals/${signalId}/status`;
-            
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            
-            const statusInput = document.createElement('input');
-            statusInput.type = 'hidden';
-            statusInput.name = 'status';
-            statusInput.value = status;
-            
-            form.appendChild(csrfToken);
-            form.appendChild(statusInput);
-            document.body.appendChild(form);
-            form.submit();
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (map) {
+        map.invalidateSize(true);
+    }
+});
+
+// Handle tab changes or any other events that might affect map visibility
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+            if (map) {
+                map.invalidateSize(true);
+            }
         }
-    };
-
-    // Initialize Bootstrap dropdowns
-    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-        return new bootstrap.Dropdown(dropdownToggleEl);
     });
+});
+
+// Observe the map container for changes
+const mapContainer = document.getElementById('map');
+if (mapContainer) {
+    observer.observe(mapContainer, { attributes: true });
+}
+
+// Existing status update function
+window.updateStatus = function(signalId, status) {
+    if (confirm('Are you sure you want to ' + status + ' this signal?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/signals/${signalId}/status`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        
+        const statusInput = document.createElement('input');
+        statusInput.type = 'hidden';
+        statusInput.name = 'status';
+        statusInput.value = status;
+        
+        form.appendChild(csrfToken);
+        form.appendChild(statusInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+};
+
+// Initialize Bootstrap dropdowns
+var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+    return new bootstrap.Dropdown(dropdownToggleEl);
 });
 </script>
 @endpush 

@@ -82,9 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail
      * Get all signals created by the user.
      */
     public function signals()
-{
-    return $this->hasMany(Signal::class, 'created_by');
-}
+    {
+        return $this->hasMany(Signal::class, 'created_by');
+    }
 
     /**
      * Check if the user is an admin.
@@ -156,8 +156,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $value ? Carbon::createFromFormat('Y-m-d H:i:s', $value)->format(config('panel.date_format') . ' ' . config('panel.time_format')) : null;
     }
 
-
-
     /**
      * Hash the password before saving.
      */
@@ -225,5 +223,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyUserNotification($this));
+    }
+
+    /**
+     * Get the user's full name.
+     *
+     * @return string
+     */
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 }

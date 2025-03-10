@@ -13,17 +13,16 @@
         height: 400px !important;
         width: 100% !important;
         z-index: 1 !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #ddd !important;
+        border-radius: 4px !important;
     }
 
-    .admin-signal-details #map { 
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+    .admin-signal-details #map {
         height: 100% !important;
         width: 100% !important;
-        border-radius: 4px !important;
+        z-index: 1 !important;
+        background-color: #f8f9fa !important;
     }
 
     /* Custom Leaflet Controls Styling */
@@ -244,7 +243,7 @@
                         <div class="col-md-6">
                             <h5>Reporter</h5>
                             <div class="reporter-info">
-                                <span class="name">{{ $signal->creator->name ?? 'Unknown' }}</span>
+                                <span class="name">{{ $signal->creator->full_name ?? 'Unknown' }}</span>
                                 <span class="email">{{ $signal->creator->email ?? 'No email provided' }}</span>
                             </div>
                         </div>
@@ -327,6 +326,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Reporter Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-1"></i>
+                    Reporter Information
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ $signal->creator->full_name ?? 'Unknown' }}</p>
+                    <p><strong>Email:</strong> {{ $signal->creator->email ?? 'No email provided' }}</p>
+                    <p><strong>Reported On:</strong> {{ $signal->signal_date->format('Y-m-d H:i') }}</p>
+                </div>
+            </div>
         </div>
 
         <!-- Sidebar -->
@@ -390,118 +402,257 @@
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function initializeMap() {
-        const mapContainer = document.getElementById('map');
-        if (!mapContainer) {
-            console.error('Map container not found');
-            return;
-        }
+let map = null;
 
-        // Force the container to have dimensions
-        mapContainer.style.height = '400px';
-        mapContainer.style.width = '100%';
+function ensureMapContainer() {
+    const container = document.getElementById('map');
+    if (!container) return false;
 
-        try {
-            // Initialize map with custom options
-            const map = L.map('map', {
-                zoomControl: true,
-                scrollWheelZoom: true,
-                dragging: true,
-                tap: true
-            }).setView([{{ $signal->latitude }}, {{ $signal->longitude }}], 14);
-            
-            // Add OpenStreetMap tiles with custom options
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+    // Force container dimensions
+    container.style.height = '400px';
+    container.style.width = '100%';
+    return true;
+}
 
-            // Force a resize to ensure proper rendering
-            map.invalidateSize(true);
-
-            try {
-                // Create custom marker icon
-                const customIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
-
-                // Add marker for current signal with custom icon
-                const currentMarker = L.marker([{{ $signal->latitude }}, {{ $signal->longitude }}], {
-                    icon: customIcon,
-                    title: 'Signal #{{ $signal->id }}'
-                })
-                .bindPopup(`
-                    <div class="popup-content">
-                        <strong>Signal #{{ $signal->id }}</strong><br>
-                        <i class="fas fa-map-marker-alt me-1"></i> {{ Str::limit($signal->location, 30) }}<br>
-                        <i class="fas fa-user me-1"></i> {{ $signal->creator->name ?? 'Unknown' }}<br>
-                        <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
-                            {{ ucfirst($signal->status) }}
-                        </span>
-                    </div>
-                `)
-                .addTo(map);
-
-                // Add markers for nearby signals with custom icons
-                const nearbyIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
-
-                @foreach($nearbySignals as $nearby)
-                    L.marker([{{ $nearby->latitude }}, {{ $nearby->longitude }}], {
-                        icon: nearbyIcon,
-                        title: 'Signal #{{ $nearby->id }}'
-                    })
-                    .bindPopup(`
-                        <div class="popup-content">
-                            <strong>Signal #{{ $nearby->id }}</strong><br>
-                            <i class="fas fa-map-marker-alt me-1"></i> {{ Str::limit($nearby->location, 30) }}<br>
-                            <i class="fas fa-ruler-horizontal me-1"></i> {{ number_format($nearby->distance, 1) }}km<br>
-                            <i class="fas fa-clock me-1"></i> {{ $nearby->signal_date->format('Y-m-d H:i') }}<br>
-                            <a href="{{ route('admin.signals.show', $nearby) }}" class="btn btn-sm btn-info mt-2 w-100">
-                                <i class="fas fa-eye me-1"></i> View Details
-                            </a>
-                        </div>
-                    `)
-                    .addTo(map);
-                @endforeach
-            } catch (error) {
-                console.error('Error adding markers:', error);
-            }
-
-            // Add resize handler
-            window.addEventListener('resize', function() {
-                map.invalidateSize(true);
-            });
-
-        } catch (error) {
-            console.error('Error initializing map:', error);
-        }
+function initializeMap() {
+    if (!ensureMapContainer()) {
+        console.error('Map container not found or not properly sized');
+        return;
     }
 
-    // Try to initialize map immediately
+    try {
+        if (map !== null) {
+            map.remove(); // Clean up existing map instance if any
+        }
+
+        // Get coordinates with proper floating point conversion
+        const lat = {{ (float) $signal->latitude }};
+        const lng = {{ (float) $signal->longitude }};
+
+        // Initialize map with custom options
+        map = L.map('map', {
+            zoomControl: true,
+            scrollWheelZoom: true,
+            dragging: true,
+            tap: true
+        }).setView([lat, lng], 14);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Force a resize
+        map.invalidateSize(true);
+
+        // Add markers after ensuring map is properly initialized
+        setTimeout(() => {
+            addMarkers();
+        }, 100);
+    } catch (error) {
+        console.error('Error initializing map:', error);
+    }
+}
+
+function addMarkers() {
+    try {
+        // Get coordinates with proper floating point conversion
+        const currentLat = {{ (float) $signal->latitude }};
+        const currentLng = {{ (float) $signal->longitude }};
+
+        // Create custom marker icon for current signal based on status
+        const currentMarkerColor = '{{ $signal->status === "validated" ? "green" : ($signal->status === "pending" ? "orange" : "red") }}';
+        const currentIcon = L.icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${currentMarkerColor}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // Add marker for current signal
+        const currentSignalMarker = L.marker([currentLat, currentLng], {
+            icon: currentIcon,
+            title: 'Signal #{{ $signal->id }}'
+        });
+
+        const currentPopupContent = `
+            <div class="signal-popup" style="min-width: 250px; padding: 10px;">
+                <h6 style="margin: 0 0 10px 0; color: #0e346a; font-weight: 600;">Signal #{{ $signal->id }}</h6>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-map-marker-alt" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">{{ Str::limit($signal->location, 30) }}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-map-pin" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">${currentLat}, ${currentLng}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-user" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">{{ $signal->creator->full_name ?? 'Unknown' }}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-calendar" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">{{ $signal->signal_date->format('Y-m-d H:i') }}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-trash" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">
+                        @foreach($signal->wasteTypes as $type)
+                            {{ $type->name }}{{ !$loop->last ? ', ' : '' }}
+                        @endforeach
+                    </span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <i class="fas fa-cube" style="color: #666;"></i>
+                    <span style="margin-left: 5px;">Volume: {{ $signal->volume }} m³</span>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}" 
+                          style="padding: 5px 10px; font-size: 12px;">
+                        {{ ucfirst($signal->status) }}
+                    </span>
+                    @if($signal->anomaly_flag)
+                        <span class="badge bg-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">
+                            Anomaly
+                        </span>
+                    @endif
+                </div>
+            </div>
+        `;
+
+        currentSignalMarker.bindPopup(currentPopupContent);
+        currentSignalMarker.addTo(map);
+
+        // Add markers for nearby signals with proper floating point conversion
+        @foreach($nearbySignals as $nearby)
+            (function() {
+                const nearbyLat = {{ (float) $nearby->latitude }};
+                const nearbyLng = {{ (float) $nearby->longitude }};
+                
+                // Create custom marker icon for nearby signal based on status
+                const nearbyMarkerColor = '{{ $nearby->status === "validated" ? "green" : ($nearby->status === "pending" ? "orange" : "red") }}';
+                const nearbyIcon = L.icon({
+                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${nearbyMarkerColor}.png`,
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                
+                const nearbySignalMarker = L.marker([nearbyLat, nearbyLng], {
+                    icon: nearbyIcon,
+                    title: 'Signal #{{ $nearby->id }}'
+                });
+
+                const nearbyPopupContent = `
+                    <div class="signal-popup" style="min-width: 250px; padding: 10px;">
+                        <h6 style="margin: 0 0 10px 0; color: #0e346a; font-weight: 600;">Signal #{{ $nearby->id }}</h6>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-map-marker-alt" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ Str::limit($nearby->location, 30) }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-map-pin" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">${nearbyLat}, ${nearbyLng}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-user" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ $nearby->creator->full_name ?? 'Unknown' }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-calendar" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ $nearby->signal_date->format('Y-m-d H:i') }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-trash" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">
+                                @foreach($nearby->wasteTypes as $type)
+                                    {{ $type->name }}{{ !$loop->last ? ', ' : '' }}
+                                @endforeach
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <i class="fas fa-ruler-horizontal" style="color: #666;"></i>
+                            <span style="margin-left: 5px;">{{ number_format($nearby->distance, 1) }}km away</span>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <span class="badge bg-{{ $nearby->status === 'validated' ? 'success' : ($nearby->status === 'pending' ? 'warning' : 'danger') }}" 
+                                  style="padding: 5px 10px; font-size: 12px;">
+                                {{ ucfirst($nearby->status) }}
+                            </span>
+                            @if($nearby->anomaly_flag)
+                                <span class="badge bg-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">
+                                    Anomaly
+                                </span>
+                            @endif
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <a href="{{ route('admin.signals.show', $nearby) }}" 
+                               class="btn btn-info btn-sm" 
+                               style="flex: 1; font-size: 12px; padding: 4px 8px; text-decoration: none; color: white; border-radius: 4px; text-align: center;">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a href="{{ route('admin.signals.edit', $nearby) }}" 
+                               class="btn btn-warning btn-sm" 
+                               style="flex: 1; font-size: 12px; padding: 4px 8px; text-decoration: none; color: white; border-radius: 4px; text-align: center;">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                nearbySignalMarker.bindPopup(nearbyPopupContent);
+                nearbySignalMarker.addTo(map);
+            })();
+        @endforeach
+
+    } catch (error) {
+        console.error('Error adding markers:', error);
+    }
+}
+
+// Initialize map when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial initialization
     initializeMap();
 
-    // Also try after a short delay to ensure container is ready
+    // Reinitialize after a short delay to ensure proper rendering
     setTimeout(initializeMap, 500);
+});
 
-    // Add click handlers for media gallery
-    document.querySelectorAll('.media-gallery img, .media-gallery video').forEach(media => {
-        media.addEventListener('click', function() {
-            // Implement lightbox or modal for media preview
-            // You can add a lightbox library of your choice here
-        });
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (map) {
+        map.invalidateSize(true);
+    }
+});
+
+// Handle tab changes or any other events that might affect map visibility
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+            if (map) {
+                map.invalidateSize(true);
+            }
+        }
+    });
+});
+
+// Observe the map container for changes
+const mapContainer = document.getElementById('map');
+if (mapContainer) {
+    observer.observe(mapContainer, { attributes: true });
+}
+
+// Add click handlers for media gallery
+document.querySelectorAll('.media-gallery img, .media-gallery video').forEach(media => {
+    media.addEventListener('click', function() {
+        // Implement lightbox or modal for media preview
+        // You can add a lightbox library of your choice here
     });
 });
 </script>

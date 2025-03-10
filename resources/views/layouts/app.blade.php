@@ -115,6 +115,9 @@
       display: flex;
       gap: 20px;
     }
+    .fixed-top{
+      position: relative;
+    }
 
     .navmenu a {
       color: #28266c !important;
@@ -235,7 +238,8 @@
       }
 
       .header {
-        padding: 8px 0;
+        padding: 8px 10px;
+        margin-bottom: 10px;
       }
 
       .navmenu {
