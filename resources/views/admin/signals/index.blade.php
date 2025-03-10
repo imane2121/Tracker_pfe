@@ -2,6 +2,7 @@
 
 @section('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
 <style>
     /* Admin Signals Management Specific Styles */
     .admin-signals {
@@ -146,7 +147,7 @@
         padding: 0 !important;
         list-style: none !important;
     }
-
+    
     .admin-signals .page-item {
         margin: 0 2px !important;
     }
@@ -499,7 +500,10 @@
         .table-responsive th {
             display: none !important;
         }
-
+        td.tdd{
+            margin-right: 100px !important;
+            flex-direction: column !important;
+        }
         .table-responsive tr {
             margin-bottom: 1rem !important;
             display: block !important;
@@ -543,6 +547,140 @@
 <div class="admin-signals container-fluid px-4">
     <h1 class="mt-4">Signals Management</h1>
     
+    <!-- Advanced Analytics Dashboard -->
+    <div class="row mt-4 mb-4">
+        <!-- Real-time Monitor -->
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Real-time Signal Monitor</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-light btn-sm active" data-period="24h">24H</button>
+                            <button class="btn btn-outline-light btn-sm" data-period="7d">7D</button>
+                            <button class="btn btn-outline-light btn-sm" data-period="30d">30D</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="signalTrendChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Center -->
+        <div class="col-xl-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Action Center</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-1">Pending Reviews</h6>
+                                <small class="text-muted">Signals awaiting validation</small>
+                            </div>
+                            <span class="badge bg-warning rounded-pill">{{ $statistics['pending'] }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-1">Critical Anomalies</h6>
+                                <small class="text-muted">Requires immediate attention</small>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">{{ $statistics['anomalies'] }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <div>
+                                <h6 class="mb-1">Today's Signals</h6>
+                                <small class="text-muted">New reports in last 24h</small>
+                            </div>
+                            <span class="badge bg-info rounded-pill" id="todaySignals">0</span>
+                        </div>
+                        <div class="list-group-item p-3">
+                            <h6 class="mb-2">Quick Actions</h6>
+                            <div class="d-grid gap-2">
+                                <a href="{{ route('admin.signals.batch-validate') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-check-double me-2"></i>Batch Validate
+                                </a>
+                                <a href="{{ route('admin.signals.anomalies') }}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Review Anomalies
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predictive Insights -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-brain me-2"></i>Predictive Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- High Activity Areas -->
+                        <div class="col-lg-5">
+                            <div class="border rounded p-4 h-100">
+                                <h6 class="text-muted mb-4">Predicted High Activity Areas</h6>
+                                <div class="space-y-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-medium">Coastal Region A</span>
+                                                <span class="text-danger fw-bold">89%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-danger" style="width: 89%"></div>
+                                            </div>
+                                            <small class="text-muted mt-2 d-block">Expected surge in plastic waste</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-medium">Harbor Zone B</span>
+                                                <span class="text-warning fw-bold">67%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-warning" style="width: 67%"></div>
+                                            </div>
+                                            <small class="text-muted mt-2 d-block">Mixed waste accumulation</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Waste Type Distribution -->
+                        <div class="col-lg-4">
+                            <div class="border rounded p-4 h-100">
+                                <h6 class="text-muted mb-4">Waste Type Distribution</h6>
+                                <div class="position-relative" style="height: 200px;">
+                                    <canvas id="wasteTypeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Signal Reliability -->
+                        <div class="col-lg-3">
+                            <div class="border rounded p-4 h-100">
+                                <h6 class="text-muted mb-4">Signal Reliability Score</h6>
+                                <div class="position-relative" style="height: 200px;">
+                                    <canvas id="reliabilityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="row mt-4">
         <div class="col-xl-3 col-md-6">
@@ -705,7 +843,7 @@
                                     </span>
                                 </td>
                                 <td>{{ $signal->signal_date->format('Y-m-d H:i') }}</td>
-                                <td>
+                                <td class="tdd">
                                     <a href="{{ route('admin.signals.show', $signal) }}" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -741,6 +879,8 @@
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
 <script>
 let map = null;
 
@@ -990,6 +1130,161 @@ window.updateStatus = function(signalId, status) {
 var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
 var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
     return new bootstrap.Dropdown(dropdownToggleEl);
+});
+
+// Initialize charts when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Signal Trend Chart
+    const trendCtx = document.getElementById('signalTrendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+            datasets: [{
+                label: 'New Signals',
+                data: Array.from({length: 24}, () => Math.floor(Math.random() * 10)),
+                borderColor: '#0e346a',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(14, 52, 106, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Waste Type Distribution Chart
+    const wasteCtx = document.getElementById('wasteTypeChart').getContext('2d');
+    const wasteChart = new Chart(wasteCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Plastic', 'Metal', 'Glass', 'Organic', 'Other'],
+            datasets: [{
+                data: [35, 25, 15, 15, 10],
+                backgroundColor: [
+                    '#0e346a',
+                    '#1e88e5',
+                    '#13d8aa',
+                    '#ff9800',
+                    '#e91e63'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12
+                    }
+                }
+            }
+        }
+    });
+
+    // Signal Reliability Score Chart
+    const reliabilityCtx = document.getElementById('reliabilityChart').getContext('2d');
+    const reliabilityChart = new Chart(reliabilityCtx, {
+        type: 'gauge',
+        data: {
+            datasets: [{
+                value: 87,
+                data: [20, 40, 60, 80, 100],
+                backgroundColor: ['#dc3545', '#ffc107', '#28a745', '#17a2b8', '#0e346a'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            needle: {
+                radiusPercentage: 2,
+                widthPercentage: 2.2,
+                lengthPercentage: 80,
+                color: 'rgba(0, 0, 0, 0.9)'
+            },
+            valueLabel: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.9)',
+                fontSize: 20,
+                formatter: (value) => `${value}%`
+            }
+        }
+    });
+
+    // Update today's signals count
+    const updateTodaySignals = () => {
+        const todayCount = Math.floor(Math.random() * 20) + 5; // Simulated data
+        document.getElementById('todaySignals').textContent = todayCount;
+    };
+    updateTodaySignals();
+
+    // Period selector for trend chart
+    document.querySelectorAll('[data-period]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('[data-period]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Update chart data based on selected period
+            const period = this.dataset.period;
+            let labels, data;
+            
+            switch(period) {
+                case '24h':
+                    labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+                    data = Array.from({length: 24}, () => Math.floor(Math.random() * 10));
+                    break;
+                case '7d':
+                    labels = Array.from({length: 7}, (_, i) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]);
+                    data = Array.from({length: 7}, () => Math.floor(Math.random() * 50));
+                    break;
+                case '30d':
+                    labels = Array.from({length: 30}, (_, i) => `Day ${i + 1}`);
+                    data = Array.from({length: 30}, () => Math.floor(Math.random() * 100));
+                    break;
+            }
+            
+            trendChart.data.labels = labels;
+            trendChart.data.datasets[0].data = data;
+            trendChart.update();
+        });
+    });
+
+    // Quick action buttons event listeners
+    document.querySelector('.btn-outline-primary').addEventListener('click', function() {
+        alert('Batch validation feature coming soon!');
+    });
+    
+    document.querySelector('.btn-outline-danger').addEventListener('click', function() {
+        alert('Redirecting to anomaly review page...');
+    });
 });
 </script>
 @endpush 

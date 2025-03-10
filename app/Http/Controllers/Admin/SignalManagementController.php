@@ -296,4 +296,39 @@ class SignalManagementController extends Controller
         return redirect()->route('admin.signals.index')
             ->with('success', 'Signal deleted successfully.');
     }
+
+    public function batchValidateView()
+    {
+        $pendingSignals = Signal::where('status', 'pending')
+            ->with(['creator', 'wasteTypes'])
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.signals.batch-validate', compact('pendingSignals'));
+    }
+
+    public function batchValidate(Request $request)
+    {
+        $validated = $request->validate([
+            'signals' => 'required|array',
+            'signals.*' => 'exists:signals,id'
+        ]);
+
+        Signal::whereIn('id', $validated['signals'])
+            ->update(['status' => 'validated']);
+
+        return redirect()
+            ->route('admin.signals.batch-validate')
+            ->with('success', 'Selected signals have been validated successfully.');
+    }
+
+    public function anomalies()
+    {
+        $anomalies = Signal::where('anomaly_flag', true)
+            ->with(['creator', 'wasteTypes'])
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.signals.anomalies', compact('anomalies'));
+    }
 } 

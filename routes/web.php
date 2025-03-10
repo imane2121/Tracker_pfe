@@ -138,6 +138,10 @@ Route::prefix('articles')->group(function () {
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/signals/anomalies', [SignalManagementController::class, 'anomalies'])->name('signals.anomalies');
+    Route::get('/signals/batch-validate', [SignalManagementController::class, 'batchValidateView'])->name('signals.batch-validate');
+    Route::post('/signals/batch-validate', [SignalManagementController::class, 'batchValidate']);
+    
     Route::get('/signals', [SignalManagementController::class, 'index'])->name('signals.index');
     Route::get('/signals/{signal}', [SignalManagementController::class, 'show'])->name('signals.show');
     Route::get('/signals/{signal}/edit', [SignalManagementController::class, 'edit'])->name('signals.edit');
@@ -145,5 +149,4 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/signals/{signal}', [SignalManagementController::class, 'destroy'])->name('signals.destroy');
     Route::post('/signals/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('signals.update-status');
     Route::get('/signals/export/{format}', [SignalManagementController::class, 'export'])->name('signals.export');
-    Route::get('/signals/statistics', [SignalManagementController::class, 'getStatistics'])->name('signals.statistics');
 });
