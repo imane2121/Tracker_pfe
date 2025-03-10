@@ -83,7 +83,7 @@
                         <label for="location" class="form-label">Location Name</label>
                             <div class="location-input-group">
                                 <input type="text" class="form-control" id="location" name="location" required placeholder="Enter or validate a location">
-                                <button type="button" class="btn" id="validateLocationBtn" title="Validate Location">
+                                <button type="button" class="btn btn-primary w-100 use-location-btn" id="validateLocationBtn" title="Validate Location">
                                     <i class="bi bi-check-circle"></i>
                                 </button>
                     </div>
@@ -147,14 +147,15 @@
         </div>
 
         <!-- Submit Buttons -->
-        <div class="d-flex gap-3 justify-content-end">
+        <div class="d-flex gap-3 justify-content-end w-100 align-items-center ">
             <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-lg">
                 <i class="bi bi-x-circle"></i> Cancel
             </a>
-            <button type="submit" class="btn btn-success btn-lg">
+            <button type="submit" class="btn btn-success btn-lg btn btn-primary w-50 use-location-btn ms-auto">
                 <i class="bi bi-check-circle"></i> Submit Report
             </button>
         </div>
+
     </form>
 </div>
 

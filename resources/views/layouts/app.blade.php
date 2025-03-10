@@ -60,18 +60,19 @@
           <li><a href="{{ route('overview') }}#services">Services</a></li>
           @auth
             <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-            <li>
-              <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                @csrf
-                <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">
-                  <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-              </form>
-            </li>
+           
           @else
             <li><a href="{{ route('login') }}">Log in</a></li>
           @endauth
           <li><a href="{{ route('overview') }}#contact">Contact</a></li>
+          <li>
+              <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">
+                <i class="bi bi-box-arrow-right"></i>Logout 
+                </a>
+              </form>
+            </li>
         </ul>
       </nav>
     </div>
@@ -120,7 +121,7 @@
     }
 
     .navmenu a {
-      color: #28266c !important;
+      color: #fff !important;
       text-decoration: none;
       font-size: 1rem;
       font-weight: 500;
@@ -143,8 +144,8 @@
     .navmenu .nav-link {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      color: #28266c !important;
+      gap: 0.1rem !important;
+      color: #fff !important;
       padding: 8px 15px;
       border-radius: 5px;
       transition: all 0.3s ease;
@@ -174,6 +175,9 @@
       transform: translateY(-50%);
     }
 
+    
+
+    
     /* Mobile Responsive Styles */
     @media (max-width: 991px) {
       .header {
@@ -246,7 +250,8 @@
         width: 100%;
         max-width: none;
       }
-    }
+
+      
   </style>
 
   <script>
