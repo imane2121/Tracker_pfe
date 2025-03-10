@@ -135,6 +135,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/signals/{signal}', [SignalManagementController::class, 'update'])->name('signals.update');
     Route::delete('/signals/{signal}', [SignalManagementController::class, 'destroy'])->name('signals.destroy');
     Route::post('/signals/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('signals.update-status');
-    Route::get('/signals/export', [SignalManagementController::class, 'export'])->name('signals.export');
+    Route::get('/signals/export/{format}', [SignalManagementController::class, 'export'])->name('signals.export');
     Route::get('/signals/statistics', [SignalManagementController::class, 'getStatistics'])->name('signals.statistics');
 });

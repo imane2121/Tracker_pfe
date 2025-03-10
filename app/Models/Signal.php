@@ -81,5 +81,12 @@ class Signal extends Model
             $signalService = app(SignalService::class);
             $signal->status = $signalService->determineSignalStatus($signal, $signal->creator);
         });
+
+        static::saved(function ($signal) {
+            if ($signal->isDirty('anomaly_flag') && $signal->anomaly_flag) {
+                $signalService = app(SignalService::class);
+                $signalService->handleAnomalyDetection($signal);
+            }
+        });
     }
 }

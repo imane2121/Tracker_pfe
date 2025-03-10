@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SignalsExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SignalManagementController extends Controller
 {
@@ -192,64 +197,53 @@ class SignalManagementController extends Controller
         ]);
     }
 
-    public function export(Request $request)
+    public function export($format)
     {
-        $format = $request->format ?? 'csv';
-        $signals = Signal::with(['creator', 'wasteTypes'])
-            ->when($request->status, function($q, $status) {
-                return $q->where('status', $status);
-            })
-            ->get();
-
-        switch ($format) {
-            case 'pdf':
-                return $this->exportPDF($signals);
-            case 'csv':
-                return $this->exportCSV($signals);
-            default:
-                return back()->with('error', 'Unsupported export format.');
-        }
-    }
-
-    private function exportPDF($signals)
-    {
-        // Implement PDF export logic
-        // You'll need to install and configure a PDF package like dompdf
-    }
-
-    private function exportCSV($signals)
-    {
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="signals-export.csv"',
-        ];
-
-        $callback = function() use ($signals) {
-            $file = fopen('php://output', 'w');
+        try {
+            $signals = Signal::with(['creator', 'wasteTypes'])->get();
             
-            // Add headers
-            fputcsv($file, [
-                'ID', 'Location', 'Waste Types', 'Volume', 
-                'Reporter', 'Status', 'Date', 'Coordinates'
-            ]);
-
-            foreach ($signals as $signal) {
-                fputcsv($file, [
-                    $signal->id,
-                    $signal->location,
-                    $signal->wasteTypes->pluck('name')->implode(', '),
-                    $signal->volume,
-                    $signal->creator->name,
-                    $signal->status,
-                    $signal->signal_date,
-                    "{$signal->latitude}, {$signal->longitude}"
-                ]);
+            switch ($format) {
+                case 'csv':
+                    $headers = [
+                        'Content-Type' => 'text/csv',
+                        'Content-Disposition' => 'attachment; filename="signals.csv"',
+                    ];
+                    
+                    $callback = function() use ($signals) {
+                        $file = fopen('php://output', 'w');
+                        fputcsv($file, ['ID', 'Location', 'Waste Types', 'Volume', 'Reporter', 'Status', 'Date']);
+                        
+                        foreach ($signals as $signal) {
+                            fputcsv($file, [
+                                $signal->id,
+                                $signal->location,
+                                $signal->wasteTypes->pluck('name')->join(', '),
+                                $signal->volume . ' m³',
+                                $signal->creator->first_name . ' ' . $signal->creator->last_name,
+                                $signal->status,
+                                $signal->signal_date->format('Y-m-d H:i')
+                            ]);
+                        }
+                        
+                        fclose($file);
+                    };
+                    
+                    return Response::stream($callback, 200, $headers);
+                    
+                case 'excel':
+                    return Excel::download(new SignalsExport($signals), 'signals.xlsx');
+                    
+                case 'pdf':
+                    $pdf = PDF::loadView('admin.signals.export-pdf', compact('signals'));
+                    return $pdf->download('signals.pdf');
+                    
+                default:
+                    return back()->with('error', 'Invalid export format');
             }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        } catch (\Exception $e) {
+            \Log::error('Export error: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while exporting the data.');
+        }
     }
 
     public function edit(Signal $signal)

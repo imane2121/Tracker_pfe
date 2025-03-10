@@ -20,6 +20,7 @@ class SignalService
 
         // Check for temporal anomalies
         if ($this->hasTemporalAnomaly($signal, $user)) {
+            $signal->anomaly_flag = true;
             return 'rejected';
         }
 
@@ -67,5 +68,18 @@ class SignalService
 
         // If speed is greater than MAX_SPEED_KMH, it's probably an anomaly
         return $speed > self::MAX_SPEED_KMH;
+    }
+
+    /**
+     * Update signal status when anomaly is detected
+     */
+    public function handleAnomalyDetection(Signal $signal)
+    {
+        if ($signal->anomaly_flag && $signal->status !== 'rejected') {
+            $signal->update([
+                'status' => 'rejected',
+                'admin_note' => 'Signal automatically rejected due to anomaly detection.'
+            ]);
+        }
     }
 } 

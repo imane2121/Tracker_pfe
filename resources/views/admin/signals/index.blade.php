@@ -140,18 +140,207 @@
     .admin-signals .pagination {
         margin-top: 1rem !important;
         justify-content: center !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem !important;
+        padding: 0 !important;
+        list-style: none !important;
+    }
+
+    .admin-signals .page-item {
+        margin: 0 2px !important;
     }
 
     .admin-signals .page-link {
         color: #0e346a !important;
         border: 1px solid #dee2e6 !important;
-        margin: 0 2px !important;
+        padding: 0.5rem 0.75rem !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        transition: all 0.2s ease !important;
     }
 
     .admin-signals .page-item.active .page-link {
         background-color: #0e346a !important;
         border-color: #0e346a !important;
         color: #fff !important;
+    }
+
+    .admin-signals .page-item:not(.active) .page-link:hover {
+        background-color: #f8f9fa !important;
+        border-color: #0e346a !important;
+    }
+
+    .admin-signals .page-item.disabled .page-link {
+        color: #6c757d !important;
+        pointer-events: none !important;
+        background-color: #fff !important;
+        border-color: #dee2e6 !important;
+    }
+
+    /* Override Tailwind Pagination Styles */
+    .admin-signals .hidden.sm\:flex-1.sm\:flex.sm\:items-center.sm\:justify-between {
+        display: none !important;
+    }
+
+    /* Fix Pagination Container Size */
+    .admin-signals nav > div {
+        width: auto !important;
+        height: auto !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 0.25rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Fix Navigation Arrows Container */
+    .admin-signals nav > div > div {
+        width: auto !important;
+        height: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.25rem !important;
+    }
+
+    /* Fix Navigation Arrows */
+    .admin-signals nav > div > div > span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .admin-signals nav > div > div > span > a,
+    .admin-signals nav > div > div > span > span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        color: #0e346a !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .admin-signals nav > div > div > span > a svg,
+    .admin-signals nav > div > div > span > span svg {
+        width: 12px !important;
+        height: 12px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Fix Page Numbers */
+    .admin-signals nav > div > div:not(:first-child):not(:last-child) {
+        display: flex !important;
+        gap: 0.25rem !important;
+    }
+
+    .admin-signals nav > div > div:not(:first-child):not(:last-child) > span,
+    .admin-signals nav > div > div:not(:first-child):not(:last-child) > a {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        padding: 0 8px !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        color: #0e346a !important;
+        transition: all 0.2s ease !important;
+    }
+
+    /* Hover States */
+    .admin-signals nav > div > div > span > a:hover,
+    .admin-signals nav > div > div:not(:first-child):not(:last-child) > a:hover {
+        background-color: #f8f9fa !important;
+        border-color: #0e346a !important;
+    }
+
+    /* Active State */
+    .admin-signals nav > div > div:not(:first-child):not(:last-child) > span {
+        background-color: #0e346a !important;
+        border-color: #0e346a !important;
+        color: #fff !important;
+    }
+
+    /* Disabled State */
+    .admin-signals nav > div > div > span > span {
+        color: #6c757d !important;
+        pointer-events: none !important;
+        background-color: #fff !important;
+        border-color: #dee2e6 !important;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .admin-signals nav > div > div > span,
+        .admin-signals nav > div > div:not(:first-child):not(:last-child) > span,
+        .admin-signals nav > div > div:not(:first-child):not(:last-child) > a {
+            min-width: 28px !important;
+            height: 28px !important;
+        }
+
+        .admin-signals nav > div > div > span > a svg,
+        .admin-signals nav > div > div > span > span svg {
+            width: 10px !important;
+            height: 10px !important;
+        }
+    }
+
+    /* Override SVG and Navigation Styles */
+    .admin-signals nav > div > div > span > a > svg,
+    .admin-signals nav > div > div > span > a > span > svg {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+    }
+
+    .admin-signals nav > div > div > span > a,
+    .admin-signals nav > div > div > span > a > span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0.5rem 0.75rem !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        color: #0e346a !important;
+        transition: all 0.2s ease !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        line-height: 1 !important;
+    }
+
+    .admin-signals nav > div > div > span > a:hover,
+    .admin-signals nav > div > div > span > a > span:hover {
+        background-color: #f8f9fa !important;
+        border-color: #0e346a !important;
+    }
+
+    .admin-signals nav > div > div > span > a:disabled,
+    .admin-signals nav > div > div > span > a > span:disabled {
+        color: #6c757d !important;
+        pointer-events: none !important;
+        background-color: #fff !important;
+        border-color: #dee2e6 !important;
+    }
+
+    /* Remove any relative positioning that might affect layout */
+    .admin-signals nav > div > div > span > a.relative,
+    .admin-signals nav > div > div > span > a > span.relative {
+        position: static !important;
     }
 
     /* Leaflet Controls Fix */
@@ -466,11 +655,11 @@
                     Signals List
                 </div>
                 <div>
-                    <div class="export-dropdown dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-download me-1"></i> Export
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
                             <li><a class="dropdown-item" href="{{ route('admin.signals.export', ['format' => 'csv']) }}">
                                 <i class="fas fa-file-csv me-1"></i> Export as CSV
                             </a></li>
@@ -490,8 +679,9 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Location</th>
+                            <th>Waste Types</th>
+                            <th>Volume</th>
                             <th>Reporter</th>
                             <th>Status</th>
                             <th>Date</th>
@@ -499,40 +689,49 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($signals as $signal)
-                        <tr>
-                            <td data-label="ID">#{{ $signal->id }}</td>
-                            <td data-label="Location">{{ Str::limit($signal->location, 30) }}</td>
-                            <td data-label="Reporter">{{ $signal->creator->full_name ?? 'Unknown' }}</td>
-                            <td data-label="Status">
-                                <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
-                                    {{ ucfirst($signal->status) }}
-                                </span>
-                            </td>
-                            <td data-label="Date">{{ $signal->signal_date->format('Y-m-d H:i') }}</td>
-                            <td data-label="Actions">
-                                <div class="action-buttons">
-                                    <a href="{{ route('admin.signals.show', $signal) }}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye me-1"></i> View
+                        @forelse($signals as $signal)
+                            <tr>
+                                <td>{{ $signal->location }}</td>
+                                <td>
+                                    @foreach($signal->wasteTypes as $wasteType)
+                                        <span class="badge bg-info">{{ $wasteType->name }}</span>
+                                    @endforeach
+                                </td>
+                                <td>{{ $signal->volume }} m³</td>
+                                <td>{{ $signal->creator->first_name }} {{ $signal->creator->last_name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
+                                        {{ ucfirst($signal->status) }}
+                                    </span>
+                                </td>
+                                <td>{{ $signal->signal_date->format('Y-m-d H:i') }}</td>
+                                <td>
+                                    <a href="{{ route('admin.signals.show', $signal) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.signals.edit', $signal) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit me-1"></i> Edit
+                                    <a href="{{ route('admin.signals.edit', $signal) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
                                     </a>
                                     <form action="{{ route('admin.signals.destroy', $signal) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
-                                            <i class="fas fa-trash me-1"></i> Delete
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this signal?')">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center">No signals found.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
-            {{ $signals->links() }}
+            <div class="d-flex justify-content-center mt-4">
+                {{ $signals->links('vendor.pagination.tailwind') }}
+            </div>
         </div>
     </div>
 </div>
