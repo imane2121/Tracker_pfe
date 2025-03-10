@@ -742,6 +742,33 @@
                 let backButton = currentGroup.querySelector('.wsf-back-button');
                 const isActive = btn.classList.contains('active');
                 
+                // Handle deselection
+                if (isActive && !isAutreBtn) {
+                    // Deactivate current button
+                    btn.classList.remove('active');
+                    generalTypeInput.value = '';
+                    
+                    // Hide subtypes if they exist
+                    if (subTypesContainer) {
+                        subTypesContainer.classList.remove('show');
+                        // Disable and deselect all specific type inputs in this group
+                        subTypesContainer.querySelectorAll('.wsf-specific-input').forEach(input => {
+                            input.disabled = true;
+                            input.parentElement.querySelector('.wsf-specific-type').classList.remove('active');
+                        });
+                    }
+                    
+                    // Show all general types
+                    showAllGeneralTypes();
+                    
+                    // Remove back button if it exists
+                    if (backButton) {
+                        backButton.remove();
+                    }
+                    
+                    return;
+                }
+
                 // Create back button if it doesn't exist
                 if (!backButton && !isActive) {
                     backButton = document.createElement('button');
@@ -780,7 +807,16 @@
                     const autreContainer = document.getElementById('autreInputContainer');
                     const isHidden = autreContainer.classList.contains('wsf-hidden');
                     
-                    if (!isActive) {
+                    if (isActive) {
+                        // Deselect "Other" option
+                        btn.classList.remove('active');
+                        autreContainer.classList.add('wsf-hidden');
+                        showAllGeneralTypes();
+                        if (backButton) {
+                            backButton.remove();
+                        }
+                    } else {
+                        // Select "Other" option
                         hideOtherGeneralTypes(currentGroup);
                         btn.classList.add('active');
                         autreContainer.classList.remove('wsf-hidden');
@@ -790,6 +826,18 @@
                 }
 
                 if (!isActive) {
+                    // Deactivate all other general type buttons
+                    wasteTypeButtons.forEach(otherBtn => {
+                        if (otherBtn !== btn) {
+                            otherBtn.classList.remove('active');
+                            const otherGroup = otherBtn.closest('.wsf-type-group');
+                            const otherInput = otherGroup.querySelector('.wsf-type-input');
+                            if (otherInput) {
+                                otherInput.value = '';
+                            }
+                        }
+                    });
+
                     // Activate current button
                     btn.classList.add('active');
                     generalTypeInput.value = wasteTypeId;
