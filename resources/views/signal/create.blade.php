@@ -743,7 +743,7 @@
                 const isActive = btn.classList.contains('active');
                 
                 // Handle deselection
-                if (isActive && !isAutreBtn) {
+                if (isActive) {
                     // Deactivate current button
                     btn.classList.remove('active');
                     generalTypeInput.value = '';
@@ -758,8 +758,11 @@
                         });
                     }
                     
-                    // Show all general types
-                    showAllGeneralTypes();
+                    // If this was the last active button, show all general types
+                    const activeButtons = document.querySelectorAll('.wsf-btn-option.wsf-general-type.active');
+                    if (activeButtons.length === 0) {
+                        showAllGeneralTypes();
+                    }
                     
                     // Remove back button if it exists
                     if (backButton) {
@@ -770,7 +773,7 @@
                 }
 
                 // Create back button if it doesn't exist
-                if (!backButton && !isActive) {
+                if (!backButton) {
                     backButton = document.createElement('button');
                     backButton.type = 'button';
                     backButton.className = 'wsf-back-button';
@@ -787,7 +790,7 @@
                             subTypesContainer.classList.remove('show');
                         }
                         
-                        // Show all general types
+                        // Show all general types and maintain active states
                         showAllGeneralTypes();
                         
                         // Remove back button
@@ -796,6 +799,9 @@
                         // If it's the "Other" button
                         if (btn.id === 'autreBtn') {
                             document.getElementById('autreInputContainer').classList.add('wsf-hidden');
+                            if (!btn.classList.contains('active')) {
+                                btn.classList.remove('active');
+                            }
                         }
                     });
                     
@@ -805,19 +811,20 @@
                 // Handle Autre button differently
                 if (isAutreBtn) {
                     const autreContainer = document.getElementById('autreInputContainer');
-                    const isHidden = autreContainer.classList.contains('wsf-hidden');
                     
                     if (isActive) {
                         // Deselect "Other" option
                         btn.classList.remove('active');
                         autreContainer.classList.add('wsf-hidden');
-                        showAllGeneralTypes();
+                        const activeButtons = document.querySelectorAll('.wsf-btn-option.wsf-general-type.active');
+                        if (activeButtons.length === 0) {
+                            showAllGeneralTypes();
+                        }
                         if (backButton) {
                             backButton.remove();
                         }
                     } else {
                         // Select "Other" option
-                        hideOtherGeneralTypes(currentGroup);
                         btn.classList.add('active');
                         autreContainer.classList.remove('wsf-hidden');
                         backButton.classList.add('show');
@@ -825,35 +832,18 @@
                     return;
                 }
 
-                if (!isActive) {
-                    // Deactivate all other general type buttons
-                    wasteTypeButtons.forEach(otherBtn => {
-                        if (otherBtn !== btn) {
-                            otherBtn.classList.remove('active');
-                            const otherGroup = otherBtn.closest('.wsf-type-group');
-                            const otherInput = otherGroup.querySelector('.wsf-type-input');
-                            if (otherInput) {
-                                otherInput.value = '';
-                            }
-                        }
+                // Activate current button and show its content
+                btn.classList.add('active');
+                generalTypeInput.value = wasteTypeId;
+                backButton.classList.add('show');
+                
+                // Show subtypes if they exist
+                if (subTypesContainer) {
+                    subTypesContainer.classList.add('show');
+                    // Enable specific type inputs for this group
+                    subTypesContainer.querySelectorAll('.wsf-specific-input').forEach(input => {
+                        input.disabled = false;
                     });
-
-                    // Activate current button
-                    btn.classList.add('active');
-                    generalTypeInput.value = wasteTypeId;
-                    backButton.classList.add('show');
-                    
-                    // Hide other general types
-                    hideOtherGeneralTypes(currentGroup);
-                    
-                    // Show subtypes if they exist
-                    if (subTypesContainer) {
-                        subTypesContainer.classList.add('show');
-                        // Enable specific type inputs for this group
-                        subTypesContainer.querySelectorAll('.wsf-specific-input').forEach(input => {
-                            input.disabled = false;
-                        });
-                    }
                 }
             });
         });
@@ -866,7 +856,22 @@
                 const input = btn.parentElement.querySelector('.wsf-specific-input');
                 
                 btn.classList.toggle('active');
-                input.disabled = !btn.classList.contains('active');
+                if (btn.classList.contains('active')) {
+                    input.disabled = false; // Enable and include in form submission
+                } else {
+                    input.disabled = true; // Disable and exclude from form submission
+                }
+            });
+        });
+
+        // Add form submit handler to ensure only selected waste types are submitted
+        document.querySelector('.waste-signal-form').addEventListener('submit', function(e) {
+            // Disable all unselected specific waste type inputs before form submission
+            document.querySelectorAll('.wsf-specific-input').forEach(input => {
+                const button = input.parentElement.querySelector('.wsf-specific-type');
+                if (!button.classList.contains('active')) {
+                    input.disabled = true;
+                }
             });
         });
     });
