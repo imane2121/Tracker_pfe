@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\SignalService;
+use App\Models\WasteTypes;
 
 class Signal extends Model
 {
@@ -21,7 +22,8 @@ class Signal extends Model
         'anomaly_flag',
         'signal_date',
         'status',
-        'description'
+        'description',
+        'viewed'
     ];
 
     protected $casts = [
@@ -30,7 +32,8 @@ class Signal extends Model
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'volume' => 'integer',
-        'waste_types' => 'array'
+        'waste_types' => 'array',
+        'viewed' => 'boolean'
     ];
 
     // Relationships
@@ -54,6 +57,11 @@ class Signal extends Model
         return $this->hasOne(Collecte::class);
     }
 
+    public function waste_types()
+    {
+        return $this->belongsToMany(WasteTypes::class, 'signal_waste_types', 'signal_id', 'waste_type_id');
+    }
+
     /**
      * Calculate distance between two points in kilometers using Haversine formula
      */
@@ -71,6 +79,11 @@ class Signal extends Model
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         
         return $earthRadius * $c;
+    }
+
+    public function getWasteTypeNames()
+    {
+        return $this->waste_types->pluck('name')->toArray();
     }
 
     protected static function boot()

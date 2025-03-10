@@ -27,14 +27,16 @@ class Collecte extends Model
         'current_contributors',
         'status',
         'starting_date',
-        'end_date'
+        'end_date',
+        'waste_types'
     ];
 
     protected $casts = [
         'starting_date' => 'datetime',
         'end_date' => 'datetime',
         'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8'
+        'longitude' => 'decimal:8',
+        'waste_types' => 'array',
     ];
 
     // Relationships
@@ -52,6 +54,11 @@ class Collecte extends Model
     {
         return $this->belongsToMany(User::class, 'collecte_contributor')
             ->withPivot('status', 'joined_at');
+    }
+
+    public function media()
+    {
+        return $this->hasMany(CollecteMedia::class);
     }
 
     // Scopes
@@ -129,6 +136,13 @@ class Collecte extends Model
                 throw new \Exception('Insufficient signals in the area to create a collection.');
             }
 
+            // Ensure current_contributors never exceeds nbrContributors
+            if ($collecte->current_contributors > $collecte->nbrContributors) {
+                $collecte->current_contributors = $collecte->nbrContributors;
+            }
+        });
+
+        static::saving(function ($collecte) {
             // Ensure current_contributors never exceeds nbrContributors
             if ($collecte->current_contributors > $collecte->nbrContributors) {
                 $collecte->current_contributors = $collecte->nbrContributors;

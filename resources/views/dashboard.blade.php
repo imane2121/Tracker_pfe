@@ -25,6 +25,12 @@
                         <a href="{{ route('signal.create') }}" class="btn btn-primary btn-lg mb-3">
                             <i class="bi bi-plus-circle"></i> Report Marine Waste
                         </a>
+                        <a href="{{ route('collecte.create') }}" class="btn btn-success btn-lg mb-3">
+                            <i class="bi bi-people"></i> Create Collecte
+                        </a>
+                        <a href="{{ route('collecte.index') }}" class="btn btn-outline-success mb-3">
+                            <i class="bi bi-list-ul"></i> View Collectes
+                        </a>
                         <a href="{{ route('signal.index') }}" class="btn btn-outline-primary">
                             <i class="bi bi-list-ul"></i> View My Reports
                         </a>

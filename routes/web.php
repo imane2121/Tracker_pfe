@@ -96,7 +96,16 @@ Route::prefix('signal')->group(function () {
 
 // Collecte routes
 Route::prefix('collectes')->middleware(['auth'])->group(function () {
+    Route::get('/', [CollecteController::class, 'index'])->name('collecte.index');
+    Route::get('/create', [CollecteController::class, 'create'])->name('collecte.create');
+    Route::post('/', [CollecteController::class, 'store'])->name('collecte.store');
+    Route::get('/{collecte}', [CollecteController::class, 'show'])->name('collecte.show');
+    Route::get('/{collecte}/edit', [CollecteController::class, 'edit'])->name('collecte.edit');
+    Route::put('/{collecte}', [CollecteController::class, 'update'])->name('collecte.update');
+    Route::delete('/{collecte}', [CollecteController::class, 'destroy'])->name('collecte.destroy');
     Route::post('/{collecte}/join', [CollecteController::class, 'join'])->name('collecte.join');
+    Route::post('/{collecte}/leave', [CollecteController::class, 'leave'])->name('collecte.leave');
+    Route::patch('/{collecte}/status', [CollecteController::class, 'updateStatus'])->name('collecte.update-status');
 });
 
 Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('signal.thank-you');
