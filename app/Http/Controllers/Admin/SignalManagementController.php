@@ -241,7 +241,7 @@ class SignalManagementController extends Controller
                     return back()->with('error', 'Invalid export format');
             }
         } catch (\Exception $e) {
-            \Log::error('Export error: ' . $e->getMessage());
+            Log::error('Export error: ' . $e->getMessage());
             return back()->with('error', 'An error occurred while exporting the data.');
         }
     }

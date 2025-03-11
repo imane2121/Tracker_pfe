@@ -6,7 +6,7 @@ use App\Models\Article;
 use App\Models\Tag;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log;
 class ArticleController extends Controller
 {
     /**
@@ -27,25 +27,36 @@ class ArticleController extends Controller
      */
     public function show($id)
     {
-        $article = Article::with(['author', 'tags'])
+        $article = Article::with(['tags'])->findOrFail($id);
+        Log::info('Full article:', $article->toArray());
+        
+        // Get related articles
+        $relatedArticles = Article::where('id', '!=', $article->id)
+            ->where('category', $article->category)
             ->published()
-            ->findOrFail($id);
-
-        // Increment view count
-        $article->increment('view_count');
-
-        // Get related articles based on tags
-        $relatedArticles = Article::with(['author', 'tags'])
-            ->published()
-            ->where('id', '!=', $article->id)
-            ->whereHas('tags', function($query) use ($article) {
-                $query->whereIn('tags.id', $article->tags->pluck('id'));
-            })
-            ->orderBy('published_at', 'desc')
+            ->latest()
             ->take(3)
             ->get();
 
-        return view('article', compact('article', 'relatedArticles'));
+        // Get popular tags
+        $popularTags = Tag::withCount('articles')
+            ->orderBy('articles_count', 'desc')
+            ->take(10)
+            ->get();
+
+        // Add view asset
+        $cssPath = 'css/article.css';
+        if (!file_exists(public_path($cssPath))) {
+            $this->createArticleCssFile();
+        }
+
+        return view('articles.show', compact('article', 'relatedArticles', 'popularTags'));
+    }
+
+    private function createArticleCssFile()
+    {
+        $css = file_get_contents(resource_path('css/article.css'));
+        file_put_contents(public_path('css/article.css'), $css);
     }
 
     /**

@@ -35,6 +35,12 @@
   <!-- Waste Signal Form CSS -->
   <link href="{{ asset('/assets/css/waste-signal-form.css') }}" rel="stylesheet">
 
+  <!-- Your main CSS -->
+  <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+  
+  <!-- Stack for additional styles -->
+  @stack('styles')
+
   <!-- =======================================================
   * Template Name: Squadfree
   * Updated: Aug 07 2024 with Bootstrap v5.3.3

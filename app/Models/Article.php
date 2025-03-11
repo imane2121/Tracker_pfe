@@ -13,14 +13,12 @@ class Article extends Model
     protected $fillable = [
         'title',
         'content',
-        'image',
-        'thumbnail',
-        'author_id',
         'category',
-        'metadata',
+        'author_id',
+        'image',
         'is_featured',
-        'view_count',
-        'published_at'
+        'published_at',
+        'view_count'
     ];
 
     protected $casts = [
@@ -45,7 +43,7 @@ class Article extends Model
     public function scopePublished($query)
     {
         return $query->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+                     ->where('published_at', '<=', now());
     }
 
     public function scopeFeatured($query)

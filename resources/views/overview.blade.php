@@ -245,6 +245,207 @@ html body section.report-callout .pulse {
         padding: 20px 15px !important;
     }
 }
+
+/* Enhanced Article Section Styles */
+.article-carousel {
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 20px 0 !important;
+}
+
+.article-slide {
+    display: none !important;
+    animation: fadeEffect 0.5s ease-in-out !important;
+}
+
+.article-slide.active {
+    display: block !important;
+}
+
+.article-card {
+    background: #ffffff !important;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 auto !important;
+    max-width: 800px !important;
+    transition: transform 0.3s ease !important;
+}
+
+.article-card:hover {
+    transform: translateY(-5px) !important;
+}
+
+.article-image {
+    position: relative !important;
+    height: 400px !important;
+    overflow: hidden !important;
+}
+
+.article-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: transform 0.3s ease !important;
+}
+
+.article-card:hover .article-image img {
+    transform: scale(1.05) !important;
+}
+
+.article-category {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: rgba(40, 38, 108, 0.9) !important;
+    color: #fff !important;
+    padding: 8px 15px !important;
+    border-radius: 25px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+}
+
+.article-content {
+    padding: 30px !important;
+}
+
+.article-content h3 {
+    color: #28266c !important;
+    font-size: 1.8rem !important;
+    margin-bottom: 15px !important;
+    font-weight: 700 !important;
+}
+
+.article-content p {
+    color: #666 !important;
+    font-size: 1.1rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 20px !important;
+}
+
+.article-meta {
+    display: flex !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+    color: #888 !important;
+    font-size: 0.9rem !important;
+}
+
+.article-meta span {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.read-more {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #28266c !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: gap 0.3s ease !important;
+}
+
+.read-more:hover {
+    gap: 12px !important;
+}
+
+.article-navigation {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    margin-top: 30px !important;
+}
+
+.prev-article,
+.next-article {
+    background: #28266c !important;
+    color: #fff !important;
+    border: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: transform 0.3s ease !important;
+}
+
+.prev-article:hover,
+.next-article:hover {
+    transform: scale(1.1) !important;
+}
+
+.article-dots {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+.dot {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background: #ddd !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.dot.active {
+    background: #28266c !important;
+    transform: scale(1.2) !important;
+}
+
+@keyframes fadeEffect {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .article-image {
+        height: 300px !important;
+    }
+
+    .article-content h3 {
+        font-size: 1.5rem !important;
+    }
+
+    .article-content p {
+        font-size: 1rem !important;
+    }
+
+    .article-category {
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-image {
+        height: 200px !important;
+    }
+
+    .article-content {
+        padding: 20px !important;
+    }
+
+    .article-content h3 {
+        font-size: 1.3rem !important;
+    }
+
+    .article-meta {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+}
 </style>
 
     <!-- Hero Section -->
@@ -325,8 +526,8 @@ html body section.report-callout .pulse {
                                                 <i class="fab fa-twitter"></i>
                                             </a>
                                         </div>
-          </div>
             </div>
+        </div>
           </div>
                             <div class="collecte-info">
                                 <h2 class="collecte-location">{{ $collecte->signal->location ?? 'Location Not Available' }}</h2>
@@ -447,37 +648,45 @@ html body section.report-callout .pulse {
 
 <!-- Articles Section -->
 <section id="articles" class="portfolio section">
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Latest Articles</h2>
+    <div class="container section-title" data-aos="fade-up">
+        <h1>Latest Articles</h1>
         <p>Stay informed about marine life, ocean pollution, and conservation efforts.</p>
     </div>
 
-      <div class="container">
-        <div class="row gy-4">
+    <div class="container">
+        <div class="article-carousel">
             @foreach ($articles as $article)
-                <div class="col-lg-4 col-md-6">
-                    <div class="portfolio-item">
-                        <img src="{{ $article->image_url ?? asset('assets/img/articles/default.jpg') }}" class="img-fluid" alt="{{ $article->title }}">
-                        <div class="portfolio-info">
-                            <h4>{{ $article->title }}</h4>
-                            <p>{{ Str::limit($article->content, 100) }}</p>
-                            <a href="{{ $article->image_url ?? asset('assets/img/articles/default.jpg') }}" 
-                               title="{{ $article->title }}" 
-                               data-gallery="portfolio-gallery" 
-                               class="glightbox preview-link">
-                                <i class="fas fa-eye"></i>
+                <div class="article-slide">
+                    <div class="article-card">
+                        <div class="article-image">
+                            <img src="{{ $article->image_url ?? asset('assets/img/articles/default.jpg') }}" 
+                                 alt="{{ $article->title }}"
+                                 class="img-fluid">
+                            <div class="article-category">
+                                <span>{{ ucfirst($article->category) }}</span>
+                            </div>
+                        </div>
+                        <div class="article-content">
+                            <h3>{{ $article->title }}</h3>
+                            <p>{{ Str::limit($article->content, 150) }}</p>
+                            <div class="article-meta">
+                                <span><i class="fas fa-calendar"></i> {{ $article->published_at->format('M d, Y') }}</span>
+                                <span><i class="fas fa-user"></i> {{ $article->author->name }}</span>
+                            </div>
+                            <a href="{{ route('articles.show', $article->id) }}" class="read-more">
+                                Read More <i class="fas fa-arrow-right"></i>
                             </a>
-                            <a href="{{ route('articles.show', $article->id) }}" 
-                               class="details-link" 
-                               title="More Details">
-                                <i class="fas fa-link"></i>
-                            </a>
-          </div>
-          </div>
-          </div>
+                        </div>
+                    </div>
+                </div>
             @endforeach
-          </div>
-          </div>
+        </div>
+        <div class="article-navigation">
+            <button class="prev-article"><i class="fas fa-chevron-left"></i></button>
+            <div class="article-dots"></div>
+            <button class="next-article"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
 </section>
 
 <!-- Map Section -->
@@ -1228,6 +1437,54 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('date-to').value = '';
         updateMap();
     });
+
+    const slides = document.querySelectorAll('.article-slide');
+    const dotsContainer = document.querySelector('.article-dots');
+    const prevButton = document.querySelector('.prev-article');
+    const nextButton = document.querySelector('.next-article');
+    let currentSlide = 0;
+
+    // Create dots
+    slides.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+
+    // Show first slide
+    slides[0].classList.add('active');
+
+    function updateSlides() {
+        slides.forEach(slide => slide.classList.remove('active'));
+        document.querySelectorAll('.dot').forEach(dot => dot.classList.remove('active'));
+        
+        slides[currentSlide].classList.add('active');
+        document.querySelectorAll('.dot')[currentSlide].classList.add('active');
+    }
+
+    function goToSlide(index) {
+        currentSlide = index;
+        updateSlides();
+    }
+
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        updateSlides();
+    }
+
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        updateSlides();
+    }
+
+    // Event listeners
+    prevButton.addEventListener('click', prevSlide);
+    nextButton.addEventListener('click', nextSlide);
+
+    // Auto advance slides every 5 seconds
+    setInterval(nextSlide, 5000);
 });
 </script>
 @endpush

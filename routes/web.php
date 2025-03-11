@@ -15,6 +15,7 @@ use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CollecteController;
 use App\Http\Controllers\Admin\SignalManagementController;
+use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 
 
 /*
@@ -127,26 +128,16 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Article routes
+// Public article routes
 Route::prefix('articles')->group(function () {
     Route::get('/', [ArticleController::class, 'index'])->name('articles.index');
     Route::get('/featured', [ArticleController::class, 'featured'])->name('articles.featured');
     Route::get('/category/{category}', [ArticleController::class, 'byCategory'])->name('articles.category');
     Route::get('/tag/{slug}', [ArticleController::class, 'byTag'])->name('articles.tag');
-    Route::get('/{id}', [ArticleController::class, 'show'])->name('articles.show');
+    Route::get('/{article}', [ArticleController::class, 'show'])->name('articles.show');
 });
 
-// Admin routes
+// Admin article routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    Route::get('/signals/anomalies', [SignalManagementController::class, 'anomalies'])->name('signals.anomalies');
-    Route::get('/signals/batch-validate', [SignalManagementController::class, 'batchValidateView'])->name('signals.batch-validate');
-    Route::post('/signals/batch-validate', [SignalManagementController::class, 'batchValidate']);
-    
-    Route::get('/signals', [SignalManagementController::class, 'index'])->name('signals.index');
-    Route::get('/signals/{signal}', [SignalManagementController::class, 'show'])->name('signals.show');
-    Route::get('/signals/{signal}/edit', [SignalManagementController::class, 'edit'])->name('signals.edit');
-    Route::put('/signals/{signal}', [SignalManagementController::class, 'update'])->name('signals.update');
-    Route::delete('/signals/{signal}', [SignalManagementController::class, 'destroy'])->name('signals.destroy');
-    Route::post('/signals/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('signals.update-status');
-    Route::get('/signals/export/{format}', [SignalManagementController::class, 'export'])->name('signals.export');
+    Route::resource('articles', \App\Http\Controllers\Admin\ArticleController::class);
 });

@@ -13,7 +13,7 @@ class ArticleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create common tags for marine waste articles
+        // Create detailed tags
         $tags = [
             'Ocean Pollution',
             'Marine Life',
@@ -26,7 +26,11 @@ class ArticleSeeder extends Seeder
             'Recycling',
             'Volunteer',
             'Climate Change',
-            'Coastal Protection'
+            'Coastal Protection',
+            'Marine Education',
+            'Waste Management',
+            'Environmental Policy',
+            'Scientific Research'
         ];
 
         $tagModels = [];
@@ -37,77 +41,144 @@ class ArticleSeeder extends Seeder
             );
         }
 
-        // Get all admin users for authors
+        // Get authors
         $authors = User::whereHas('roles', function($query) {
             $query->whereIn('title', ['admin', 'supervisor']);
         })->get();
 
-        // If no authors found, use the first user as fallback
         if ($authors->isEmpty()) {
             $authors = User::take(1)->get();
         }
 
-        // Sample article content templates
+        // Enhanced article templates with detailed content
         $articleTemplates = [
             [
                 'category' => 'educational',
-                'title' => 'Understanding Marine Waste: Types and Impact',
-                'content' => "Marine waste is one of the most pressing environmental challenges of our time. This comprehensive guide explains the different types of marine waste and their impact on ocean ecosystems...",
+                'title' => 'Understanding Marine Waste: A Comprehensive Guide',
+                'content' => "<h2>Introduction to Marine Waste</h2>
+                    <p>Marine waste represents one of the most significant environmental challenges of the 21st century. This comprehensive guide explores the various types of marine debris, their sources, and their impact on ocean ecosystems.</p>
+                    
+                    <h3>Types of Marine Waste</h3>
+                    <ul>
+                        <li><strong>Plastic Debris:</strong> Accounts for 80% of all marine debris from surface waters to deep-sea sediments</li>
+                        <li><strong>Fishing Gear:</strong> Abandoned nets, lines, and traps that continue to catch marine life</li>
+                        <li><strong>Microplastics:</strong> Particles less than 5mm in size that can enter the food chain</li>
+                        <li><strong>Chemical Pollutants:</strong> Including oil, industrial discharge, and agricultural runoff</li>
+                    </ul>
+
+                    <h3>Impact on Marine Ecosystems</h3>
+                    <p>The effects of marine waste are far-reaching and often devastating:</p>
+                    <ul>
+                        <li>Marine animals become entangled in debris or mistake it for food</li>
+                        <li>Coral reefs are damaged by waste accumulation and chemical pollution</li>
+                        <li>Microplastics enter the food chain, affecting marine life and human health</li>
+                        <li>Coastal ecosystems suffer from accumulated waste and habitat destruction</li>
+                    </ul>
+
+                    <h2>Solutions and Prevention</h2>
+                    <p>Addressing marine waste requires a multi-faceted approach:</p>
+                    <ol>
+                        <li>Improved waste management systems</li>
+                        <li>Reduction of single-use plastics</li>
+                        <li>Enhanced recycling programs</li>
+                        <li>Community education and engagement</li>
+                        <li>International cooperation and policy implementation</li>
+                    </ol>"
             ],
             [
                 'category' => 'awareness',
-                'title' => 'The Hidden Danger of Microplastics in Our Oceans',
-                'content' => "Microplastics have become an invisible threat to marine life. This article explores how these tiny particles enter our oceans and their devastating effects on the marine ecosystem...",
+                'title' => 'The Hidden Crisis: Microplastics in Our Oceans',
+                'content' => "<h2>The Invisible Threat of Microplastics</h2>
+                    <p>Microplastics have emerged as one of the most pervasive and concerning forms of marine pollution. These tiny plastic particles, measuring less than 5 millimeters, pose a significant threat to marine ecosystems and human health.</p>
+
+                    <h3>Sources of Microplastics</h3>
+                    <ul>
+                        <li>Breakdown of larger plastic items</li>
+                        <li>Microbeads from personal care products</li>
+                        <li>Synthetic fibers from clothing</li>
+                        <li>Industrial scrubbers and abrasives</li>
+                    </ul>
+
+                    <h3>Environmental Impact</h3>
+                    <p>The presence of microplastics in our oceans has far-reaching consequences:</p>
+                    <ul>
+                        <li>Ingestion by marine organisms at all levels of the food chain</li>
+                        <li>Accumulation of toxins and pollutants</li>
+                        <li>Transfer of contaminants through the food web</li>
+                        <li>Potential effects on human health through seafood consumption</li>
+                    </ul>
+
+                    <h2>Research and Monitoring</h2>
+                    <p>Scientists are actively studying microplastic pollution through:</p>
+                    <ul>
+                        <li>Ocean sampling and monitoring programs</li>
+                        <li>Analysis of marine organism tissue samples</li>
+                        <li>Development of new detection methods</li>
+                        <li>Assessment of environmental and health impacts</li>
+                    </ul>"
             ],
             [
                 'category' => 'best_practices',
-                'title' => 'Best Practices for Beach Cleanup Operations',
-                'content' => "Organizing an effective beach cleanup requires careful planning and proper execution. Here are the best practices to ensure maximum impact while ensuring safety...",
-            ],
-            [
-                'category' => 'initiative',
-                'title' => 'Local Heroes: Community-Led Marine Conservation',
-                'content' => "Discover how local communities along Morocco's coastline are taking action to protect marine environments. These inspiring stories showcase the power of community-driven conservation...",
-            ],
-            [
-                'category' => 'report',
-                'title' => '2024 Marine Waste Statistics: A Growing Crisis',
-                'content' => "Our latest report reveals alarming trends in marine waste accumulation along Morocco's coastline. Key findings include increased plastic pollution and emerging hotspots...",
-            ],
-            [
-                'category' => 'event',
-                'title' => 'Join the Nationwide Beach Cleanup Campaign',
-                'content' => "Mark your calendars for the biggest beach cleanup event of the year. This coordinated effort will span multiple coastal regions and needs your support...",
+                'title' => 'Effective Coastal Cleanup Strategies',
+                'content' => "<h2>Organizing Successful Beach Cleanups</h2>
+                    <p>Effective beach cleanup operations require careful planning, proper safety measures, and community engagement. This guide provides comprehensive information for organizing and conducting successful coastal cleanup events.</p>
+
+                    <h3>Pre-Cleanup Planning</h3>
+                    <ul>
+                        <li>Site assessment and safety evaluation</li>
+                        <li>Required permits and permissions</li>
+                        <li>Equipment and supply preparation</li>
+                        <li>Volunteer recruitment and coordination</li>
+                    </ul>
+
+                    <h3>During the Cleanup</h3>
+                    <p>Essential procedures and safety measures:</p>
+                    <ul>
+                        <li>Proper waste sorting and collection techniques</li>
+                        <li>Safety guidelines for volunteers</li>
+                        <li>Documentation and data collection</li>
+                        <li>First aid and emergency procedures</li>
+                    </ul>
+
+                    <h3>Post-Cleanup Activities</h3>
+                    <ol>
+                        <li>Proper disposal of collected waste</li>
+                        <li>Data analysis and reporting</li>
+                        <li>Follow-up with volunteers</li>
+                        <li>Planning for future events</li>
+                    </ol>"
             ]
         ];
 
-        // Create multiple variations of each template
         foreach ($articleTemplates as $template) {
-            foreach (range(1, 3) as $i) {
-                $publishedAt = Carbon::now()->subDays(rand(0, 60));
-                
-                $article = Article::create([
-                    'title' => $i === 1 ? $template['title'] : $template['title'] . " (Part $i)",
-                    'content' => $template['content'] . "\n\nPart $i of our series explores " . Str::random(100),
-                    'category' => $template['category'],
-                    'author_id' => $authors->random()->id,
-                    'published_at' => $publishedAt,
-                    'is_featured' => rand(0, 5) === 0, // 20% chance of being featured
-                    'view_count' => rand(50, 1000),
-                    'metadata' => json_encode([
-                        'reading_time' => rand(3, 15) . ' minutes',
-                        'related_links' => [
-                            'https://example.com/marine-conservation',
-                            'https://example.com/ocean-cleanup'
-                        ]
-                    ])
-                ]);
+            $article = Article::create([
+                'title' => $template['title'],
+                'content' => $template['content'],
+                'category' => $template['category'],
+                'author_id' => $authors->random()->id,
+                'published_at' => Carbon::now()->subDays(rand(0, 30)),
+                'is_featured' => rand(0, 3) === 0, // 33% chance of being featured
+                'view_count' => rand(100, 5000),
+                'metadata' => json_encode([
+                    'reading_time' => rand(10, 25) . ' minutes',
+                    'related_links' => [
+                        'https://www.unep.org/marine-pollution',
+                        'https://oceanservice.noaa.gov/facts/marinedebris.html',
+                        'https://www.nationalgeographic.com/environment/article/ocean-pollution'
+                    ],
+                    'key_takeaways' => [
+                        'Understanding marine waste types and sources',
+                        'Impact on marine ecosystems',
+                        'Prevention and mitigation strategies',
+                        'Community involvement opportunities'
+                    ]
+                ])
+            ]);
 
-                // Attach 2-4 random tags to each article
-                $article->tags()->attach(
-                    collect($tagModels)->random(rand(2, 4))->pluck('id')->toArray()
-                );
-            }
+            // Attach 3-5 relevant tags to each article
+            $article->tags()->attach(
+                collect($tagModels)->random(rand(3, 5))->pluck('id')->toArray()
+            );
         }
     }
 } 
