@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <title>{{ config('app.name', 'Laravel') }}</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
@@ -67,7 +67,7 @@
           <li><a href="{{ route('overview') }}#services">Services</a></li>
           @auth
             <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-           
+            <li><a href="{{ route('profile.show') }}"><i class="bi bi-person-circle"></i> Profile</a></li>
           @else
             <li><a href="{{ route('login') }}">Log in</a></li>
           @endauth
@@ -250,7 +250,6 @@
 
       .header {
         padding: 8px 10px;
-        margin-bottom: 10px;
       }
 
       .navmenu {
@@ -340,14 +339,11 @@
   <div id="preloader"></div>
 
   <!-- Vendor JS Files -->
-  <script src="{{ asset('/assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
   <script src="{{ asset('/assets/vendor/aos/aos.js') }}"></script>
   <script src="{{ asset('/assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ asset('/assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
   <script src="{{ asset('/assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
   <script src="{{ asset('/assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
-
-  <!-- Leaflet JavaScript -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
@@ -366,25 +362,27 @@
       });
 
       // Initialize Swiper
-      var collectesSwiper = new Swiper('.collectesSwiper', {
-        slidesPerView: 1,
-        spaceBetween: 30,
-        pagination: {
-          el: '.swiper-pagination',
-          clickable: true
-        },
-        breakpoints: {
-          640: {
-            slidesPerView: 1,
+      if (typeof Swiper !== 'undefined' && document.querySelector('.collectesSwiper')) {
+        var collectesSwiper = new Swiper('.collectesSwiper', {
+          slidesPerView: 1,
+          spaceBetween: 30,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true
           },
-          768: {
-            slidesPerView: 2,
-          },
-          1024: {
-            slidesPerView: 3,
+          breakpoints: {
+            640: {
+              slidesPerView: 1,
+            },
+            768: {
+              slidesPerView: 2,
+            },
+            1024: {
+              slidesPerView: 3,
+            }
           }
-        }
-      });
+        });
+      }
 
       // Initialize GLightbox
       if (typeof GLightbox !== 'undefined') {

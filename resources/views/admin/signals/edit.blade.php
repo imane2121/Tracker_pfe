@@ -179,7 +179,7 @@
                 <div class="card mb-4">
                     <div class="card-header">
                         <i class="fas fa-info-circle me-1"></i>
-                        Signal Details
+                        Report Details
                     </div>
                     <div class="card-body">
                         <div class="row">

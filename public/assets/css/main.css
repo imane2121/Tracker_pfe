@@ -588,7 +588,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--heading-color);
+  color: whitesmoke !important;
   font-family: var(--heading-font);
   letter-spacing: var(--letter-spacing);
 }
@@ -1123,7 +1123,7 @@ section,
 .section {
   color: var(--default-color);
   background-color: var(--background-color);
-  padding: 100px 0 !important;
+  padding: 40px 0 !important;
   scroll-margin-top: 74px;
   overflow: clip;
 }
@@ -2144,8 +2144,7 @@ section,
 # Starter Section Section
 --------------------------------------------------------------*/
 .starter-section {
-  /* Add your styles here */
-}
+padding: 0px;}
 
 /*media queries*/
 @media (max-width: 768px) {
@@ -2156,6 +2155,11 @@ section,
     font-size: 3vw !important;*/
   }
   h1 {
+    font-weight: 700 !important;
+    color: #28266c !important;
+    margin-bottom: 15px !important;
+    position: relative !important;
+    display: inline-block !important;
     font-size: 24px !important; /* Heading font size */
   }
 
@@ -2801,7 +2805,7 @@ section,
 
 .container .encouragement-card .title .highlight {
     display: block;
-    background: linear-gradient(120deg, #0e346a, #205490);
+    background: linear-gradient(120deg, #5180c2, #729dce);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

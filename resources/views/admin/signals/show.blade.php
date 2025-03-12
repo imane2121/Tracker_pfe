@@ -232,7 +232,7 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-info-circle me-1"></i>
-                    Signal Information
+                    Report Information
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -373,7 +373,7 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-map-signs me-1"></i>
-                    Nearby Signals (5km radius)
+                    Nearby reports (5km radius)
                 </div>
                 <div class="card-body">
                     @if($nearbySignals->count() > 0)
@@ -381,7 +381,7 @@
                             @foreach($nearbySignals as $nearby)
                                 <a href="{{ route('admin.signals.show', $nearby) }}" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">Signal #{{ $nearby->id }}</h6>
+                                        <h6 class="mb-1">Report #{{ $nearby->id }}</h6>
                                         <small>{{ number_format($nearby->distance, 1) }}km</small>
                                     </div>
                                     <p class="mb-1">{{ Str::limit($nearby->location, 30) }}</p>
@@ -390,7 +390,7 @@
                             @endforeach
                         </div>
                     @else
-                        <p class="text-muted mb-0">No nearby signals found.</p>
+                        <p class="text-muted mb-0">No nearby reports found.</p>
                     @endif
                 </div>
             </div>

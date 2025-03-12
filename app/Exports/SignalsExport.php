@@ -4,21 +4,30 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Illuminate\Support\Collection;
 
-class SignalsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class SignalsExport implements FromCollection, WithHeadings
 {
     protected $signals;
 
-    public function __construct($signals)
+    public function __construct(Collection $signals)
     {
         $this->signals = $signals;
     }
 
     public function collection()
     {
-        return $this->signals;
+        return $this->signals->map(function ($signal) {
+            return [
+                'id' => $signal->id,
+                'location' => $signal->location,
+                'waste_types' => $signal->wasteTypes->pluck('name')->join(', '),
+                'volume' => $signal->volume . ' m³',
+                'reporter' => $signal->creator->first_name . ' ' . $signal->creator->last_name,
+                'status' => $signal->status,
+                'date' => $signal->signal_date->format('Y-m-d H:i')
+            ];
+        });
     }
 
     public function headings(): array
@@ -31,19 +40,6 @@ class SignalsExport implements FromCollection, WithHeadings, WithMapping, Should
             'Reporter',
             'Status',
             'Date'
-        ];
-    }
-
-    public function map($signal): array
-    {
-        return [
-            $signal->id,
-            $signal->location,
-            $signal->wasteTypes->pluck('name')->join(', '),
-            $signal->volume . ' m³',
-            $signal->creator->first_name . ' ' . $signal->creator->last_name,
-            $signal->status,
-            $signal->signal_date->format('Y-m-d H:i')
         ];
     }
 } 

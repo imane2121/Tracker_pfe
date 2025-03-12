@@ -16,10 +16,7 @@
             <div class="hero-content">
                 <div class="category-badge">{{ ucfirst($article->category) }}</div>
                 <h1>{{ $article->title }}</h1>
-                <div class="article-meta">
-                    <span><i class="far fa-calendar"></i> {{ $article->published_at->format('M d, Y') }}</span>
-                    <span><i class="far fa-eye"></i> {{ $article->view_count }} views</span>
-                </div>
+                
             </div>
         </div>
     </div>
@@ -48,6 +45,12 @@
                 <div class="share-section">
                     <h5>Share this article</h5>
                     <div class="share-buttons">
+                        <a href="https://www.instagram.com/sharer.php?u=http%3A%2F%2F127.0.0.1%3A8000%2Farticles%2F3" target="_blank" class="share-btn instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?text=Effective+Coastal+Cleanup+Strategies%20-%20http%3A%2F%2F127.0.0.1%3A8000%2Farticles%2F3" target="_blank" class="share-btn whatsapp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
                         <a href="https://twitter.com/intent/tweet?url={{ urlencode(request()->url()) }}&text={{ urlencode($article->title) }}" 
                            target="_blank" class="share-btn twitter">
                             <i class="fab fa-twitter"></i>

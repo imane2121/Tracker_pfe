@@ -10,7 +10,7 @@
             Pending Signals
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.signals.batch-validate') }}" method="POST">
+            <form action="{{ route('admin.signals.batch-validate.store') }}" method="POST">
                 @csrf
                 <div class="table-responsive">
                     <table class="table">

@@ -10,13 +10,20 @@
 .default-hero {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
-
+.instagram {
+    background: #E1306C; /* Instagram gradient color */
+}
+.whatsapp {
+    background: #25D366; /* WhatsApp green color */
+}
 .hero-content {
     max-width: 800px;
     margin: 0 auto;
     text-align: center;
 }
-
+.article-content {
+    margin:20px !important;
+}
 .hero-content h1 {
     font-size: 2.5rem;
     margin: 1rem 0;

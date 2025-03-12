@@ -498,7 +498,7 @@ html body section.report-callout .pulse {
 <!-- Upcoming Collectes Section -->
 <section class="collectes-container">
     <div class="container section-title" data-aos="fade-up">
-        <h2>Upcoming Collectes</h2>
+        <h2>Upcoming Collections</h2>
         <p>Stay tuned! Volunteer now to clean our beaches and protect marine life. Every effort counts—be part of the change!</p>
     </div>
 
@@ -540,7 +540,7 @@ html body section.report-callout .pulse {
                                 <div class="collecte-stats">
                                     <div class="stat">
                                         <i class="fas fa-users"></i>
-                                        <span>{{ $collecte->contributors->count() }} / {{ $collecte->nbrContributors }} Volunteers</span>
+                                        <span>{{ $collecte->current_contributors }} / {{ $collecte->nbrContributors }} Volunteers</span>
         </div>
                                     <div class="stat">
                                         <i class="fas fa-calendar-alt"></i>
@@ -599,7 +599,7 @@ html body section.report-callout .pulse {
                                 <i class="fas fa-users"></i>
                                 <div>
                                     <h6>Volunteers</h6>
-                                    <p>{{ $collecte->contributors->count() }} / {{ $collecte->nbrContributors }} Volunteers</p>
+                                    <p>{{ $collecte->current_contributors }} / {{ $collecte->nbrContributors }} Volunteers</p>
             </div>
             </div>
                             <div class="detail-item">
@@ -783,10 +783,19 @@ html body .collectes-container::before {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='rgba(0,0,0,0.03)' fill-rule='evenodd'/%3E%3C/svg%3E") !important;
     opacity: 1 !important;
     z-index: 0 !important;
 }
+    @media (min-width: 768px) {
+        .collectes-container .collecte-info {
+            padding: 20px !important;
+        }
+    }
+    @media (max-width: 768px) {
+        .collectes-container .collecte-info {
+            padding: 10px !important;
+        }
+    }
 
 html body .collectes-container .collecte-card {
     background: #ffffff !important;
@@ -887,20 +896,20 @@ html body .portfolio.section .portfolio-info p {
 /* Section Title Styles */
 html body .section-title {
     text-align: center !important;
-    margin-bottom: 40px !important;
     position: relative !important;
     z-index: 2 !important;
 }
 
 html body .section-title h2 {
-    font-size: 2rem !important;
     font-weight: 700 !important;
     color: #28266c !important;
     margin-bottom: 15px !important;
     position: relative !important;
     display: inline-block !important;
 }
-
+.swiper-pagination{
+    position: relative !important;
+}
 html body .section-title h2::after {
     content: '' !important;
     position: absolute !important;
@@ -909,7 +918,6 @@ html body .section-title h2::after {
     transform: translateX(-50%) !important;
     width: 50px !important;
     height: 3px !important;
-    background: #3498db !important;
     border-radius: 3px !important;
 }
 
@@ -973,9 +981,7 @@ html body .section-title p {
         font-size: 0.85rem;
     }
 
-    .section-title {
-        margin-bottom: 30px;
-    }
+   
 
     .section-title h2 {
         font-size: 1.5rem;

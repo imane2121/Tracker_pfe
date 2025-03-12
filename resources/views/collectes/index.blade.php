@@ -15,9 +15,11 @@
                     <p class="mb-0 mt-2">Manage and participate in waste collection events</p>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <a href="{{ route('collecte.create') }}" class="btn btn-light btn-lg">
-                        <i class="bi bi-plus-circle"></i> Create New Collecte
-                    </a>
+                    @if(auth()->user()->isAdmin() || auth()->user()->isSupervisor())
+                        <a href="{{ route('collecte.create') }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-plus-circle"></i> Create New Collecte
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -59,10 +61,12 @@
             <div class="collecte-empty-state">
                 <i class="bi bi-people"></i>
                 <h3>No Collectes Found</h3>
-                <p>There are no collectes matching your criteria. Create a new one to get started!</p>
-                <a href="{{ route('collecte.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create New Collecte
-                </a>
+                <p>There are no collectes matching your criteria.</p>
+                @if(auth()->user()->isAdmin() || auth()->user()->isSupervisor())
+                    <a href="{{ route('collecte.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New Collecte
+                    </a>
+                @endif
             </div>
         @else
             <div class="row">
@@ -102,10 +106,17 @@
                                         <i class="bi bi-eye"></i> View Details
                                     </a>
                                     
-                                    @if($collecte->user_id === auth()->id())
+                                    @if(auth()->user()->isAdmin() || (auth()->user()->isSupervisor() && $collecte->user_id === auth()->id()))
                                         <a href="{{ route('collecte.edit', $collecte) }}" class="btn btn-outline-secondary">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
+                                        <form action="{{ route('collecte.destroy', $collecte) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this collection?')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
                                     @elseif(!$collecte->isFull && !$collecte->contributors->contains(auth()->id()))
                                         <form action="{{ route('collecte.join', $collecte) }}" method="POST" class="d-inline">
                                             @csrf

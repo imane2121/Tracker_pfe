@@ -12,12 +12,12 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1 class="mb-0">Collecte Dashboard</h1>
-                        <p class="mb-0 mt-2">Overview of your collecte activities</p>
+                        <h1 class="mb-0">Collection Dashboard</h1>
+                        <p class="mb-0 mt-2">Overview of your collections activities</p>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <a href="{{ route('collecte.create') }}" class="btn btn-light btn-lg">
-                            <i class="bi bi-plus-circle"></i> Create New Collecte
+                            <i class="bi bi-plus-circle"></i> Create New Collection
                         </a>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
                     <div class="card-body text-center">
                         <i class="bi bi-people-fill text-primary fs-1 mb-3"></i>
                         <h3 class="mb-0">{{ $userCollectes }}</h3>
-                        <p class="text-muted mb-0">Your Collectes</p>
+                        <p class="text-muted mb-0">Your Collections</p>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
                         @empty
                             <div class="text-center py-4">
                                 <i class="bi bi-calendar-x text-muted fs-2"></i>
-                                <p class="text-muted mt-2">No upcoming collectes</p>
+                                <p class="text-muted mt-2">No upcoming collections</p>
                             </div>
                         @endforelse
                     </div>
@@ -141,7 +141,7 @@
                         @empty
                             <div class="text-center py-4">
                                 <i class="bi bi-arrow-repeat text-muted fs-2"></i>
-                                <p class="text-muted mt-2">No collectes in progress</p>
+                                <p class="text-muted mt-2">No collections in progress</p>
                             </div>
                         @endforelse
                     </div>
@@ -179,7 +179,7 @@
                             @empty
                                 <div class="col-12 text-center py-4">
                                     <i class="bi bi-check-circle text-muted fs-2"></i>
-                                    <p class="text-muted mt-2">No completed collectes</p>
+                                    <p class="text-muted mt-2">No completed collections</p>
                                 </div>
                             @endforelse
                         </div>

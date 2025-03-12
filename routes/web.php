@@ -16,6 +16,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CollecteController;
 use App\Http\Controllers\Admin\SignalManagementController;
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
+use App\Http\Controllers\ProfileController;
 
 
 /*
@@ -42,12 +43,6 @@ Route::middleware('guest')->group(function () {
     // Registration Routes
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
-
-    // Password Reset Routes
-    Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
 // Email Verification Routes
@@ -69,6 +64,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
 });
 
 // Admin Routes
@@ -96,27 +98,33 @@ Route::prefix('signal')->group(function () {
 });
 
 // Collecte routes
-Route::prefix('collectes')->middleware(['auth'])->group(function () {
+Route::prefix('collectes')->middleware(['auth', 'verified'])->group(function () {
+    // List all collectes
     Route::get('/', [CollecteController::class, 'index'])->name('collecte.index');
+    
+    // Create new collecte
     Route::get('/create', [CollecteController::class, 'create'])->name('collecte.create');
     Route::post('/', [CollecteController::class, 'store'])->name('collecte.store');
-    Route::get('/{collecte}', [CollecteController::class, 'show'])->name('collecte.show');
+    
+    // Specific collecte actions
     Route::get('/{collecte}/edit', [CollecteController::class, 'edit'])->name('collecte.edit');
     Route::put('/{collecte}', [CollecteController::class, 'update'])->name('collecte.update');
     Route::delete('/{collecte}', [CollecteController::class, 'destroy'])->name('collecte.destroy');
+    Route::patch('/{collecte}/status', [CollecteController::class, 'updateStatus'])->name('collecte.update-status');
     Route::post('/{collecte}/join', [CollecteController::class, 'join'])->name('collecte.join');
     Route::post('/{collecte}/leave', [CollecteController::class, 'leave'])->name('collecte.leave');
-    Route::patch('/{collecte}/status', [CollecteController::class, 'updateStatus'])->name('collecte.update-status');
+    
+    // Completion and report routes
+    Route::post('/{collecte}/complete', [CollecteController::class, 'complete'])->name('collecte.complete');
+    Route::get('/{collecte}/report', [CollecteController::class, 'downloadReport'])->name('collecte.report.download');
+    
+    // Show collecte (keep this last to avoid catching other routes)
+    Route::get('/{collecte}', [CollecteController::class, 'show'])->name('collecte.show');
 });
 
 Route::get('/signal/thank-you', [SignalController::class, 'thankYou'])->name('signal.thank-you');
 
-    // Profile Management Routes
-    /*Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    });*/
+
 
     // Password Change Routes
     Route::get('/password/change', [ChangePasswordController::class, 'edit'])->name('password.change');
@@ -139,5 +147,27 @@ Route::prefix('articles')->group(function () {
 
 // Admin article routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    // Article Routes
     Route::resource('articles', \App\Http\Controllers\Admin\ArticleController::class);
+    
+    // Signal Management Routes
+    Route::prefix('signals')->name('signals.')->group(function () {
+        // List and basic operations
+        Route::get('/', [SignalManagementController::class, 'index'])->name('index');
+        
+        // Batch validation routes - define these before resource routes
+        Route::get('/batch-validate', [SignalManagementController::class, 'showBatchValidate'])->name('batch-validate');
+        Route::post('/batch-validate', [SignalManagementController::class, 'batchValidate'])->name('batch-validate.store');
+        
+        // Other signal management routes
+        Route::get('/anomalies', [SignalManagementController::class, 'anomalies'])->name('anomalies');
+        Route::get('/export/{format}', [SignalManagementController::class, 'export'])->name('export');
+        Route::post('/{signal}/status', [SignalManagementController::class, 'updateStatus'])->name('update-status');
+        
+        // Resource routes - keep these last
+        Route::get('/{signal}', [SignalManagementController::class, 'show'])->name('show');
+        Route::get('/{signal}/edit', [SignalManagementController::class, 'edit'])->name('edit');
+        Route::put('/{signal}', [SignalManagementController::class, 'update'])->name('update');
+        Route::delete('/{signal}', [SignalManagementController::class, 'destroy'])->name('destroy');
+    });
 });

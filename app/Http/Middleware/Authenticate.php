@@ -22,6 +22,11 @@ class Authenticate
             return redirect()->route('login');
         }
 
+        // Check if the request is for a Blade view
+        if ($request->is('profile*')) {
+            return $next($request);
+        }
+
         return $next($request);
     }
 }

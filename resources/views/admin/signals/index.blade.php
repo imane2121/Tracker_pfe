@@ -545,7 +545,7 @@
 
 @section('content')
 <div class="admin-signals container-fluid px-4">
-    <h1 class="mt-4">Signals Management</h1>
+    <h1 class="mt-4">Reports Management</h1>
     
     <!-- Advanced Analytics Dashboard -->
     <div class="row mt-4 mb-4">
@@ -554,7 +554,7 @@
             <div class="card">
                 <div class="card-header bg-dark text-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Real-time Signal Monitor</h5>
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Real-time reports Monitor</h5>
                         <div class="btn-group">
                             <button class="btn btn-outline-light btn-sm active" data-period="24h">24H</button>
                             <button class="btn btn-outline-light btn-sm" data-period="7d">7D</button>
@@ -579,7 +579,7 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                             <div>
                                 <h6 class="mb-1">Pending Reviews</h6>
-                                <small class="text-muted">Signals awaiting validation</small>
+                                <small class="text-muted">Reports awaiting validation</small>
                             </div>
                             <span class="badge bg-warning rounded-pill">{{ $statistics['pending'] }}</span>
                         </div>
@@ -592,7 +592,7 @@
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                             <div>
-                                <h6 class="mb-1">Today's Signals</h6>
+                                <h6 class="mb-1">Today's reports</h6>
                                 <small class="text-muted">New reports in last 24h</small>
                             </div>
                             <span class="badge bg-info rounded-pill" id="todaySignals">0</span>
@@ -669,7 +669,7 @@
                         <!-- Signal Reliability -->
                         <div class="col-lg-3">
                             <div class="border rounded p-4 h-100">
-                                <h6 class="text-muted mb-4">Signal Reliability Score</h6>
+                                <h6 class="text-muted mb-4">Reports Reliability Score</h6>
                                 <div class="position-relative" style="height: 200px;">
                                     <canvas id="reliabilityChart"></canvas>
                                 </div>
@@ -694,7 +694,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card bg-warning text-white mb-4">
                 <div class="card-body">
-                    Pending Signals
+                    Pending reports
                     <h2>{{ $statistics['pending'] }}</h2>
                 </div>
             </div>
@@ -702,7 +702,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card bg-success text-white mb-4">
                 <div class="card-body">
-                    Validated Signals
+                    Validated reports
                     <h2>{{ $statistics['validated'] }}</h2>
                 </div>
             </div>
@@ -775,7 +775,7 @@
     <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-map-marked-alt me-1"></i>
-            Signals Heatmap
+            Reports Heatmap
         </div>
         <div class="card-body">
             <div class="map-container">
@@ -790,7 +790,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <i class="fas fa-table me-1"></i>
-                    Signals List
+                    Reports List
                 </div>
                 <div>
                     <div class="dropdown">
@@ -861,7 +861,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No signals found.</td>
+                                <td colspan="7" class="text-center">No reports found.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -47,18 +47,18 @@ class CriticalAreaService
      */
     public function getTopAffectedAreas($limit = 5, $days = 30)
     {
-        // Group signals into areas using a grid system
-        // We'll use 0.1 degree grid squares (roughly 11km)
+        // Group signals by location instead of grid coordinates
         $areas = Signal::where('created_at', '>=', Carbon::now()->subDays($days))
             ->where('status', '!=', 'rejected')
             ->select([
-                DB::raw('ROUND(latitude, 1) as area_lat'),
-                DB::raw('ROUND(longitude, 1) as area_lon'),
+                'location',
                 DB::raw('COUNT(*) as report_count'),
                 DB::raw('SUM(volume) as total_volume'),
-                DB::raw('MAX(created_at) as latest_report')
+                DB::raw('MAX(created_at) as latest_report'),
+                'latitude',
+                'longitude'
             ])
-            ->groupBy('area_lat', 'area_lon')
+            ->groupBy('location', 'latitude', 'longitude')
             ->orderByDesc('total_volume')
             ->limit($limit)
             ->get();
@@ -69,15 +69,16 @@ class CriticalAreaService
             // Calculate severity percentage based on volume relative to max
             $severityPercentage = round(($area->total_volume / $maxVolume) * 100);
             
-            // Get a descriptive name for the area
-            $areaName = $this->getAreaName($area->area_lat, $area->area_lon);
-            
             return [
-                'name' => $areaName,
+                'name' => $area->location,
                 'severity' => $severityPercentage,
                 'report_count' => $area->report_count,
-                'total_volume' => $area->total_volume,
-                'latest_report' => Carbon::parse($area->latest_report)->diffForHumans()
+                'total_volume' => round($area->total_volume, 2),
+                'latest_report' => Carbon::parse($area->latest_report)->diffForHumans(),
+                'coordinates' => [
+                    'lat' => $area->latitude,
+                    'lng' => $area->longitude
+                ]
             ];
         })->toArray();
     }

@@ -272,7 +272,9 @@
     .modal-body p {
         margin-bottom: 1rem;
     }
-    
+    .btn btn-secondary btn-sm dropdown-toggle{
+        width: 100%;
+    }
     @media (max-width: 768px) {
         .table-responsive {
             border: 0;

@@ -7,7 +7,7 @@
     <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-exclamation-triangle me-1"></i>
-            Anomalous Signals
+            Anomalous reports
         </div>
         <div class="card-body">
             <div class="table-responsive">

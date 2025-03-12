@@ -297,13 +297,13 @@ class SignalManagementController extends Controller
             ->with('success', 'Signal deleted successfully.');
     }
 
-    public function batchValidateView()
+    public function showBatchValidate()
     {
         $pendingSignals = Signal::where('status', 'pending')
             ->with(['creator', 'wasteTypes'])
             ->latest()
-            ->paginate(15);
-
+            ->paginate(10);
+            
         return view('admin.signals.batch-validate', compact('pendingSignals'));
     }
 
@@ -314,12 +314,27 @@ class SignalManagementController extends Controller
             'signals.*' => 'exists:signals,id'
         ]);
 
-        Signal::whereIn('id', $validated['signals'])
-            ->update(['status' => 'validated']);
+        DB::beginTransaction();
+        try {
+            foreach ($validated['signals'] as $signalId) {
+                $signal = Signal::findOrFail($signalId);
+                $signal->update([
+                    'status' => 'validated',
+                    'admin_note' => 'Batch validated'
+                ]);
 
-        return redirect()
-            ->route('admin.signals.batch-validate')
-            ->with('success', 'Selected signals have been validated successfully.');
+                // Update user's credibility score
+                if ($signal->creator->isContributor()) {
+                    $signal->creator->increment('credibility_score', 2);
+                }
+            }
+            DB::commit();
+            return redirect()->route('admin.signals.index')
+                ->with('success', 'Selected signals have been validated successfully.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'An error occurred while validating signals.');
+        }
     }
 
     public function anomalies()
@@ -327,8 +342,8 @@ class SignalManagementController extends Controller
         $anomalies = Signal::where('anomaly_flag', true)
             ->with(['creator', 'wasteTypes'])
             ->latest()
-            ->paginate(15);
-
+            ->paginate(10);
+            
         return view('admin.signals.anomalies', compact('anomalies'));
     }
 } 

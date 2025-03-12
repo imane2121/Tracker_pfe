@@ -25,14 +25,14 @@
                             {{ ucfirst(str_replace('_', ' ', $collecte->status)) }}
                         </span>
                         <div>
-                            @if($collecte->user_id === auth()->id())
+                            @if(auth()->user()->isAdmin() || (auth()->user()->isSupervisor() && $collecte->user_id === auth()->id()))
                                 <a href="{{ route('collecte.edit', $collecte) }}" class="btn btn-sm btn-outline-secondary me-2">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
                                 <form action="{{ route('collecte.destroy', $collecte) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this collecte?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this collection?')">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </form>
@@ -119,7 +119,7 @@
                         <h5 class="mb-0">Actions</h5>
                     </div>
                     <div class="card-body">
-                        @if($collecte->user_id === auth()->id())
+                        @if(auth()->user()->isAdmin() || (auth()->user()->isSupervisor() && $collecte->user_id === auth()->id()))
                             <form action="{{ route('collecte.update-status', $collecte) }}" method="POST" class="mb-3">
                                 @csrf
                                 @method('PATCH')
@@ -141,14 +141,14 @@
                                 <form action="{{ route('collecte.join', $collecte) }}" method="POST" class="mb-3">
                                     @csrf
                                     <button type="submit" class="btn btn-success w-100">
-                                        <i class="bi bi-person-plus"></i> Join Collecte
+                                        <i class="bi bi-person-plus"></i> Join Collection
                                     </button>
                                 </form>
                             @elseif($collecte->contributors->contains(auth()->id()))
                                 <form action="{{ route('collecte.leave', $collecte) }}" method="POST" class="mb-3">
                                     @csrf
                                     <button type="submit" class="btn btn-danger w-100">
-                                        <i class="bi bi-person-x"></i> Leave Collecte
+                                        <i class="bi bi-person-x"></i> Leave Collection
                                     </button>
                                 </form>
                             @endif
