@@ -14,14 +14,9 @@ class CollecteService
 
     public function canCreateCollecte(User $user, ?Signal $signal = null, $latitude = null, $longitude = null)
     {
-        // Admins can create collecte without signals
-        if ($user->isAdmin()) {
+        // Both admins and supervisors can create collecte without signals
+        if ($user->isAdmin() || $user->isSupervisor()) {
             return true;
-        }
-
-        // For supervisors, check signal requirements
-        if ($user->isSupervisor()) {
-            return $this->hasRequiredSignals($latitude ?? $signal->latitude, $longitude ?? $signal->longitude);
         }
 
         return false;

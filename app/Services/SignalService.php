@@ -21,7 +21,7 @@ class SignalService
         // Check for temporal anomalies
         if ($this->hasTemporalAnomaly($signal, $user)) {
             $signal->anomaly_flag = true;
-            return 'rejected';
+            return 'pending';
         }
 
         // For contributors, check trust score
@@ -75,11 +75,8 @@ class SignalService
      */
     public function handleAnomalyDetection(Signal $signal)
     {
-        if ($signal->anomaly_flag && $signal->status !== 'rejected') {
-            $signal->update([
-                'status' => 'rejected',
-                'admin_note' => 'Signal automatically rejected due to anomaly detection.'
-            ]);
-        }
+        // No longer automatically reject signals with anomaly flag
+        // The admin will handle these manually
+        return;
     }
 } 

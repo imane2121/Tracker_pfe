@@ -452,7 +452,7 @@ html body section.report-callout .pulse {
     <section id="hero" class="hero section accent-background">
     <img src="{{ asset('assets/img/hero-bg.jpg') }}" alt="" data-aos="fade-in">
       <div class="container text-center" data-aos="fade-up" data-aos-delay="100">
-        <h2>Clean Seas Project</h2>
+        <h9>Clean Seas Project</h9>
         <p>Protect Our Seas—Together, Let's Fight Marine Pollution!</p>
         <a href="#articles" class="btn-scroll" title="Scroll Down"><i class="bi bi-chevron-down"></i></a>
       </div>
@@ -624,7 +624,7 @@ html body section.report-callout .pulse {
                                     <i class="fas fa-weight"></i>
                                     <div>
                                         <h6>Estimated Volume</h6>
-                                        <p>{{ $collecte->signal->volume }} kg</p>
+                                        <p>{{ $collecte->signal->volume }} m³</p>
         </div>
       </div>
                             @endif
@@ -1303,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
                                     <div class="popup-item">
                                         <i class="fas fa-weight-hanging ${getVolumeColorClass(collecte.signal.volume)}"></i>
-                                        <span>${collecte.signal.volume || 0} kg (${getVolumeCategory(collecte.signal.volume)})</span>
+                                        <span>${collecte.signal.volume || 0} m³ (${getVolumeCategory(collecte.signal.volume)})</span>
           </div>
                                     <div class="popup-item">
                                         <i class="fas fa-info-circle text-info"></i>

@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // If it's an image, send it for AI detection
                 if (file.type.startsWith('image/')) {
-                    validateWasteTypeWithAI(file);
+                    validateWasteTypesWithAI(file);
                 }
             };
             reader.readAsDataURL(file);
@@ -660,6 +660,61 @@ document.addEventListener('DOMContentLoaded', function() {
         }).addTo(window.map);
     }
 });
+
+async function validateWasteTypesWithAI(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await fetch('http://localhost:5000/detect', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('AI validation failed');
+        }
+
+        const data = await response.json();
+        
+        if (data.success && data.detections) {
+            // Get all selected waste types
+            const selectedTypes = document.querySelectorAll('.waste-type-btn.active');
+            const selectedValues = Array.from(selectedTypes).map(btn => btn.getAttribute('data-waste-type').toLowerCase());
+            
+            // Get AI detected types
+            const detectedTypes = data.detections.map(d => d.class.toLowerCase());
+            
+            // Check if there's any mismatch
+            let mismatchFound = false;
+            let suggestedTypes = [];
+            
+            detectedTypes.forEach(type => {
+                if (!selectedValues.includes(type)) {
+                    mismatchFound = true;
+                    suggestedTypes.push(type);
+                }
+            });
+            
+            if (mismatchFound) {
+                // Create a suggestion alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
+                alertDiv.innerHTML = `
+                    <strong>AI Suggestion:</strong> The uploaded image appears to contain the following waste types: 
+                    ${suggestedTypes.join(', ')}. Consider updating your selection.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Add the alert before the form
+                const form = document.querySelector('#waste-signal-form');
+                form.parentNode.insertBefore(alertDiv, form);
+            }
+        }
+    } catch (error) {
+        console.error('Error during AI validation:', error);
+    }
+}
 
 async function validateWasteTypeWithAI(imageFile) {
     const formData = new FormData();

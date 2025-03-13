@@ -581,18 +581,25 @@ a {
 a:hover {
   color: var(--primary-gradient-start);
 }
-
-h1,
 h2,
+h5,h6{
+  color: #0e346a !important;
+}
+h1,
 h3,
-h4,
-h5,
-h6 {
+h4 {
   color: whitesmoke !important;
   font-family: var(--heading-font);
   letter-spacing: var(--letter-spacing);
 }
-
+h9{
+  color: whitesmoke !important;
+  text-align: center !important;
+  font-size: 42px !important;
+  font-weight: 700 !important;
+  font-family: var(--heading-font) !important;
+  letter-spacing: var(--letter-spacing) !important;
+}
 /* PHP Email Form Messages
 ------------------------------*/
 .php-email-form .error-message {
