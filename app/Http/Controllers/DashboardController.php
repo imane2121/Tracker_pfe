@@ -17,8 +17,13 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $heatmapPoints = $this->criticalAreaService->getHeatmapPoints();
-        $topAreas = $this->criticalAreaService->getTopAffectedAreas();
+        $heatmapPoints = [];
+        $topAreas = [];
+
+        if (auth()->user()->isAdmin() || auth()->user()->isSupervisor()) {
+            $heatmapPoints = $this->criticalAreaService->getHeatmapPoints();
+            $topAreas = $this->criticalAreaService->getTopAffectedAreas();
+        }
 
         return view('dashboard', compact('heatmapPoints', 'topAreas'));
     }

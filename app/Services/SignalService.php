@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class SignalService
 {
-    const MINIMUM_TRUST_SCORE = 40;
+    const MINIMUM_TRUST_SCORE = 90;
     const MAX_SPEED_KMH = 120; // Maximum reasonable speed in km/h
     
     public function determineSignalStatus(Signal $signal, User $user)

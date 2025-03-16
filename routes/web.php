@@ -17,6 +17,7 @@ use App\Http\Controllers\CollecteController;
 use App\Http\Controllers\Admin\SignalManagementController;
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ContactController;
 
 
 /*
@@ -79,28 +80,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
 });
 
-// Admin Routes
-/*Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->group(function () {
-    // Users Management
-    Route::resource('users', UsersController::class);
-    // Approve Supervisor Accounts
-    Route::post('/users/{user}/approve', [UsersController::class, 'approve'])->name('admin.users.approve');
-});*/
-/*Route::get('/debug-session', function () {
-    return response()->json(session()->all());
-})->middleware('web');
-Route::get('/test-auth', function () {
-    return response()->json([
-        'user' => Auth::user(),
-        'session' => session()->all(),
-    ]);
-})->middleware(['web', 'auth']);*/
 
 Route::prefix('signal')->group(function () {
     // Show the form to create a new signal
     Route::get('/create', [SignalController::class, 'create'])->name('signal.create');
     Route::post('/store', [SignalController::class, 'store'])->name('signal.store');
     Route::get('/', [SignalController::class, 'index'])->name('signal.index');
+    Route::get('/{signal}/edit', [SignalController::class, 'edit'])->name('signal.edit');
+    Route::put('/{signal}', [SignalController::class, 'update'])->name('signal.update');
+    Route::delete('/{signal}', [SignalController::class, 'destroy'])->name('signal.destroy');
 });
 
 // Collecte routes
@@ -175,5 +163,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::get('/{signal}/edit', [SignalManagementController::class, 'edit'])->name('edit');
         Route::put('/{signal}', [SignalManagementController::class, 'update'])->name('update');
         Route::delete('/{signal}', [SignalManagementController::class, 'destroy'])->name('destroy');
+    });
+});
+
+// Contact Routes
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// Admin Contact Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    // Contact Management Routes
+    Route::prefix('contact')->name('contact.')->group(function () {
+        Route::get('/', [ContactController::class, 'adminIndex'])->name('index');
+        Route::get('/{message}', [ContactController::class, 'adminShow'])->name('show');
+        Route::post('/{message}/reply', [ContactController::class, 'adminReply'])->name('reply');
+        Route::post('/{message}/mark-as-read', [ContactController::class, 'adminMarkAsRead'])->name('mark-as-read');
+        Route::delete('/{message}', [ContactController::class, 'adminDelete'])->name('delete');
     });
 });

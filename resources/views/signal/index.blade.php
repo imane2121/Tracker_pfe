@@ -128,9 +128,16 @@
                                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $signal->id }}">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        @if($signal->status === 'pending')
+                                        @if(!$signal->collecte)
+                                            <a href="{{ route('signal.edit', $signal->id) }}" class="btn btn-outline-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
                                             <button type="button" class="btn btn-outline-danger" onclick="deleteSignal({{ $signal->id }})">
                                                 <i class="bi bi-trash"></i>
+                                            </button>
+                                        @else
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Cannot modify - Associated with a collection">
+                                                <i class="bi bi-lock"></i>
                                             </button>
                                         @endif
                                     </div>
@@ -206,31 +213,49 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function deleteSignal(signalId) {
-        if (confirm('Are you sure you want to delete this signal?')) {
-            // Send delete request
-            fetch(`/signals/${signalId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Reload the page to show updated list
-                    window.location.reload();
-                } else {
-                    alert('Error deleting signal');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error deleting signal');
-            });
-        }
+    function showCollectionMessage(action) {
+        Swal.fire({
+            title: 'Action Not Allowed',
+            text: `This report cannot be ${action}ed as it is part of a collection.`,
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3085d6'
+        });
     }
+
+    function deleteSignal(signalId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/signal/${signalId}`;
+                form.innerHTML = `
+                    @csrf
+                    @method('DELETE')
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
 
     // Filter form handling
     document.getElementById('filterForm').addEventListener('submit', function(e) {

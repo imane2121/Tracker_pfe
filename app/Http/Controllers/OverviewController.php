@@ -53,12 +53,12 @@ class OverviewController extends Controller
                     'id' => $signal->id,
                     'latitude' => $signal->latitude,
                     'longitude' => $signal->longitude,
-                    'volume' => $signal->volume,
+                    'volume' => $signal->collecte->status === 'completed' ? $signal->collecte->actual_volume : $signal->volume,
                     'waste_types' => $signal->wasteTypes->pluck('name'),
                     'waste_type_ids' => $signal->wasteTypes->pluck('id'),
                     'starting_date' => $signal->collecte->starting_date,
                     'status' => $signal->collecte->status,
-                    'intensity' => $signal->volume / 1000, // Normalize volume for heatmap intensity
+                    'intensity' => ($signal->collecte->status === 'completed' ? $signal->collecte->actual_volume : $signal->volume) / 1000, // Normalize volume for heatmap intensity
                     'date' => $signal->signal_date->format('Y-m-d'),
                 ];
             });

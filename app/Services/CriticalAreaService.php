@@ -8,6 +8,8 @@ use Carbon\Carbon;
 
 class CriticalAreaService
 {
+    const CLUSTER_RADIUS_KM = 1; // 1 kilometer radius for clustering
+
     /**
      * Get heatmap points based on signal data
      * 
@@ -16,26 +18,44 @@ class CriticalAreaService
      */
     public function getHeatmapPoints($days = 30)
     {
-        return Signal::where('created_at', '>=', Carbon::now()->subDays($days))
+        $signals = Signal::with(['collecte', 'creator', 'wasteTypes'])
+            ->where('created_at', '>=', Carbon::now()->subDays($days))
             ->where('status', '!=', 'rejected')
-            ->select([
-                'latitude',
-                'longitude',
-                DB::raw('COUNT(*) as report_count'),
-                DB::raw('SUM(volume) as total_volume')
-            ])
-            ->groupBy('latitude', 'longitude')
             ->get()
-            ->map(function ($point) {
-                // Calculate intensity based on report count and volume
-                $intensity = min(1.0, ($point->report_count * $point->total_volume) / 1000);
+            ->map(function ($signal) {
+                $volume = $signal->collecte && $signal->collecte->status === 'completed' 
+                    ? $signal->collecte->actual_volume 
+                    : $signal->volume;
+
                 return [
-                    $point->latitude,
-                    $point->longitude,
+                    'latitude' => $signal->latitude,
+                    'longitude' => $signal->longitude,
+                    'volume' => $volume,
+                    'credibility_score' => $signal->creator->credibility_score ?? 100
+                ];
+            })
+            ->groupBy(function ($signal) {
+                // Group by coordinates (rounded to 5 decimal places for proximity)
+                return round($signal['latitude'], 5) . ',' . round($signal['longitude'], 5);
+            })
+            ->map(function ($group) {
+                $maxCredibilitySignal = $group->sortByDesc('credibility_score')->first();
+                $count = $group->count();
+                
+                // Calculate intensity based on both volume and report count
+                // Normalize to a value between 0 and 1
+                $intensity = min(1.0, ($count * $maxCredibilitySignal['volume']) / 1000);
+                
+                return [
+                    $maxCredibilitySignal['latitude'],
+                    $maxCredibilitySignal['longitude'],
                     $intensity
                 ];
             })
+            ->values()
             ->toArray();
+
+        return $signals;
     }
 
     /**
@@ -47,45 +67,166 @@ class CriticalAreaService
      */
     public function getTopAffectedAreas($limit = 5, $days = 30)
     {
-        // Group signals by location instead of grid coordinates
-        $areas = Signal::where('created_at', '>=', Carbon::now()->subDays($days))
+        // Get all non-rejected signals from the last X days
+        $signals = Signal::with(['collecte', 'creator', 'wasteTypes'])
+            ->where('created_at', '>=', Carbon::now()->subDays($days))
             ->where('status', '!=', 'rejected')
-            ->select([
-                'location',
-                DB::raw('COUNT(*) as report_count'),
-                DB::raw('SUM(volume) as total_volume'),
-                DB::raw('MAX(created_at) as latest_report'),
-                'latitude',
-                'longitude'
-            ])
-            ->groupBy('location', 'latitude', 'longitude')
-            ->orderByDesc('total_volume')
-            ->limit($limit)
             ->get();
 
-        $maxVolume = $areas->max('total_volume');
+        // Group signals into clusters based on proximity
+        $clusters = $this->clusterSignals($signals);
 
-        return $areas->map(function ($area) use ($maxVolume) {
-            // Calculate severity percentage based on volume relative to max
-            $severityPercentage = round(($area->total_volume / $maxVolume) * 100);
+        // Sort clusters by total volume and get top N
+        $topClusters = collect($clusters)
+            ->sortByDesc('total_volume')
+            ->take($limit);
+
+        $maxVolume = $topClusters->max('total_volume');
+
+        return $topClusters->map(function ($cluster) use ($maxVolume) {
+            $severityPercentage = $maxVolume > 0 
+                ? round(($cluster['total_volume'] / $maxVolume) * 100)
+                : 0;
             
+            // Format waste types for display
+            $wasteTypes = collect($cluster['waste_types'])->take(3);
+            $remainingCount = count($cluster['waste_types']) - 3;
+            $wasteTypesDisplay = $wasteTypes->join(', ');
+            if ($remainingCount > 0) {
+                $wasteTypesDisplay .= " (+{$remainingCount} more)";
+            }
+
             return [
-                'name' => $area->location,
+                'name' => $cluster['location'] ?: $this->getAreaName($cluster['center_lat'], $cluster['center_lng']),
                 'severity' => $severityPercentage,
-                'report_count' => $area->report_count,
-                'total_volume' => round($area->total_volume, 2),
-                'latest_report' => Carbon::parse($area->latest_report)->diffForHumans(),
+                'report_count' => $cluster['report_count'],
+                'total_volume' => round($cluster['total_volume'], 2),
+                'latest_report' => Carbon::parse($cluster['latest_report'])->diffForHumans(),
                 'coordinates' => [
-                    'lat' => $area->latitude,
-                    'lng' => $area->longitude
-                ]
+                    'lat' => $cluster['center_lat'],
+                    'lng' => $cluster['center_lng']
+                ],
+                'waste_types' => $wasteTypesDisplay,
+                'has_collection' => $cluster['has_collection'],
+                'collection_id' => $cluster['collection_id'],
+                'collection_status' => $cluster['collection_status'],
+                'signal_id' => $cluster['signal_id']
             ];
-        })->toArray();
+        })->values()->toArray();
+    }
+
+    /**
+     * Cluster signals based on proximity
+     */
+    private function clusterSignals($signals)
+    {
+        $clusters = [];
+        $processed = [];
+
+        foreach ($signals as $signal) {
+            if (isset($processed[$signal->id])) {
+                continue;
+            }
+
+            // Get the correct volume based on collection status
+            $volume = $signal->collecte && $signal->collecte->status === 'completed'
+                ? $signal->collecte->actual_volume
+                : $signal->volume;
+
+            // Start a new cluster with this signal
+            $cluster = [
+                'signals' => [$signal],
+                'location' => $signal->location,
+                'total_volume' => $volume,
+                'report_count' => 1,
+                'latest_report' => $signal->created_at,
+                'center_lat' => $signal->latitude,
+                'center_lng' => $signal->longitude,
+                'credibility_scores' => [$signal->creator->credibility_score ?? 100],
+                'waste_types' => $signal->wasteTypes->pluck('name')->toArray(),
+                'has_collection' => !is_null($signal->collecte),
+                'collection_id' => $signal->collecte ? $signal->collecte->id : null,
+                'collection_status' => $signal->collecte ? $signal->collecte->status : null,
+                'signal_id' => $signal->id
+            ];
+            $processed[$signal->id] = true;
+
+            // Find nearby signals
+            foreach ($signals as $nearby) {
+                if ($signal->id !== $nearby->id && !isset($processed[$nearby->id])) {
+                    $distance = $this->calculateDistance(
+                        $signal->latitude,
+                        $signal->longitude,
+                        $nearby->latitude,
+                        $nearby->longitude
+                    );
+
+                    if ($distance <= self::CLUSTER_RADIUS_KM) {
+                        $cluster['signals'][] = $nearby;
+                        
+                        // Get the correct volume for the nearby signal
+                        $nearbyVolume = $nearby->collecte && $nearby->collecte->status === 'completed'
+                            ? $nearby->collecte->actual_volume
+                            : $nearby->volume;
+
+                        // Add credibility score
+                        $cluster['credibility_scores'][] = $nearby->creator->credibility_score ?? 100;
+                        
+                        // Update cluster data based on highest credibility score
+                        $maxCredibilityIndex = array_search(max($cluster['credibility_scores']), $cluster['credibility_scores']);
+                        $maxCredibilitySignal = $cluster['signals'][$maxCredibilityIndex];
+                        
+                        $cluster['total_volume'] = $maxCredibilitySignal->collecte && $maxCredibilitySignal->collecte->status === 'completed'
+                            ? $maxCredibilitySignal->collecte->actual_volume
+                            : $maxCredibilitySignal->volume;
+                            
+                        $cluster['waste_types'] = $maxCredibilitySignal->wasteTypes->pluck('name')->toArray();
+                        $cluster['report_count']++;
+                        $cluster['latest_report'] = max($cluster['latest_report'], $nearby->created_at);
+                        
+                        // Update collection information
+                        if (!$cluster['has_collection'] && !is_null($nearby->collecte)) {
+                            $cluster['has_collection'] = true;
+                            $cluster['collection_id'] = $nearby->collecte->id;
+                            $cluster['collection_status'] = $nearby->collecte->status;
+                        }
+                        
+                        $processed[$nearby->id] = true;
+
+                        // Recalculate cluster center
+                        $cluster['center_lat'] = collect($cluster['signals'])->avg('latitude');
+                        $cluster['center_lng'] = collect($cluster['signals'])->avg('longitude');
+                    }
+                }
+            }
+
+            $clusters[] = $cluster;
+        }
+
+        return $clusters;
+    }
+
+    /**
+     * Calculate distance between two points in kilometers using Haversine formula
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
+            
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        
+        return $earthRadius * $c;
     }
 
     /**
      * Get a descriptive name for an area based on coordinates
-     * In a real application, this could use reverse geocoding
      * 
      * @param float $lat
      * @param float $lon
@@ -93,6 +234,6 @@ class CriticalAreaService
      */
     private function getAreaName($lat, $lon)
     {
-        return "Area {$lat}°N, {$lon}°E";
+        return sprintf("Area %.4f°N, %.4f°E", $lat, $lon);
     }
 } 

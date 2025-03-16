@@ -63,23 +63,25 @@
       
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="{{ route('overview') }}#about">About</a></li>
-          <li><a href="{{ route('overview') }}#services">Services</a></li>
+          <li><a href="{{ route('collecte.index') }}">Collections</a></li>
+          <li><a href="{{ route('signal.create') }}">Report</a></li>
           @auth
             <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
             <li><a href="{{ route('profile.show') }}"><i class="bi bi-person-circle"></i> Profile</a></li>
-          @else
-            <li><a href="{{ route('login') }}">Log in</a></li>
-          @endauth
-          <li><a href="{{ route('overview') }}#contact">Contact</a></li>
-          <li>
+            <li>
               <form method="POST" action="{{ route('logout') }}" class="d-inline">
                 @csrf
                 <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="nav-link">
-                <i class="bi bi-box-arrow-right"></i>Logout 
+                  <i class="bi bi-box-arrow-right"></i>Logout 
                 </a>
               </form>
             </li>
+          @else
+            <li><a href="{{ route('login') }}">Sign In</a></li>
+          @endauth
+          @if(!auth()->check() || !auth()->user()->isAdmin())
+            <li><a href="{{ route('contact.index') }}">Contact</a></li>
+          @endif
         </ul>
       </nav>
     </div>

@@ -480,7 +480,7 @@ html body section.report-callout .pulse {
                         @else
                             <a href="{{ route('login') }}" class="report-button">
                                 <i class="fas fa-sign-in-alt"></i>
-                                Login to Report
+                                Sign In to Report
                             </a>
                         @endauth
           </div>
@@ -554,7 +554,7 @@ html body section.report-callout .pulse {
                                             <button type="submit" class="volunteer-button">Volunteer</button>
                                         </form>
                                     @else
-                                        <a href="{{ route('login') }}" class="volunteer-button">Login to Volunteer</a>
+                                        <a href="{{ route('login') }}" class="volunteer-button">Sign Up to Volunteer</a>
                                     @endauth
       </div>
             </div>
@@ -638,7 +638,7 @@ html body section.report-callout .pulse {
                             <button type="submit" class="volunteer-button">Volunteer Now</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="volunteer-button">Login to Volunteer</a>
+                        <a href="{{ route('login') }}" class="volunteer-button">Sign Up to Volunteer</a>
                     @endauth
                 </div>
               </div>
@@ -1303,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
                                     <div class="popup-item">
                                         <i class="fas fa-weight-hanging ${getVolumeColorClass(collecte.signal.volume)}"></i>
-                                        <span>${collecte.signal.volume || 0} m³ (${getVolumeCategory(collecte.signal.volume)})</span>
+                                        <span>${collecte.status === 'completed' ? collecte.actual_volume : (collecte.signal.volume || 0)} m³ (${getVolumeCategory(collecte.status === 'completed' ? collecte.actual_volume : (collecte.signal.volume || 0))})</span>
           </div>
                                     <div class="popup-item">
                                         <i class="fas fa-info-circle text-info"></i>
@@ -1322,9 +1322,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="popup-item">
                                         <i class="fas fa-users text-success"></i>
                                         <span>${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0} volunteers</span>
-      </div>
-    </div>
-    </div>
+                                    </div>
+                                    ${collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors ? `
+                                    <div class="popup-item mt-3">
+                                        <form action="{{ route('collecte.join', '') }}${collecte.id}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-user-plus"></i> Volunteer
+                                            </button>
+                                        </form>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
                         `);
                         marker.addTo(map);
                         markers.push(marker);

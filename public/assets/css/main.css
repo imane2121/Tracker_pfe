@@ -373,7 +373,6 @@ textarea:focus {
 /* Buttons Specific Styles */
 button {
   display: block;
-  width: 30%;
   font-weight: bold;
   background: linear-gradient(45deg, #0e346a 0%, #205490 100%);
   color: white;
@@ -571,7 +570,11 @@ body {
   padding: 0;
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
-
+.starter-section .SignInBut {
+  background-color: #28266c !important;
+  color: whitesmoke !important;
+  width: 30% !important;
+}
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -582,15 +585,16 @@ a:hover {
   color: var(--primary-gradient-start);
 }
 h2,
-h5,h6{
+h5,h6,h3{
   color: #0e346a !important;
 }
 h1,
-h3,
 h4 {
-  color: whitesmoke !important;
-  font-family: var(--heading-font);
-  letter-spacing: var(--letter-spacing);
+  font-weight: 700 !important;
+  color: #28266c !important;
+  margin-bottom: 15px !important;
+  position: relative !important;
+  display: inline-block !important;
 }
 h9{
   color: whitesmoke !important;
@@ -839,6 +843,8 @@ h9{
 # Global Footer
 --------------------------------------------------------------*/
 .footer {
+  margin-top: 300px !important;
+  margin-bottom: 0% !important;
   color: var(--default-color);
   background-color: var(--background-color);
   font-size: 14px;
@@ -1130,7 +1136,7 @@ section,
 .section {
   color: var(--default-color);
   background-color: var(--background-color);
-  padding: 40px 0 !important;
+  padding: 150px 0 !important;
   scroll-margin-top: 74px;
   overflow: clip;
 }

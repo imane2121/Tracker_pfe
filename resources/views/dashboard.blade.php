@@ -50,6 +50,9 @@
                                     <i class="bi bi-exclamation-triangle"></i> Anomalies
                                 </a>
                             </div>
+                            <a href="{{ route('admin.contact.index') }}" class="btn btn-outline-info rounded-3 shadow-sm hover-lift">
+                                <i class="bi bi-envelope"></i> Contact Messages
+                            </a>
                         @else
                             <!-- Regular user actions -->
                             <a href="{{ route('signal.create') }}" class="btn btn-primary btn-lg rounded-3 shadow-sm hover-lift">
@@ -248,6 +251,7 @@
     </div>
 
     <!-- Map and Critical Areas Row -->
+    @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
     <div class="row g-4">
         <!-- Critical Areas -->
         <div class="col-12 {{ Auth::user()->isAdmin() ? 'col-lg-12' : 'col-lg-4' }}">
@@ -307,6 +311,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 @push('scripts')
@@ -314,72 +319,162 @@
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize map
-        var map = L.map('map', {
-            zoomControl: false
-        }).setView([31.7917, -9.5541], 6); // Centered on Morocco
+        // Initialize critical areas map
+        var criticalAreasMap = L.map('critical-areas-map', {
+            zoomControl: false,
+            dragging: true,
+            scrollWheelZoom: true
+        }).setView([31.7917, -7.0926], 6);
 
         // Add zoom control to top-right
         L.control.zoom({
             position: 'topright'
-        }).addTo(map);
-
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Add heatmap layer
-        var heatmapPoints = @json($heatmapPoints);
-        L.heatLayer(heatmapPoints, {
-            radius: 25,
-            blur: 15,
-            maxZoom: 10
-        }).addTo(map);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            map.invalidateSize();
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize critical areas map
-        var criticalAreasMap = L.map('critical-areas-map', {
-            zoomControl: false,
-            dragging: false,
-            scrollWheelZoom: false
-        }).setView([31.7917, -7.0926], 6);
+        }).addTo(criticalAreasMap);
 
         // Add tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: ''
         }).addTo(criticalAreasMap);
 
-        // Add markers for critical areas
+        // Add markers for critical areas first
         var criticalAreaPoints = @json($topAreas);
         var markers = [];
         
-        criticalAreaPoints.forEach(function(area) {
-            var marker = L.circleMarker(
-                [area.coordinates.lat, area.coordinates.lng],
-                {
-                    radius: 8,
-                    fillColor: area.severity >= 75 ? '#dc3545' : (area.severity >= 50 ? '#ffc107' : '#28a745'),
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
+        if (criticalAreaPoints && criticalAreaPoints.length > 0) {
+            criticalAreaPoints.forEach(function(area) {
+                // Parse coordinates to ensure they are numbers
+                var lat = parseFloat(area.coordinates.lat);
+                var lng = parseFloat(area.coordinates.lng);
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var marker = L.circleMarker(
+                        [lat, lng],
+                        {
+                            radius: 8,
+                            fillColor: area.severity >= 75 ? '#dc3545' : (area.severity >= 50 ? '#ffc107' : '#28a745'),
+                            color: '#fff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }
+                    ).addTo(criticalAreasMap);
+
+                    // Create collection button if user is admin or contributor and no collection exists
+                    var collectionButton = '';
+                    @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
+                        if (!area.has_collection) {
+                            collectionButton = `
+                                <div class="mt-3">
+                                    <a href="{{ route('collecte.create') }}?signal_id=${area.signal_id}" 
+                                       class="btn btn-sm btn-success w-100">
+                                        <i class="bi bi-plus-circle"></i> Create Collection
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    @endif
+
+                    // Add popup with area information
+                    marker.bindPopup(`
+                        <div class="p-2">
+                            <h6 class="mb-2">${area.name}</h6>
+                            <div class="mb-2">
+                                <small class="text-muted d-block mb-1">
+                                    <i class="bi bi-tags"></i> Waste Types:
+                                </small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    ${area.waste_types ? `<span class="badge bg-info">${area.waste_types}</span>` : 'No waste types specified'}
+                                </div>
+                            </div>
+                            <div class="border-top pt-2">
+                                <p class="mb-1"><i class="bi bi-flag"></i> ${area.report_count} reports</p>
+                                <p class="mb-1"><i class="bi bi-trash"></i> ${area.total_volume}m³</p>
+                                <p class="mb-0"><i class="bi bi-clock"></i> ${area.latest_report}</p>
+                            </div>
+                            ${area.has_collection ? `
+                                <div class="border-top mt-2 pt-2">
+                                    <h6 class="mb-2">
+                                        <i class="bi bi-truck"></i> Collection Status: 
+                                        <span class="badge bg-${
+                                            area.collection_status === 'completed' ? 'success' :
+                                            area.collection_status === 'in_progress' ? 'warning' :
+                                            area.collection_status === 'planned' ? 'info' :
+                                            area.collection_status === 'validated' ? 'primary' : 'secondary'
+                                        }">
+                                            ${area.collection_status ? area.collection_status.charAt(0).toUpperCase() + area.collection_status.slice(1) : 'Unknown'}
+                                        </span>
+                                    </h6>
+                                    <a href="{{ route('collecte.show', '') }}/${area.collection_id}" class="btn btn-sm btn-info w-100">
+                                        <i class="bi bi-eye"></i> View Collection Details
+                                    </a>
+                                </div>
+                            ` : `
+                                @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
+                                <div class="border-top mt-2 pt-2">
+                                    <h6 class="text-danger mb-2">
+                                        <i class="bi bi-exclamation-triangle"></i> No Collection Assigned
+                                    </h6>
+                                    <a href="{{ route('collecte.create') }}?signal_id=${area.signal_id}" 
+                                       class="btn btn-sm btn-success w-100">
+                                        <i class="bi bi-plus-circle"></i> Create Collection
+                                    </a>
+                                </div>
+                                @endif
+                            `}
+                        </div>
+                    `, {
+                        maxWidth: 300
+                    });
+
+                    markers.push(marker);
                 }
-            ).addTo(criticalAreasMap);
-            markers.push(marker);
+            });
+
+            // Fit bounds if we have markers
+            if (markers.length > 0) {
+                var group = L.featureGroup(markers);
+                criticalAreasMap.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Add heatmap layer after markers
+        var heatmapPoints = @json($heatmapPoints);
+        if (heatmapPoints && heatmapPoints.length > 0) {
+            // Convert heatmap points to ensure they are valid numbers
+            var validHeatmapPoints = heatmapPoints.map(function(point) {
+                return [
+                    parseFloat(point[0]), // latitude
+                    parseFloat(point[1]), // longitude
+                    parseFloat(point[2])  // intensity
+                ];
+            }).filter(function(point) {
+                return !isNaN(point[0]) && !isNaN(point[1]) && !isNaN(point[2]);
+            });
+
+            if (validHeatmapPoints.length > 0) {
+                L.heatLayer(validHeatmapPoints, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 10,
+                    gradient: {
+                        0.4: 'blue',
+                        0.6: 'cyan',
+                        0.7: 'lime',
+                        0.8: 'yellow',
+                        1.0: 'red'
+                    }
+                }).addTo(criticalAreasMap);
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            criticalAreasMap.invalidateSize();
         });
 
-        // Fit bounds if we have markers
-        if (markers.length > 0) {
-            var group = L.featureGroup(markers);
-            criticalAreasMap.fitBounds(group.getBounds().pad(0.1));
-        }
+        // Debug logging
+        console.log('Critical Area Points:', criticalAreaPoints);
+        console.log('Heatmap Points:', heatmapPoints);
     });
 </script>
 @endpush
@@ -394,10 +489,10 @@
         margin-top: 30px !important;
     }
     .text-white-50{
-        color: #1e193b !important;
+        color:rgb(254, 254, 254) !important;
     }
     .text-white{
-        color: #1e193b !important;
+        color:rgb(255, 255, 255) !important;
     }
     .welcome-decoration {
         position: absolute;

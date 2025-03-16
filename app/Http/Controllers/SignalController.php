@@ -189,11 +189,11 @@ class SignalController extends Controller
                 ], 403);
             }
 
-            // Check if the signal is pending
-            if ($signal->status !== 'pending') {
+            // Check if the signal has a collection
+            if ($signal->collecte) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only pending signals can be deleted.'
+                    'message' => 'Cannot delete a signal that is associated with a collection.'
                 ], 400);
             }
 
@@ -210,6 +210,68 @@ class SignalController extends Controller
                 'success' => false,
                 'message' => 'Error deleting signal.'
             ], 500);
+        }
+    }
+
+    public function edit(Signal $signal)
+    {
+        // Check if user owns the signal
+        if ($signal->creator_id !== auth()->id()) {
+            return redirect()->route('signal.index')
+                ->with('error', 'You can only edit your own reports.');
+        }
+
+        // Check if signal has a collection
+        if ($signal->collection) {
+            return redirect()->route('signal.index')
+                ->with('error', 'This report cannot be edited as it is part of a collection.');
+        }
+
+        $wasteTypes = WasteTypes::orderBy('name')->get();
+        return view('signal.edit', compact('signal', 'wasteTypes'));
+    }
+
+    public function update(Request $request, Signal $signal)
+    {
+        // Check if user owns the signal
+        if ($signal->creator_id !== auth()->id()) {
+            return redirect()->route('signal.index')
+                ->with('error', 'You can only edit your own reports.');
+        }
+
+        // Check if signal has a collection
+        if ($signal->collection) {
+            return redirect()->route('signal.index')
+                ->with('error', 'This report cannot be edited as it is part of a collection.');
+        }
+
+        $validated = $request->validate([
+            'volume' => 'required|numeric|min:0',
+            'waste_types' => 'required|array|min:1',
+            'waste_types.*' => 'exists:waste_types,id',
+            'custom_type' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $signal->update([
+                'volume' => $validated['volume'],
+                'custom_type' => $validated['custom_type'],
+                'description' => $validated['description'],
+            ]);
+
+            // Sync waste types
+            $signal->wasteTypes()->sync($validated['waste_types']);
+
+            DB::commit();
+            return redirect()->route('signal.index')
+                ->with('success', 'Report updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'An error occurred while updating the report.')
+                ->withInput();
         }
     }
 }
