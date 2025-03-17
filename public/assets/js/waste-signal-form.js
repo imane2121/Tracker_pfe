@@ -80,6 +80,99 @@ document.addEventListener('DOMContentLoaded', function() {
             updateLocationInputs(e.latlng.lat, e.latlng.lng);
             reverseGeocode(e.latlng.lat, e.latlng.lng);
         });
+
+        // Geolocation functions
+        function updateLocationInputs(lat, lng) {
+            latitudeInput.value = lat;
+            longitudeInput.value = lng;
+        }
+
+        function reverseGeocode(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    locationInput.value = data.display_name;
+                })
+                .catch(error => {
+                    console.error('Error getting location name:', error);
+                });
+        }
+
+        // Use My Location button handler
+        const useLocationBtn = document.getElementById('useLocationBtn');
+        if (useLocationBtn) {
+            useLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Geolocation is not supported by your browser',
+                        icon: 'error'
+                    });
+                    return;
+                }
+
+                // Show loading state
+                const button = this;
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-arrow-repeat"></i> Getting Location...';
+
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        updateMarker(lat, lng);
+                        updateLocationInputs(lat, lng);
+                        reverseGeocode(lat, lng);
+                        
+                        // Reset button
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success',
+                            text: 'Your location has been found',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    },
+                    // Error callback
+                    function(error) {
+                        // Reset button
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+
+                        let errorMessage = 'An error occurred while getting your location';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'Please allow location access to use this feature';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Location information is unavailable';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'Location request timed out';
+                                break;
+                        }
+
+                        Swal.fire({
+                            title: 'Error',
+                            text: errorMessage,
+                            icon: 'error'
+                        });
+                    },
+                    // Options
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+        }
     }
 
     // Media Upload Handling
@@ -228,18 +321,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Camera/Video Capture
+    let currentFacingMode = 'environment';
+    let flashEnabled = false;
+    const galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
+    const galleryGrid = document.getElementById('galleryGrid');
+    const switchCameraBtn = document.getElementById('switchCameraBtn');
+    const flashBtn = document.getElementById('flashBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
+
     useCameraBtn.addEventListener('click', () => {
-        startMediaCapture('photo'); // Default to photo mode
+        startMediaCapture('photo');
     });
 
     photoModeBtn.addEventListener('click', () => {
         currentCaptureMode = 'photo';
         photoModeBtn.classList.add('active');
         videoModeBtn.classList.remove('active');
-        captureBtn.innerHTML = '<i class="bi bi-camera"></i> Capture Photo';
+        captureBtn.innerHTML = '<i class="bi bi-camera"></i>';
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
         }
+        resetPreview();
     });
 
     videoModeBtn.addEventListener('click', () => {
@@ -247,14 +349,52 @@ document.addEventListener('DOMContentLoaded', function() {
         videoModeBtn.classList.add('active');
         photoModeBtn.classList.remove('active');
         setupVideoRecording();
-        captureBtn.innerHTML = '<i class="bi bi-record-circle"></i> Start Recording';
+        captureBtn.innerHTML = '<i class="bi bi-record-circle"></i>';
+        resetPreview();
     });
+
+    switchCameraBtn.addEventListener('click', () => {
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        switchCameraBtn.innerHTML = `<i class="bi bi-camera-video-${currentFacingMode === 'environment' ? 'fill' : ''}"></i>`;
+        restartCamera();
+    });
+
+    flashBtn.addEventListener('click', () => {
+        flashEnabled = !flashEnabled;
+        flashBtn.classList.toggle('active');
+        flashBtn.innerHTML = `<i class="bi bi-lightning-${flashEnabled ? 'fill' : ''}"></i>`;
+        if (mediaStream) {
+            const track = mediaStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            if (capabilities.torch) {
+                track.applyConstraints({
+                    advanced: [{ torch: flashEnabled }]
+                });
+            }
+        }
+    });
+
+    galleryBtn.addEventListener('click', () => {
+        updateGallery();
+        galleryModal.show();
+    });
+
+    function resetPreview() {
+        if (capturePreview) {
+            capturePreview.srcObject = null;
+            capturePreview.style.display = 'block';
+        }
+    }
 
     async function startMediaCapture(mode) {
         try {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
             const constraints = {
                 video: {
-                    facingMode: 'environment'
+                    facingMode: currentFacingMode,
+                    width: { ideal: isMobile ? 1920 : 1280 },
+                    height: { ideal: isMobile ? 1080 : 720 }
                 },
                 audio: mode === 'video'
             };
@@ -262,18 +402,68 @@ document.addEventListener('DOMContentLoaded', function() {
             mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             capturePreview.srcObject = mediaStream;
             
+            // Set preview dimensions
+            if (capturePreview) {
+                capturePreview.style.width = '100%';
+                capturePreview.style.height = '100%';
+                capturePreview.style.objectFit = 'cover';
+            }
+            
             if (mode === 'video') {
                 setupVideoRecording();
             }
             
-            captureModal.show();
+            // Show modal
+            const modal = document.getElementById('captureModal');
+            if (modal) {
+                modal.classList.add('mobile-capture-modal');
+                captureModal.show();
+            }
+
+            // Initialize camera features
+            initializeCameraFeatures();
         } catch (err) {
-            alert('Error accessing camera: ' + err.message);
+            Swal.fire({
+                title: 'Camera Error',
+                text: 'Unable to access camera: ' + err.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
+    function initializeCameraFeatures() {
+        if (mediaStream) {
+            const track = mediaStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            
+            // Check if device has flash/torch
+            if (capabilities.torch) {
+                flashBtn.style.display = 'flex';
+            } else {
+                flashBtn.style.display = 'none';
+            }
+            
+            // Check if device has multiple cameras
+            if (capabilities.facingMode && capabilities.facingMode.length > 1) {
+                switchCameraBtn.style.display = 'flex';
+            } else {
+                switchCameraBtn.style.display = 'none';
+            }
+        }
+    }
+
+    function restartCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            startMediaCapture(currentCaptureMode);
         }
     }
 
     function setupVideoRecording() {
-        mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder = new MediaRecorder(mediaStream, {
+            mimeType: 'video/webm;codecs=vp8,opus'
+        });
         
         mediaRecorder.ondataavailable = (e) => {
             if (e.data.size > 0) {
@@ -285,9 +475,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             addPreviewItem(URL.createObjectURL(blob), 'video/webm');
             recordedChunks = [];
+            captureBtn.classList.remove('recording');
         };
         
-        captureBtn.innerHTML = '<i class="bi bi-record-circle"></i> Start Recording';
+        captureBtn.innerHTML = '<i class="bi bi-record-circle"></i>';
         isRecording = false;
     }
 
@@ -295,26 +486,75 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentCaptureMode === 'video') {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                captureBtn.innerHTML = '<i class="bi bi-record-circle"></i> Start Recording';
+                captureBtn.innerHTML = '<i class="bi bi-record-circle"></i>';
+                captureBtn.classList.remove('recording');
                 isRecording = false;
             } else if (mediaRecorder) {
                 mediaRecorder.start();
-                captureBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Recording';
+                captureBtn.innerHTML = '<i class="bi bi-stop-circle"></i>';
+                captureBtn.classList.add('recording');
                 isRecording = true;
             }
         } else {
+            // Add capture animation
+            captureBtn.classList.add('capturing');
+            
             const context = captureCanvas.getContext('2d');
             captureCanvas.width = capturePreview.videoWidth;
             captureCanvas.height = capturePreview.videoHeight;
             context.drawImage(capturePreview, 0, 0);
             
+            // Add flash effect
+            if (flashEnabled) {
+                context.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                context.fillRect(0, 0, captureCanvas.width, captureCanvas.height);
+            }
+            
             captureCanvas.toBlob((blob) => {
                 addPreviewItem(URL.createObjectURL(blob), 'image/jpeg');
+                captureBtn.classList.remove('capturing');
                 captureModal.hide();
-            }, 'image/jpeg');
+            }, 'image/jpeg', 0.9);
         }
     });
 
+    function updateGallery() {
+        galleryGrid.innerHTML = '';
+        const previewItems = document.querySelectorAll('.preview-item img, .preview-item video');
+        
+        previewItems.forEach((item, index) => {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
+            
+            const media = item.tagName === 'IMG' 
+                ? document.createElement('img')
+                : document.createElement('video');
+            
+            media.src = item.src;
+            if (item.tagName === 'VIDEO') {
+                media.controls = true;
+            }
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'gallery-item-overlay';
+            overlay.innerHTML = '<i class="bi bi-trash"></i>';
+            overlay.onclick = () => {
+                const previewSlide = item.closest('.preview-slide');
+                if (previewSlide) {
+                    previewSlide.remove();
+                    updateNavigationVisibility();
+                    showCurrentSlide();
+                    updateGallery();
+                }
+            };
+            
+            galleryItem.appendChild(media);
+            galleryItem.appendChild(overlay);
+            galleryGrid.appendChild(galleryItem);
+        });
+    }
+
+    // Handle modal events
     document.getElementById('captureModal').addEventListener('hidden.bs.modal', () => {
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
@@ -322,11 +562,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
         }
-        capturePreview.srcObject = null;
+        resetPreview();
         mediaStream = null;
         mediaRecorder = null;
         recordedChunks = [];
     });
+
+    // Add orientation change handler for mobile
+    window.addEventListener('orientationchange', () => {
+        if (mediaStream) {
+            restartCamera();
+        }
+    });
+
+    // Add touch events for mobile
+    if (capturePreview) {
+        capturePreview.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (currentCaptureMode === 'photo') {
+                captureBtn.click();
+            }
+        });
+    }
 
     // Location Validation with Map
     if (validateLocationBtn && locationInput) {
@@ -432,7 +689,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle general waste type selection
     wasteTypeButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             const isAutreBtn = btn.id === 'autreBtn';
             
             if (isAutreBtn) {
@@ -505,7 +765,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle specific type selection
     document.querySelectorAll('.wsf-btn-option.wsf-specific-type').forEach(function(btn) {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             const specificId = btn.dataset.specificId;
             const parentId = btn.dataset.parentId;
             const input = btn.parentElement.querySelector('.wsf-specific-input');

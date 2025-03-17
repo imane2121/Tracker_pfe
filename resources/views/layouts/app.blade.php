@@ -6,7 +6,7 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <title>{{ config('app.name', 'Laravel') }}</title>
+  <title>{{ config('app.name', 'AquaScan') }}</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -393,6 +393,40 @@
         });
       }
     });
+  </script>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Waste Signal Form JavaScript -->
+  <script src="{{ asset('/assets/js/waste-signal-form.js') }}"></script>
+  
+  <!-- Add CSRF token to all AJAX requests -->
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          // Add CSRF token to all fetch requests
+          let token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          
+          let originalFetch = window.fetch;
+          window.fetch = function() {
+              let args = Array.prototype.slice.call(arguments);
+              if(args[1] && args[1].method && ['POST', 'PUT', 'DELETE'].includes(args[1].method.toUpperCase())) {
+                  if(args[1].headers) {
+                      args[1].headers['X-CSRF-TOKEN'] = token;
+                  } else {
+                      args[1].headers = {
+                          'X-CSRF-TOKEN': token
+                      };
+                  }
+              }
+              return originalFetch.apply(window, args);
+          };
+      });
   </script>
 
   @stack('scripts')

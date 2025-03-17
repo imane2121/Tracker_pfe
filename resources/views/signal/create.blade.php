@@ -29,7 +29,7 @@
         <!-- Waste Types Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h4 class="mb-0">Please Select Waste Type</h4>
+                <h10 class="mb-0">Please Select Waste Type</h10>
             </div>
             <div class="card-body">
                 <div class="wsf-buttons-container d-flex flex-wrap gap-2">
@@ -74,7 +74,7 @@
         <!-- Location Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h4 class="mb-0">Location Details</h4>
+                <h10 class="mb-0">Location Details</h10>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -116,7 +116,7 @@
         <!-- Media Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h4 class="mb-0">Add Photos/Videos</h4>
+                <h10 class="mb-0">Add Photos/Videos</h10>
             </div>
             <div class="card-body">
                 <div class="media-upload-section mb-4">
@@ -150,34 +150,49 @@
                 </div>
                 
                 <!-- Camera/Video capture modal -->
-                <div class="modal fade" id="captureModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
+                <div class="modal fade" id="captureModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-fullscreen">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Capture Media</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="capture-container">
-                                    <video id="capturePreview" autoplay playsinline></video>
-                                    <canvas id="captureCanvas" class="d-none"></canvas>
+                                <div class="d-flex justify-content-between align-items-center w-100">
+                                    <div class="mode-toggle">
+                                        <button type="button" class="btn btn-light" id="photoModeBtn">
+                                            <i class="bi bi-camera"></i> Photo
+                                        </button>
+                                        <button type="button" class="btn btn-light" id="videoModeBtn">
+                                            <i class="bi bi-camera-video"></i> Video
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn btn-light close-camera" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
-                                <div class="capture-mode-toggle mt-3 text-center">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-primary active" id="photoModeBtn">
-                                            <i class="bi bi-camera"></i> Photo Mode
-                                        </button>
-                                        <button type="button" class="btn btn-primary" id="videoModeBtn">
-                                            <i class="bi bi-camera-video"></i> Video Mode
-                                        </button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div class="camera-preview-container">
+                                    <video id="capturePreview" autoplay playsinline></video>
+                                    <canvas id="captureCanvas" style="display: none;"></canvas>
+                                    <div class="camera-overlay">
+                                        <div class="camera-grid"></div>
+                                        <div class="camera-focus-point"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-primary" id="captureBtn">
-                                    <i class="bi bi-camera"></i> Capture
-                                </button>
+                                <div class="camera-controls">
+                                    <button type="button" class="btn btn-light" id="switchCameraBtn">
+                                        <i class="bi bi-camera-video"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light" id="flashBtn">
+                                        <i class="bi bi-lightning"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-primary capture-btn" id="captureBtn">
+                                        <i class="bi bi-camera"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light" id="galleryBtn">
+                                        <i class="bi bi-images"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -188,7 +203,7 @@
         <!-- Description Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h4 class="mb-0">Additional Details</h4>
+                <h10 class="mb-0">Additional Details</h10>
             </div>
             <div class="card-body">
                 <div class="mb-3">
@@ -833,6 +848,420 @@
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{{ asset('/assets/js/waste-signal-form.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map with Morocco center coordinates
+    var map = L.map('locationMap').setView([31.7917, -7.0926], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker;
+
+    // Function to update marker position
+    function updateMarkerPosition(lat, lng, shouldZoom = true) {
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map);
+        if (shouldZoom) {
+            map.setView([lat, lng], 13);
+        }
+
+        // Update form inputs
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+
+        // Reverse geocode to get location name
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const locationName = data.display_name;
+                document.getElementById('location').value = locationName;
+            })
+            .catch(error => {
+                console.error('Error getting location name:', error);
+            });
+    }
+
+    // Handle map clicks
+    map.on('click', function(e) {
+        updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Handle "Use My Location" button click
+    document.getElementById('useLocationBtn').addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Geolocation is not supported by your browser',
+                icon: 'error'
+            });
+            return;
+        }
+
+        // Show loading state
+        const button = this;
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-arrow-repeat"></i> Getting Location...';
+
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                updateMarkerPosition(lat, lng);
+                
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalText;
+
+                // Show success message
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Your location has been found',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            // Error callback
+            function(error) {
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalText;
+
+                let errorMessage = 'An error occurred while getting your location';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Please allow location access to use this feature';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Location information is unavailable';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Location request timed out';
+                        break;
+                }
+
+                Swal.fire({
+                    title: 'Error',
+                    text: errorMessage,
+                    icon: 'error'
+                });
+            },
+            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+
+    // Handle location validation
+    document.getElementById('validateLocationBtn').addEventListener('click', function() {
+        const locationInput = document.getElementById('location').value;
+        if (!locationInput) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Please enter a location to validate',
+                icon: 'error'
+            });
+            return;
+        }
+
+        // Show loading state
+        const button = this;
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-arrow-repeat"></i> Validating...';
+
+        // Use Nominatim to geocode the location
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const location = data[0];
+                    updateMarkerPosition(location.lat, location.lon);
+                    
+                    // Reset button
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+
+                    // Show success message
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Location validated successfully',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error('Location not found');
+                }
+            })
+            .catch(error => {
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalText;
+
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Could not find the specified location',
+                    icon: 'error'
+                });
+            });
+    });
+
+    // Media Upload and Camera Functionality
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const mediaContainer = document.getElementById('mediaContainer');
+    const useCameraBtn = document.getElementById('useCameraBtn');
+    const captureModal = new bootstrap.Modal(document.getElementById('captureModal'));
+    const videoPreview = document.getElementById('capturePreview');
+    const captureCanvas = document.createElement('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const photoModeBtn = document.getElementById('photoModeBtn');
+    const videoModeBtn = document.getElementById('videoModeBtn');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
+    let currentMode = 'photo';
+    let stream;
+
+    // File Upload Handling
+    uploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFiles);
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        handleFiles({ target: { files } });
+    });
+
+    function handleFiles(e) {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                Swal.fire({
+                    title: 'Error',
+                    text: 'File size should not exceed 10MB',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            if (!file.type.match('image.*') && !file.type.match('video.*')) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Only image and video files are allowed',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => createPreviewItem(e.target.result, file.type);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function createPreviewItem(src, type) {
+        const col = document.createElement('div');
+        col.className = 'col-md-4 mb-3';
+        
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+
+        const media = type.startsWith('image/') ? 
+            document.createElement('img') : 
+            document.createElement('video');
+
+        media.src = src;
+        if (type.startsWith('video/')) {
+            media.controls = true;
+        }
+        previewItem.appendChild(media);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+        removeBtn.onclick = () => col.remove();
+
+        previewItem.appendChild(removeBtn);
+        col.appendChild(previewItem);
+        mediaContainer.appendChild(col);
+    }
+
+    // Camera Functionality
+    useCameraBtn.addEventListener('click', async () => {
+        try {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: 'environment' }
+                },
+                audio: currentMode === 'video'
+            });
+
+            videoPreview.srcObject = stream;
+            await videoPreview.play();
+            captureModal.show();
+        } catch (err) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Could not access camera: ' + err.message,
+                icon: 'error'
+            });
+        }
+    });
+
+    // Photo/Video Mode Toggle
+    photoModeBtn.addEventListener('click', () => switchMode('photo'));
+    videoModeBtn.addEventListener('click', () => switchMode('video'));
+
+    function switchMode(mode) {
+        currentMode = mode;
+        photoModeBtn.classList.toggle('active', mode === 'photo');
+        videoModeBtn.classList.toggle('active', mode === 'video');
+        captureBtn.innerHTML = mode === 'photo' ? 
+            '<i class="bi bi-camera"></i> Capture' : 
+            '<i class="bi bi-record-circle"></i> Record';
+
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            initCamera();
+        }
+    }
+
+    // Capture Button Handler
+    captureBtn.addEventListener('click', () => {
+        if (currentMode === 'photo') {
+            takePhoto();
+        } else {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+    });
+
+    function takePhoto() {
+        captureCanvas.width = videoPreview.videoWidth;
+        captureCanvas.height = videoPreview.videoHeight;
+        captureCanvas.getContext('2d').drawImage(videoPreview, 0, 0);
+        
+        captureCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            createPreviewItem(url, 'image/jpeg');
+            captureModal.hide();
+        }, 'image/jpeg');
+    }
+
+    function startRecording() {
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                recordedChunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            createPreviewItem(url, 'video/webm');
+            captureModal.hide();
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        captureBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop';
+    }
+
+    function stopRecording() {
+        mediaRecorder.stop();
+        isRecording = false;
+        captureBtn.innerHTML = '<i class="bi bi-record-circle"></i> Record';
+    }
+
+    // Cleanup on modal close
+    document.getElementById('captureModal').addEventListener('hidden.bs.modal', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        if (isRecording) {
+            stopRecording();
+        }
+    });
+
+    // Form submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        // Add media files
+        const mediaItems = mediaContainer.querySelectorAll('img, video');
+        mediaItems.forEach((media, index) => {
+            fetch(media.src)
+                .then(res => res.blob())
+                .then(blob => {
+                    const ext = media.tagName === 'IMG' ? 'jpg' : 'webm';
+                    formData.append(`media[]`, blob, `file${index}.${ext}`);
+                });
+        });
+
+        // Submit the form
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message || 'An error occurred',
+                    icon: 'error'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'An error occurred while submitting the form',
+                icon: 'error'
+            });
+        });
+    });
+});
+</script>
 @endpush
 @endsection

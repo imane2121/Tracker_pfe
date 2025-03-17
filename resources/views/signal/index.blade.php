@@ -129,15 +129,22 @@
                                             <i class="bi bi-eye"></i>
                                         </button>
                                         @if(!$signal->collecte)
-                                            <a href="{{ route('signal.edit', $signal->id) }}" class="btn btn-outline-warning">
+                                            <a href="{{ route('signal.edit', $signal) }}" class="btn btn-outline-warning">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <button type="button" class="btn btn-outline-danger" onclick="deleteSignal({{ $signal->id }})">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <form action="{{ route('signal.destroy', $signal) }}" method="POST" class="d-inline" id="deleteForm{{ $signal->id }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ $signal->id }})">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         @else
-                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Cannot modify - Associated with a collection">
-                                                <i class="bi bi-lock"></i>
+                                            <button type="button" class="btn btn-outline-warning" onclick="showCollectionMessage('edit')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="showCollectionMessage('delete')">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         @endif
                                     </div>
@@ -225,7 +232,7 @@
         });
     }
 
-    function deleteSignal(signalId) {
+    function confirmDelete(signalId) {
         Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -236,25 +243,36 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/signal/${signalId}`;
-                form.innerHTML = `
-                    @csrf
-                    @method('DELETE')
-                `;
-                document.body.appendChild(form);
-                form.submit();
+                document.getElementById(`deleteForm${signalId}`).submit();
             }
         });
     }
 
-    // Initialize tooltips
+    // Check for flash messages on page load
     document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#3085d6'
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                title: 'Error!',
+                text: "{{ session('error') }}",
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        @endif
+    });
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
     // Filter form handling

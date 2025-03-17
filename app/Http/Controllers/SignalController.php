@@ -9,6 +9,7 @@ use App\Services\SignalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SignalController extends Controller
 {
@@ -180,49 +181,46 @@ class SignalController extends Controller
 
     public function destroy(Signal $signal)
     {
-        try {
-            // Check if the user owns this signal
-            if ($signal->created_by !== auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized action.'
-                ], 403);
-            }
+        // Check if user owns the signal
+        if ($signal->created_by !== auth()->id()) {
+            return redirect()->route('signal.index')
+                ->with('error', 'You can only delete your own reports.');
+        }
 
-            // Check if the signal has a collection
-            if ($signal->collecte) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete a signal that is associated with a collection.'
-                ], 400);
+        // Check if signal has a collection
+        if ($signal->collecte) {
+            return redirect()->route('signal.index')
+                ->with('error', 'This report cannot be deleted as it is part of a collection.');
+        }
+
+        try {
+            // Delete associated media files first
+            foreach ($signal->media as $media) {
+                Storage::delete('public/' . $media->file_path);
+                $media->delete();
             }
 
             // Delete the signal
             $signal->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Signal deleted successfully.'
-            ]);
+            return redirect()->route('signal.index')
+                ->with('success', 'Report deleted successfully.');
         } catch (\Exception $e) {
-            Log::error('Error deleting signal: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting signal.'
-            ], 500);
+            return redirect()->route('signal.index')
+                ->with('error', 'An error occurred while deleting the report.');
         }
     }
 
     public function edit(Signal $signal)
     {
         // Check if user owns the signal
-        if ($signal->creator_id !== auth()->id()) {
+        if ($signal->created_by !== auth()->id()) {
             return redirect()->route('signal.index')
                 ->with('error', 'You can only edit your own reports.');
         }
 
         // Check if signal has a collection
-        if ($signal->collection) {
+        if ($signal->collecte) {
             return redirect()->route('signal.index')
                 ->with('error', 'This report cannot be edited as it is part of a collection.');
         }
@@ -234,13 +232,13 @@ class SignalController extends Controller
     public function update(Request $request, Signal $signal)
     {
         // Check if user owns the signal
-        if ($signal->creator_id !== auth()->id()) {
+        if ($signal->created_by !== auth()->id()) {
             return redirect()->route('signal.index')
                 ->with('error', 'You can only edit your own reports.');
         }
 
         // Check if signal has a collection
-        if ($signal->collection) {
+        if ($signal->collecte) {
             return redirect()->route('signal.index')
                 ->with('error', 'This report cannot be edited as it is part of a collection.');
         }
