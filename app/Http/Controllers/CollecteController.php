@@ -98,21 +98,21 @@ class CollecteController extends Controller
         try {
 
             // Validate the request
-            $validated = $request->validate([
+        $validated = $request->validate([
                 'signal_ids' => 'required|json',
                 'location' => 'required|string|max:255',
                 'region' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'latitude' => 'required|numeric',
-                'longitude' => 'required|numeric',
-                'nbrContributors' => 'required|integer|min:1',
+            'description' => 'nullable|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'nbrContributors' => 'required|integer|min:1',
                 'actual_volume' => 'required|numeric|min:0',
                 'starting_date' => 'required|date|after:today',
-                'end_date' => 'required|date|after:starting_date',
+            'end_date' => 'required|date|after:starting_date',
                 'waste_types' => 'required|array|min:1',
                 'waste_types.*' => 'exists:waste_types,id',
-                'media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:2048'
-            ]);
+            'media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:2048'
+        ]);
 
             // Decode signal_ids JSON
             $signalIds = json_decode($validated['signal_ids'], true);
@@ -150,22 +150,22 @@ class CollecteController extends Controller
                 ]);
 
                 // Handle media files
-                if ($request->hasFile('media')) {
-                    foreach ($request->file('media') as $file) {
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $file) {
                         if ($file->getSize() > 2048 * 1024) {
                             throw new \Exception('File size exceeds 2MB limit');
                         }
-                        $path = $file->store('collecte-media', 'public');
-                        $collecte->media()->create([
-                            'file_path' => $path,
-                            'media_type' => $file->getClientMimeType()
-                        ]);
-                    }
-                }
+                $path = $file->store('collecte-media', 'public');
+                $collecte->media()->create([
+                    'file_path' => $path,
+                    'media_type' => $file->getClientMimeType()
+                ]);
+            }
+        }
 
                 DB::commit();
 
-                return redirect()->route('collecte.show', $collecte)
+        return redirect()->route('collecte.show', $collecte)
                     ->with('success', 'Collection created successfully!');
 
             } catch (\Exception $e) {

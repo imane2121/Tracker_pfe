@@ -134,26 +134,55 @@
         <!-- Waste Types Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
-                <h10 class="mb-0">Waste Types</h10>
-            </div>
+                <h10 class="mb-0">Please Select Waste Type</h10>
+                                                    </div>
             <div class="card-body">
-                <div class="wsf-buttons-container d-flex flex-wrap gap-2">
-                    @foreach($wasteTypes as $wasteType)
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" 
-                                   name="waste_types[]" value="{{ $wasteType->id }}" 
-                                   id="waste_type_{{ $wasteType->id }}">
-                            <label class="form-check-label" for="waste_type_{{ $wasteType->id }}">
+                <div class="wsf-buttons-container d-flex flex-wrap gap-3">
+                    @foreach($wasteTypes->where('parent_id', null) as $wasteType)
+                        <div class="wsf-type-group">
+                            <button type="button" class="wsf-btn-option wsf-general-type" 
+                                    data-waste-type="{{ $wasteType->id }}">
                                 {{ $wasteType->name }}
-                                                        </label>
-                                                </div>
-                                            @endforeach
+                                @if($wasteTypes->where('parent_id', $wasteType->id)->isNotEmpty())
+                                    <i class="bi bi-chevron-down ms-2 toggle-icon"></i>
+                                @endif
+                            </button>
+                            @if($wasteTypes->where('parent_id', $wasteType->id)->isNotEmpty())
+                                <div class="wsf-subtypes" id="subTypes_{{ $wasteType->id }}">
+                                    @foreach($wasteTypes->where('parent_id', $wasteType->id) as $specificType)
+                                        <div class="wsf-subtype-item">
+                                            <input type="hidden" name="waste_types[]" 
+                                                   value="{{ $specificType->id }}" 
+                                                   data-parent-id="{{ $wasteType->id }}" 
+                                                   disabled>
+                                            <button type="button" class="wsf-btn-option wsf-specific-type" 
+                                                    data-specific-id="{{ $specificType->id }}"
+                                                    data-parent-id="{{ $wasteType->id }}">
+                                                {{ $specificType->name }}
+                                            </button>
                                         </div>
-                                        @error('waste_types')
-                                            <div class="text-danger mt-2">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+                                    @endforeach
                                 </div>
+                            @endif
+                        </div>
+                    @endforeach
+                    
+                    <!-- Custom Waste Type -->
+                    <div class="wsf-type-group">
+                        <button type="button" class="wsf-btn-option wsf-general-type" id="autreBtn">
+                            Other
+                            <i class="bi bi-chevron-down ms-2 toggle-icon"></i>
+                        </button>
+                        <div id="autreInputContainer" class="wsf-subtypes">
+                            <div class="wsf-subtype-item">
+                                <input type="text" name="customType" id="autreInput" 
+                                    class="form-control" placeholder="Enter waste type">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Description Section -->
         <div class="card mb-4 shadow-sm">
@@ -184,8 +213,8 @@
                         <p>Drag & drop files here or click to select</p>
                         <small class="text-muted">Supported formats: Images and Videos (max 2MB)</small>
                         <input type="file" id="fileInput" name="media[]" accept="image/*,video/*" multiple class="d-none">
-                    </div>
-                    
+                        </div>
+
                     <div class="preview-container position-relative">
                         <div id="mediaContainer" class="row g-3">
                             <!-- Preview items will be added here -->
@@ -284,31 +313,120 @@
     }
 
     .wsf-buttons-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
         gap: 1rem;
     }
 
-    .form-check {
-        padding: 1rem;
-        border: 1px solid #dee2e6;
+    .wsf-type-group {
+        flex: 0 0 calc(33.333% - 1rem);
+        min-width: 250px;
+        margin-bottom: 0.5rem;
+    }
+
+    .wsf-btn-option {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        border: none;
         border-radius: 8px;
+        background-color: #f8f9fa;
+        color: #495057;
+        cursor: pointer;
         transition: all 0.3s ease;
-    }
-
-    .form-check:hover {
-        border-color: var(--primary-gradient-start);
-        background-color: rgba(32, 84, 144, 0.05);
-    }
-
-    .form-check-input:checked ~ .form-check-label {
-        color: var(--primary-gradient-start);
         font-weight: 500;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .wsf-btn-option:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .wsf-btn-option.active {
+        background-color: #294c81;
+        color: white;
+    }
+
+    .wsf-btn-option.has-selected {
+        background-color: #294c81;
+        color: white;
+    }
+
+    .toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .wsf-btn-option.expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .wsf-subtypes {
+        display: none;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid #dee2e6;
+    }
+
+    .wsf-subtypes.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    .wsf-subtype-item {
+        margin: 0.5rem 0;
+    }
+
+    .wsf-specific-type {
+        background-color: white !important;
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+        padding: 0.5rem 1rem !important;
+    }
+
+    .wsf-specific-type:hover {
+        background-color: #f8f9fa !important;
+        border-color: #294c81 !important;
+    }
+
+    .wsf-specific-type.active {
+        background-color: #294c81 !important;
+        color: white !important;
+        border-color: #294c81 !important;
+    }
+
+    #autreInput {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 1rem;
+    }
+
+    #autreInput:focus {
+        border-color: #294c81;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     @media (max-width: 768px) {
-        .wsf-buttons-container {
-            grid-template-columns: 1fr;
+        .wsf-type-group {
+            flex: 0 0 100%;
         }
     }
 
@@ -559,6 +677,88 @@ document.addEventListener('DOMContentLoaded', function() {
         col.appendChild(previewItem);
         mediaContainer.appendChild(col);
     }
+
+    const generalTypes = document.querySelectorAll('.wsf-general-type');
+    let selectedTypes = new Set();
+
+    // Handle parent type clicks
+    generalTypes.forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.id === 'autreBtn') {
+                handleAutreButton();
+                return;
+            }
+
+            const wasteTypeId = this.dataset.wasteType;
+            const subtypes = document.getElementById(`subTypes_${wasteTypeId}`);
+            
+            if (subtypes) {
+                // Toggle subtypes visibility
+                subtypes.classList.toggle('show');
+                this.classList.toggle('expanded');
+                
+                // Update other buttons if needed
+                if (this.id !== 'autreBtn') {
+                    document.getElementById('autreInputContainer').classList.remove('show');
+                    document.getElementById('autreBtn').classList.remove('expanded');
+                }
+            }
+        });
+    });
+    
+    // Handle specific type selection
+    const specificTypes = document.querySelectorAll('.wsf-specific-type');
+    specificTypes.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            
+            const parentId = this.dataset.parentId;
+            const input = this.previousElementSibling;
+            const parentButton = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
+            
+            // Toggle selection
+            this.classList.toggle('active');
+            input.disabled = !this.classList.contains('active');
+
+            // Update selected types set
+            if (this.classList.contains('active')) {
+                selectedTypes.add(this.dataset.specificId);
+            } else {
+                selectedTypes.delete(this.dataset.specificId);
+            }
+
+            // Update parent button state
+            const hasSelected = document.querySelectorAll(
+                `.wsf-specific-type[data-parent-id="${parentId}"].active`
+            ).length > 0;
+            parentButton.classList.toggle('has-selected', hasSelected);
+        });
+    });
+
+    function handleAutreButton() {
+        const autreBtn = document.getElementById('autreBtn');
+        const autreInputContainer = document.getElementById('autreInputContainer');
+        
+        // Toggle autre input
+        autreInputContainer.classList.toggle('show');
+        autreBtn.classList.toggle('expanded');
+        
+        if (autreInputContainer.classList.contains('show')) {
+            document.getElementById('autreInput').focus();
+        }
+    }
+
+    // Close other expanded items when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.wsf-type-group')) {
+            document.querySelectorAll('.wsf-subtypes.show').forEach(subtypes => {
+                if (subtypes.id !== 'autreInputContainer') {
+                    subtypes.classList.remove('show');
+                    subtypes.previousElementSibling.classList.remove('expanded');
+                }
+            });
+        }
+    });
 });
 </script>
 @endpush
