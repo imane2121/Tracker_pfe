@@ -52,9 +52,13 @@ class Signal extends Model
         return $this->hasMany(Media::class);
     }
 
-    public function collecte()
+    public function collectes()
     {
-        return $this->hasOne(Collecte::class);
+        // Don't use belongsToMany since we're using a JSON column
+        return $this->hasMany(Collecte::class, 'signal_ids')
+            ->where(function ($query) {
+                $query->whereRaw('JSON_CONTAINS(signal_ids, ?)', [$this->id]);
+            });
     }
 
     public function waste_types()

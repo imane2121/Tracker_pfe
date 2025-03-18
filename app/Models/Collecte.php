@@ -15,35 +15,27 @@ class Collecte extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title',
-        'description',
-        'location',
+        'signal_ids',
         'region',
-        'starting_date',
-        'ending_date',
+        'location',
+        'description',
+        'latitude',
+        'longitude',
         'nbrContributors',
-        'current_contributors',
-        'waste_types',
-        'actual_waste_types',
         'actual_volume',
-        'completion_date',
-        'completion_notes',
-        'attendance_data',
-        'report_generated',
-        'report_path',
+        'starting_date',
+        'end_date',
+        'actual_waste_types',
         'status',
-        'user_id',
-        'signal_id'
+        'current_contributors',
+        'user_id'
     ];
 
     protected $casts = [
-        'starting_date' => 'datetime',
-        'ending_date' => 'datetime',
-        'completion_date' => 'datetime',
-        'waste_types' => 'array',
+        'signal_ids' => 'array',
         'actual_waste_types' => 'array',
-        'attendance_data' => 'array',
-        'report_generated' => 'boolean'
+        'starting_date' => 'datetime',
+        'end_date' => 'datetime'
     ];
 
     // Status constants
@@ -78,6 +70,12 @@ class Collecte extends Model
     public function completionMedia()
     {
         return $this->hasMany(CollecteMedia::class)->where('type', 'completion');
+    }
+
+    public function signals()
+    {
+        return $this->belongsToMany(Signal::class)
+            ->whereIn('signals.id', $this->signal_ids ?? []);
     }
 
     // Scopes
@@ -201,5 +199,13 @@ class Collecte extends Model
                 $collecte->current_contributors = $collecte->nbrContributors;
             }
         });
+    }
+
+    // Add mutator to ensure waste type IDs are integers
+    public function setActualWasteTypesAttribute($value)
+    {
+        $this->attributes['actual_waste_types'] = json_encode(
+            is_array($value) ? array_map('intval', $value) : []
+        );
     }
 } 

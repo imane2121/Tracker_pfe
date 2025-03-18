@@ -99,6 +99,8 @@ Route::prefix('collectes')->middleware(['auth', 'verified'])->group(function () 
     // Create new collecte
     Route::get('/create', [CollecteController::class, 'create'])->name('collecte.create');
     Route::post('/', [CollecteController::class, 'store'])->name('collecte.store');
+    Route::get('/cluster', [CollecteController::class, 'create'])->name('collecte.clusters');
+
     
     // Specific collecte actions
     Route::get('/{collecte}/edit', [CollecteController::class, 'edit'])->name('collecte.edit');
@@ -181,3 +183,29 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::delete('/{message}', [ContactController::class, 'adminDelete'])->name('delete');
     });
 });
+
+Route::get('/collectes/cluster', [CollecteController::class, 'cluster'])
+    ->name('collecte.cluster');
+
+// Test without middleware
+Route::get('/collectes/clusters', [CollecteController::class, 'showClusters'])
+    ->name('collecte.clusters');
+
+// Group routes that require admin or supervisor access
+Route::middleware(['auth', 'role:admin,supervisor'])->group(function () {
+    Route::post('/collectes', [CollecteController::class, 'store'])->name('collecte.store');
+    // Show clusters page first
+    Route::get('/collectes/clusters', [CollecteController::class, 'showClusters'])
+        ->name('collecte.clusters');
+
+    // Existing routes
+    Route::get('/collectes/create', [CollecteController::class, 'create'])
+        ->name('collecte.create');
+    Route::post('/collectes', [CollecteController::class, 'store'])
+        ->name('collecte.store');
+});
+
+// Add this at the top level of your routes file, not inside any groups
+Route::get('/collectes/clusters', function() {
+    return view('collectes.clusters');
+})->name('collecte.clusters');

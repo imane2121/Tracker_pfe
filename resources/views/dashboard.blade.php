@@ -60,8 +60,8 @@
                             </a>
                             
                             @if(auth()->user()->isSupervisor())
-                                <a href="{{ route('collecte.create') }}" class="btn btn-success btn-lg rounded-3 shadow-sm hover-lift">
-                                    <i class="bi bi-people"></i> Create Collection
+                                <a href="{{ route('collecte.cluster') }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Create Collection
                                 </a>
                             @endif
                             
@@ -268,7 +268,7 @@
                         <li class="mb-4">
                             <div class="d-flex align-items-center mb-2">
                                 <div>
-                                    <span class="text-dark fw-medium">{{ $area['name'] }}</span>
+                                    <span class="text-dark fw-medium">{{ $area['name'] ?? 'Area ' . $loop->iteration }}</span>
                                     <small class="text-muted d-block">
                                         <i class="bi bi-geo-alt"></i> {{ number_format($area['coordinates']['lat'], 4) }}, {{ number_format($area['coordinates']['lng'], 4) }}
                                     </small>
@@ -278,23 +278,23 @@
                                 </span>
                             </div>
                             <div class="progress rounded-pill" style="height: 0.5rem;">
-                                <div class="progress-bar {{ $area['severity'] >= 75 ? 'bg-danger' : ($area['severity'] >= 50 ? 'bg-warning' : 'bg-success') }}" 
-                                     role="progressbar" 
+                                <div class="progress-bar {{ $area['severity'] >= 75 ? 'bg-danger' : ($area['severity'] >= 50 ? 'bg-warning' : 'bg-success') }}"
+                                     role="progressbar"
                                      style="width: {{ $area['severity'] }}%"
-                                     aria-valuenow="{{ $area['severity'] }}" 
-                                     aria-valuemin="0" 
+                                     aria-valuenow="{{ $area['severity'] }}"
+                                     aria-valuemin="0"
                                      aria-valuemax="100">
                                 </div>
                             </div>
                             <div class="mt-2 d-flex justify-content-between">
                                 <small class="text-muted">
-                                    <i class="bi bi-flag"></i> {{ $area['report_count'] }} reports
+                                    <i class="bi bi-flag"></i> {{ $area['report_count'] ?? 0 }} reports
                                 </small>
                                 <small class="text-muted">
-                                    <i class="bi bi-trash"></i> {{ $area['total_volume'] }}m³
+                                    <i class="bi bi-trash"></i> {{ $area['total_volume'] ?? 0 }}m³
                                 </small>
                                 <small class="text-muted">
-                                    <i class="bi bi-clock"></i> {{ $area['latest_report'] }}
+                                    <i class="bi bi-clock"></i> {{ $area['latest_report'] ?? 'N/A' }}
                                 </small>
                             </div>
                         </li>

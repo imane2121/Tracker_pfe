@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('collectes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('signal_id')->nullable()->constrained()->nullOnDelete();
+            $table->json('signal_ids')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('region');
             $table->string('location');

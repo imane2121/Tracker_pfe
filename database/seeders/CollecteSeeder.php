@@ -110,60 +110,79 @@ class CollecteSeeder extends Seeder
         ];
 
         $collectes = collect([]);
+        $allSignals = collect([]);
 
-        // Create signals for each beach first
+        // First, create signals for each beach
         foreach ($beaches as $beach) {
             try {
                 echo "\nProcessing beach: {$beach['name']}\n";
                 
-                // Always use the default creator for consistency
-                $timestamp = now()->format('Y-m-d H:i:s');
-                
-                echo "Creating signal with creator ID: {$defaultCreator->id}\n";
-
-                // Select 2-3 random waste types for this signal
-                $selectedWasteTypes = $wasteTypes->random(rand(2, 3));
-                $wasteTypeIds = $selectedWasteTypes->pluck('id')->toArray();
-                
-                // Create signal using DB facade to ensure proper timestamp handling
-                $signalId = DB::table('signals')->insertGetId([
-                    'location' => $beach['name'],
-                    'description' => "Waste collection point at {$beach['name']}, {$beach['city']}",
-                    'latitude' => $beach['lat'],
-                    'longitude' => $beach['lng'],
-                    'volume' => rand(20, 150),
-                    'created_by' => $defaultCreator->id,
-                    'waste_types' => json_encode($wasteTypeIds),
-                    'status' => 'validated',
-                    'signal_date' => $timestamp,
-                    'created_at' => $timestamp,
-                    'updated_at' => $timestamp
-                ]);
-
-                echo "Created signal with ID: {$signalId}\n";
-
-                // Attach waste types to signal
-                foreach ($wasteTypeIds as $wasteTypeId) {
-                    DB::table('signal_waste_types')->insert([
-                        'signal_id' => $signalId,
-                        'waste_type_id' => $wasteTypeId
+                // Create 5-10 signals per beach location with slight coordinate variations
+                for ($i = 0; $i < rand(5, 10); $i++) {
+                    $timestamp = now()->format('Y-m-d H:i:s');
+                    
+                    // Add small random variations to coordinates to simulate different spots
+                    $latVariation = (rand(-100, 100) / 10000); // ±0.01 degree
+                    $lngVariation = (rand(-100, 100) / 10000);
+                    
+                    $selectedWasteTypes = $wasteTypes->random(rand(2, 3));
+                    $wasteTypeIds = $selectedWasteTypes->pluck('id')->toArray();
+                    
+                    $signalId = DB::table('signals')->insertGetId([
+                        'location' => $beach['name'],
+                        'description' => "Waste collection point at {$beach['name']}, {$beach['city']}",
+                        'latitude' => $beach['lat'] + $latVariation,
+                        'longitude' => $beach['lng'] + $lngVariation,
+                        'volume' => rand(20, 150),
+                        'created_by' => $defaultCreator->id,
+                        'waste_types' => json_encode($wasteTypeIds),
+                        'status' => 'validated',
+                        'signal_date' => $timestamp,
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp
                     ]);
+
+                    $allSignals->push([
+                        'id' => $signalId,
+                        'lat' => $beach['lat'] + $latVariation,
+                        'lng' => $beach['lng'] + $lngVariation,
+                        'region' => $beach['region'],
+                        'location' => $beach['name']
+                    ]);
+
+                    // Attach waste types to signal
+                    foreach ($wasteTypeIds as $wasteTypeId) {
+                        DB::table('signal_waste_types')->insert([
+                            'signal_id' => $signalId,
+                            'waste_type_id' => $wasteTypeId
+                        ]);
+                    }
                 }
 
-                // Create 2-3 collectes for each signal
+                // Create collectes based on grouped signals
+                $beachSignals = $allSignals->where('region', $beach['region'])->values();
+                
+                // Create 2-3 collectes for each beach
                 foreach(range(1, rand(2, 3)) as $index) {
+                    // Select 5-8 random signals that are close to each other
+                    $selectedSignals = $beachSignals->random(rand(5, 8));
+                    $signalIds = $selectedSignals->pluck('id')->toArray();
+                    
+                    // Calculate average coordinates for the collecte
+                    $avgLat = $selectedSignals->avg('lat');
+                    $avgLng = $selectedSignals->avg('lng');
+                    
                     $startingDate = Carbon::now()->addDays(rand(-30, 30));
                     $status = $this->getStatusBasedOnDate($startingDate);
                     
-                    // Create collecte using DB facade
                     $collecteId = DB::table('collectes')->insertGetId([
-                        'signal_id' => $signalId,
+                        'signal_ids' => json_encode($signalIds),
                         'user_id' => $defaultCreator->id,
                         'region' => $beach['region'],
                         'location' => $beach['name'],
                         'description' => "Beach cleanup event at {$beach['name']}. Join us in keeping our beaches clean!",
-                        'latitude' => $beach['lat'],
-                        'longitude' => $beach['lng'],
+                        'latitude' => $avgLat,
+                        'longitude' => $avgLng,
                         'nbrContributors' => rand(10, 30),
                         'current_contributors' => 0,
                         'status' => $status,
@@ -174,7 +193,7 @@ class CollecteSeeder extends Seeder
                     ]);
 
                     $collectes->push($collecteId);
-                    echo "Created collecte with ID: {$collecteId}\n";
+                    echo "Created collecte with ID: {$collecteId} based on " . count($signalIds) . " signals\n";
                 }
             } catch (\Exception $e) {
                 echo "Error creating data for {$beach['name']}: " . $e->getMessage() . "\n";
