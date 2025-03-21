@@ -16,14 +16,16 @@ class OverviewController extends Controller
     {
         // Get all collectes for the map
         $mapCollectes = Collecte::with(['contributors'])
-            ->whereNotNull('signal_ids')
-            ->where('signal_ids', '!=', '[]')
             ->get()
             ->map(function ($collecte) {
                 // Get the first signal's data for display purposes
                 $signalIds = is_array($collecte->signal_ids) ? $collecte->signal_ids : json_decode($collecte->signal_ids, true);
-                $firstSignal = Signal::with('wasteTypes')
-                    ->find($signalIds[0] ?? null);
+                $firstSignal = null;
+                
+                if (!empty($signalIds)) {
+                    $firstSignal = Signal::with('wasteTypes')
+                        ->find($signalIds[0] ?? null);
+                }
                 
                 // Attach the signal data to the collecte
                 $collecte->signal = $firstSignal;
