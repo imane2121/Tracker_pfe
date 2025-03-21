@@ -25,11 +25,38 @@ class CollecteController extends Controller
         $this->middleware('role:admin,supervisor')->only(['edit', 'update', 'destroy', 'updateStatus']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $collectes = Collecte::with(['creator', 'contributors'])
-            ->latest()
-            ->paginate(9);
+        $query = Collecte::with(['creator', 'contributors']);
+
+        // Handle search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('location', 'like', "%{$search}%")
+                  ->orWhere('region', 'like', "%{$search}%");
+            });
+        }
+
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Handle sorting
+        switch ($request->sort) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'participants':
+                $query->orderBy('current_contributors', 'desc');
+                break;
+            default:
+                $query->latest();
+                break;
+        }
+
+        $collectes = $query->paginate(9);
 
         return view('collectes.index', compact('collectes'));
     }
@@ -152,6 +179,10 @@ class CollecteController extends Controller
             'waste_types' => 'required|array',
             'media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:2048'
         ]);
+
+        // Map waste_types to actual_waste_types in the validated data
+        $validated['actual_waste_types'] = array_map('intval', (array)$validated['waste_types']);
+        unset($validated['waste_types']); // Remove the original waste_types key
 
         $collecte->update($validated);
 

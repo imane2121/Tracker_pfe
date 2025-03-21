@@ -2,13 +2,444 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/collecte.css') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .collecte-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    /* Back Button */
+    .back-button {
+        margin-bottom: 2rem;
+    }
+
+    .back-button .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Cards Styling */
+    .collecte-card {
+        background: white;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .collecte-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1.25rem;
+    }
+
+    .card-header h5 {
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Status Badge */
+    .collecte-status {
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-planned {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .status-in_progress {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .status-completed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-cancelled {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    /* Card Content */
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Info Items */
+    .collecte-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        color: #596575;
+    }
+
+    .collecte-info i {
+        font-size: 1.2rem;
+        margin-right: 1rem;
+        color: #1e56b0;
+        width: 24px;
+        text-align: center;
+    }
+
+    /* Progress Bar */
+    .collecte-progress {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+    }
+
+    .collecte-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #1e56b0 0%, #3498db 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* Media Section */
+    .media-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .media-item {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+    .media-item:hover {
+        transform: scale(1.02);
+    }
+
+    .media-item img,
+    .media-item video {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    /* Map */
+    #map {
+        height: 400px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    /* Contributors List */
+    .list-group {
+        margin: -0.5rem;
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px !important;
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .contributor-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Action Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-success {
+        background: #2ecc71;
+        border-color: #2ecc71;
+    }
+
+    .btn-success:hover {
+        background: #27ae60;
+        border-color: #27ae60;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: #e74c3c;
+        border-color: #e74c3c;
+    }
+
+    .btn-danger:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+        transform: translateY(-1px);
+    }
+
+    .form-select {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-select:focus {
+        border-color: #1e56b0;
+        box-shadow: 0 0 0 0.2rem rgba(30, 86, 176, 0.15);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .collecte-container {
+            padding: 1rem 0;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+        }
+
+        .media-container {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .media-item {
+            height: 150px;
+        }
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.1rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .waste-types-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .waste-type-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .volume-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .volume-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .signals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .signal-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .signal-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .signal-header {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .signal-header:has(.signal-id) {
+        justify-content: space-between;
+    }
+
+    .signal-id {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .signal-body {
+        padding: 0.75rem;
+    }
+
+    .signal-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: #596575;
+    }
+
+    .signal-info i {
+        color: #1e56b0;
+        width: 16px;
+    }
+
+    .signal-status {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-validated {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    @media (max-width: 768px) {
+        .volume-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .signals-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .detail-label {
+        color: #6c757d;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-label i {
+        color: #1e56b0;
+    }
+
+    .detail-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .waste-types {
+        grid-column: 1 / -1;
+    }
+
+    .waste-types-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .waste-type-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
 <div class="collecte-container">
     <div class="container">
         <!-- Back Button -->
-        <div class="mb-4">
+        <div class="back-button mb-4">
             <a href="{{ route('collecte.index') }}" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left"></i> Back to Collectes
             </a>
@@ -78,12 +509,59 @@
                             <p>{{ $collecte->description ?? 'No description provided.' }}</p>
                         </div>
 
+                        <!-- Single Details Section -->
+                        <div class="mb-4">
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle"></i> Collection Details
+                            </h5>
+                            <div class="details-grid">
+                                <!-- Volume Information -->
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <i class="bi bi-box"></i> Total Volume
+                                    </div>
+                                    <div class="detail-value">{{ $collecte->actual_volume }} m³</div>
+                                </div>
+
+                                <!-- Signals Count -->
+                                @if($collecte->signal_ids)
+                                    <div class="detail-item">
+                                        <div class="detail-label">
+                                            <i class="bi bi-exclamation-triangle"></i> Based on
+                                        </div>
+                                        <div class="detail-value">
+                                            {{ count($collecte->signal_ids) }} {{ Str::plural('signal', count($collecte->signal_ids)) }}
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Single Waste Types Section -->
+                                @if($collecte->actual_waste_types)
+                                    <div class="detail-item waste-types">
+                                        <div class="detail-label">
+                                            <i class="bi bi-recycle"></i> Waste Types
+                                        </div>
+                                        <div class="waste-types-container">
+                                            @foreach($collecte->actual_waste_types as $wasteTypeId)
+                                                @php
+                                                    $wasteType = \App\Models\WasteTypes::find($wasteTypeId);
+                                                @endphp
+                                                @if($wasteType)
+                                                    <span class="waste-type-badge">{{ $wasteType->name }}</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
                         @if($collecte->media->isNotEmpty())
                             <div class="mb-4">
                                 <h5>Media</h5>
-                                <div class="row g-3">
+                                <div class="media-container">
                                     @foreach($collecte->media as $media)
-                                        <div class="col-md-4">
+                                        <div class="media-item">
                                             @if(str_starts_with($media->media_type, 'image/'))
                                                 <img src="{{ Storage::url($media->file_path) }}" class="img-fluid rounded" alt="Collecte media">
                                             @elseif(str_starts_with($media->media_type, 'video/'))
@@ -165,10 +643,20 @@
                         <div class="list-group">
                             @forelse($collecte->contributors as $contributor)
                                 <div class="list-group-item d-flex align-items-center">
-                                    <img src="{{ $contributor->profile_photo_url }}" alt="{{ $contributor->name }}" class="rounded-circle me-2" width="32" height="32">
+                                    <img src="{{ $contributor->profile_photo_url }}" 
+                                         alt="{{ $contributor->first_name }}" 
+                                         class="rounded-circle me-2" 
+                                         width="32" 
+                                         height="32">
                                     <div>
                                         <h6 class="mb-0">{{ $contributor->first_name }} {{ $contributor->last_name }}</h6>
-                                        <small class="text-muted">{{ $contributor->pivot->joined_at->diffForHumans() }}</small>
+                                        <small class="text-muted">
+                                            @if($contributor->pivot && $contributor->pivot->joined_at)
+                                                Joined {{ \Carbon\Carbon::parse($contributor->pivot->joined_at)->diffForHumans() }}
+                                            @else
+                                                Joined recently
+                                            @endif
+                                        </small>
                                     </div>
                                 </div>
                             @empty
@@ -201,9 +689,5 @@
             .openPopup();
     });
 </script>
-@endpush
-
-@push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 @endpush
 @endsection 
