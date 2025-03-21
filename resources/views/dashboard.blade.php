@@ -27,7 +27,7 @@
     <!-- Quick Actions and Stats Row -->
     <div class="row g-4 mb-4">
         <!-- Quick Actions Card -->
-        <div class="col-12 {{ Auth::user()->isAdmin() ? 'col-md-6' : 'col-md-6 col-lg-4' }}">
+        <div class="col-12 {{ Auth::user()->isAdmin() ? 'col-md-4' : 'col-md-6 col-lg-4' }}">
             <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-header bg-gradient-primary text-white rounded-top-4">
                     <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
@@ -63,14 +63,12 @@
                             </a>
                             
                             @if(auth()->user()->role === 'supervisor')
-                                    <div class="d-flex gap-2 mb-3">
-                                        <a href="{{ route('collecte.cluster') }}" class="btn btn-primary">
+                                <a href="{{ route('collecte.cluster') }}" class="btn btn-success btn-lg rounded-3 shadow-sm hover-lift">
                                             <i class="bi bi-plus-circle"></i> Create Collection
                                         </a>
-                                        <a href="{{ route('collecte.create') }}?type=urgent" class="btn btn-danger">
+                                <a href="{{ route('collecte.create', ['type' => 'urgent']) }}" class="btn btn-danger btn-lg rounded-3 shadow-sm hover-lift">
                                             <i class="bi bi-exclamation-triangle"></i> Create Urgent Collection
                                         </a>
-                                    </div>
                             @endif
                             
                             <div class="d-flex gap-3">
@@ -87,120 +85,66 @@
             </div>
         </div>
 
-        @unless(Auth::user()->isAdmin())
-        <!-- Personal Statistics Card - Not shown for admin -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-header bg-gradient-success text-white rounded-top-4">
-                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Your Impact</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-primary-subtle rounded-circle mb-2">
-                                    <i class="bi bi-flag text-primary"></i>
-                                </div>
-                                <h3 class="text-primary mb-1">{{ Auth::user()->signals()->count() }}</h3>
-                                <small class="text-muted">Total Reports</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-success-subtle rounded-circle mb-2">
-                                    <i class="bi bi-check-circle text-success"></i>
-                                </div>
-                                <h3 class="text-success mb-1">{{ Auth::user()->signals()->where('status', 'validated')->count() }}</h3>
-                                <small class="text-muted">Validated</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-info-subtle rounded-circle mb-2">
-                                    <i class="bi bi-shield-check text-info"></i>
-                                </div>
-                                <h3 class="text-info mb-1">{{ Auth::user()->credibility_score ?? 100 }}</h3>
-                                <small class="text-muted">Trust Score</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-warning-subtle rounded-circle mb-2">
-                                    <i class="bi bi-star text-warning"></i>
-                                </div>
-                                <h3 class="text-warning mb-1">{{ Auth::user()->points ?? 0 }}</h3>
-                                <small class="text-muted">Points</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endunless
-
         @if(Auth::user()->isAdmin())
-        <!-- Admin Statistics Card -->
-        <div class="col-12 col-md-6">
-            <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-header bg-gradient-success text-white rounded-top-4">
-                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> System Statistics</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-primary-subtle rounded-circle mb-2">
-                                    <i class="bi bi-flag text-primary"></i>
+            <!-- Admin Statistics Card -->
+            <div class="col-12 col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-gradient-success text-white rounded-top-4">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> System Statistics</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-primary-subtle rounded-circle mb-2">
+                                        <i class="bi bi-flag text-primary"></i>
+                                    </div>
+                                    <h3 class="text-primary mb-1">{{ \App\Models\Signal::count() }}</h3>
+                                    <small class="text-muted">Total Reports</small>
                                 </div>
-                                <h3 class="text-primary mb-1">{{ \App\Models\Signal::count() }}</h3>
-                                <small class="text-muted">Total Reports</small>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-success-subtle rounded-circle mb-2">
-                                    <i class="bi bi-check-circle text-success"></i>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-success-subtle rounded-circle mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    </div>
+                                    <h3 class="text-success mb-1">{{ \App\Models\Signal::where('status', 'validated')->count() }}</h3>
+                                    <small class="text-muted">Validated Reports</small>
                                 </div>
-                                <h3 class="text-success mb-1">{{ \App\Models\Signal::where('status', 'validated')->count() }}</h3>
-                                <small class="text-muted">Validated Reports</small>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-warning-subtle rounded-circle mb-2">
-                                    <i class="bi bi-clock text-warning"></i>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-warning-subtle rounded-circle mb-2">
+                                        <i class="bi bi-clock text-warning"></i>
+                                    </div>
+                                    <h3 class="text-warning mb-1">{{ \App\Models\Signal::where('status', 'pending')->count() }}</h3>
+                                    <small class="text-muted">Pending Reports</small>
                                 </div>
-                                <h3 class="text-warning mb-1">{{ \App\Models\Signal::where('status', 'pending')->count() }}</h3>
-                                <small class="text-muted">Pending Reports</small>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
-                                <div class="stat-icon bg-danger-subtle rounded-circle mb-2">
-                                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-danger-subtle rounded-circle mb-2">
+                                        <i class="bi bi-exclamation-triangle text-danger"></i>
+                                    </div>
+                                    <h3 class="text-danger mb-1">{{ \App\Models\Signal::where('status', 'rejected')->count() }}</h3>
+                                    <small class="text-muted">Rejected</small>
                                 </div>
-                                <h3 class="text-danger mb-1">{{ \App\Models\Signal::where('status', 'rejected')->count() }}</h3>
-                                <small class="text-muted">Rejected</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        @endif
-
-        <!-- Recent Activity Card -->
-        <div class="col-12 {{ Auth::user()->isAdmin() ? 'col-md-12' : 'col-md-12 col-lg-4' }}">
-            <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-header bg-gradient-info text-white rounded-top-4">
-                    <h5 class="mb-0">
-                        <i class="bi bi-clock-history"></i> 
-                        {{ Auth::user()->isAdmin() ? 'Recent System Activity' : 'Recent Activity' }}
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="activity-feed">
-                        @if(Auth::user()->isAdmin())
+            <!-- Recent Activity Card for Admin -->
+            <div class="col-12 col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-gradient-info text-white rounded-top-4">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> 
+                            Recent System Activity
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="activity-feed">
                             @forelse(\App\Models\Signal::latest()->take(5)->get() as $signal)
                                 <div class="activity-item p-3 mb-3 rounded-3 bg-light hover-lift">
                                     <div class="d-flex align-items-center mb-2">
@@ -226,7 +170,70 @@
                                     <p class="text-muted">No recent activity in the system</p>
                                 </div>
                             @endforelse
-                        @else
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @else
+            <!-- Personal Statistics Card - Not shown for admin -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-gradient-success text-white rounded-top-4">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Your Impact</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-primary-subtle rounded-circle mb-2">
+                                        <i class="bi bi-flag text-primary"></i>
+                                    </div>
+                                    <h3 class="text-primary mb-1">{{ Auth::user()->signals()->count() }}</h3>
+                                    <small class="text-muted">Total Reports</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-success-subtle rounded-circle mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    </div>
+                                    <h3 class="text-success mb-1">{{ Auth::user()->signals()->where('status', 'validated')->count() }}</h3>
+                                    <small class="text-muted">Validated</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-info-subtle rounded-circle mb-2">
+                                        <i class="bi bi-shield-check text-info"></i>
+                                    </div>
+                                    <h3 class="text-info mb-1">{{ Auth::user()->credibility_score ?? 100 }}</h3>
+                                    <small class="text-muted">Trust Score</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card bg-light rounded-4 p-3 text-center hover-lift">
+                                    <div class="stat-icon bg-warning-subtle rounded-circle mb-2">
+                                        <i class="bi bi-star text-warning"></i>
+                                    </div>
+                                    <h3 class="text-warning mb-1">{{ Auth::user()->points ?? 0 }}</h3>
+                                    <small class="text-muted">Points</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Activity Card for Supervisor -->
+            <div class="col-12 col-md-12 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-gradient-info text-white rounded-top-4">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> 
+                            Recent Activity
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="activity-feed">
                             @forelse(Auth::user()->signals()->latest()->take(5)->get() as $signal)
                                 <div class="activity-item p-3 mb-3 rounded-3 bg-light hover-lift">
                                     <div class="d-flex align-items-center mb-2">
@@ -251,11 +258,11 @@
                                     </a>
                                 </div>
                             @endforelse
-                        @endif
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 
     <!-- Map and Critical Areas Row -->

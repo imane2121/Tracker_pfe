@@ -446,6 +446,23 @@ html body section.report-callout .pulse {
         gap: 10px !important;
     }
 }
+
+/* Add or update these styles in the <style> section */
+#hero {
+    margin-top: -24px !important; /* This removes the gap by offsetting the default margin */
+    padding-top: 0 !important;
+}
+
+.hero.section {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+#hero img {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    display: block !important; /* Removes any potential inline spacing */
+}
 </style>
 
     <!-- Hero Section -->
