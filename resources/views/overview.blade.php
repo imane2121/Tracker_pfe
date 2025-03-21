@@ -1272,130 +1272,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addMarkersToMap(collectes) {
         try {
-            console.log('Adding markers for collectes:', collectes);
+            console.log('Processing collectes:', collectes.length);
             
             // Clear existing markers
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
 
-            // Add new markers
+            // Add markers for ALL collectes
             collectes.forEach(function(collecte) {
-                try {
-                    if (collecte && collecte.signal) {
-                        // Debug log for coordinates
-                        console.log('Processing coordinates for collecte:', {
-                            id: collecte.id,
-                            location: collecte.signal.location,
-                            rawLat: collecte.signal.latitude,
-                            rawLng: collecte.signal.longitude
-                        });
-                        
-                        // Parse coordinates and swap if needed
-                        let lat = parseFloat(collecte.signal.latitude);
-                        let lng = parseFloat(collecte.signal.longitude);
-                        
-                        // Validate coordinates
-                        if (isNaN(lat) || isNaN(lng)) {
-                            console.error('Invalid coordinates for collecte:', collecte.id);
-                            return;
-                        }
-
-                        // Ensure coordinates are within valid ranges
-                        if (lat > 90 || lat < -90 || lng > 180 || lng < -180) {
-                            console.error('Coordinates out of range for collecte:', collecte.id);
-                            return;
-                        }
-
-                        // Create marker
-                        var marker = L.marker(
-                            [lat, lng],
-                            { icon: getVolumeIcon(collecte.signal.volume) }
-                        ).bindPopup(`
-                            <div class="map-popup">
-                                <h5 class="popup-title">${collecte.signal.location || 'Unknown Location'}</h5>
-                                <div class="popup-content">
-                                    <div class="popup-item">
-                                        <i class="fas fa-map-marker-alt text-primary"></i>
-                                        <span>${lat.toFixed(4)}, ${lng.toFixed(4)}</span>
-          </div>
-                                    <div class="popup-item">
-                                        <i class="fas fa-weight-hanging ${getVolumeColorClass(collecte.signal.volume)}"></i>
-                                        <span>${collecte.status === 'completed' ? collecte.actual_volume : (collecte.signal.volume || 0)} m³ (${getVolumeCategory(collecte.status === 'completed' ? collecte.actual_volume : (collecte.signal.volume || 0))})</span>
-          </div>
-                                    <div class="popup-item">
-                                        <i class="fas fa-info-circle text-info"></i>
-                                        <span>${collecte.status ? collecte.status.charAt(0).toUpperCase() + collecte.status.slice(1) : 'Unknown'}</span>
-        </div>
-                                    <div class="popup-item">
-                                        <i class="fas fa-calendar-alt text-warning"></i>
-                                        <span>${collecte.starting_date ? new Date(collecte.starting_date).toLocaleDateString() : 'N/A'}</span>
-        </div>
-                                    <div class="popup-item">
-                                        <i class="fas fa-trash text-danger"></i>
-                                        <span>${collecte.signal && collecte.signal.wasteTypes 
-                                            ? collecte.signal.wasteTypes.map(wt => wt.name).join(', ') 
-                                            : 'N/A'}</span>
-        </div>
-                                    <div class="popup-item">
-                                        <i class="fas fa-users text-success"></i>
-                                        <span>${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0} volunteers</span>
-                                    </div>
-                                    ${collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors ? `
-                                    <div class="popup-item mt-3">
-                                        <form action="{{ route('collecte.join', '') }}${collecte.id}" method="POST" style="display: inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary btn-sm w-100">
-                                                <i class="fas fa-user-plus"></i> Volunteer
-                                            </button>
-                                        </form>
-                                    </div>
-                                    ` : ''}
-                                </div>
+                // Always create a marker using display coordinates
+                var marker = L.marker(
+                    [collecte.display_latitude, collecte.display_longitude],
+                    { icon: getVolumeIcon(collecte.volume) }
+                ).bindPopup(`
+                    <div class="map-popup">
+                        <h5 class="popup-title">Collection #${collecte.id}</h5>
+                        <div class="popup-content">
+                            <div class="popup-item">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                <span>${collecte.location}</span>
                             </div>
-                        `);
-                        marker.addTo(map);
-                        markers.push(marker);
-                    }
-                } catch (error) {
-                    console.error('Error processing collecte:', error, collecte);
-                }
+                            <div class="popup-item">
+                                <i class="fas fa-info-circle text-info"></i>
+                                <span>Status: ${collecte.status}</span>
+                            </div>
+                            <div class="popup-item">
+                                <i class="fas fa-calendar-alt text-warning"></i>
+                                <span>Date: ${collecte.starting_date ? new Date(collecte.starting_date).toLocaleDateString() : 'N/A'}</span>
+                            </div>
+                            <div class="popup-item">
+                                <i class="fas fa-users text-success"></i>
+                                <span>${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0} volunteers</span>
+                            </div>
+                            ${collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors ? `
+                            <div class="popup-item mt-3">
+                                <form action="{{ route('collecte.join', '') }}/${collecte.id}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-user-plus"></i> Volunteer
+                                    </button>
+                                </form>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `);
+                
+                marker.addTo(map);
+                markers.push(marker);
             });
-
-            // Update heatmap with the same coordinate processing
-            if (heatLayer) {
-                map.removeLayer(heatLayer);
-            }
-
-            if (collectes.length > 0) {
-                var heatData = collectes
-                    .filter(col => col && col.signal && !isNaN(parseFloat(col.signal.latitude)) && !isNaN(parseFloat(col.signal.longitude)))
-                    .map(col => {
-                        let lat = parseFloat(col.signal.latitude);
-                        let lng = parseFloat(col.signal.longitude);
-                        return [lat, lng, parseFloat(col.signal.volume) / 100 || 0.5];
-                    });
-
-                if (heatData.length > 0) {
-                    heatLayer = L.heatLayer(heatData, {
-                        radius: 25,
-                        blur: 15,
-                        maxZoom: 10,
-                        gradient: {
-                            0.4: 'blue',
-                            0.6: 'cyan',
-                            0.7: 'lime',
-                            0.8: 'yellow',
-                            1.0: 'red'
-                        }
-                    }).addTo(map);
-                }
-            }
 
             // Fit bounds if we have markers
             if (markers.length > 0) {
                 var group = L.featureGroup(markers);
                 map.fitBounds(group.getBounds().pad(0.1));
             }
+
         } catch (error) {
             console.error('Error in addMarkersToMap:', error);
         }

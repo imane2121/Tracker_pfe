@@ -14,42 +14,64 @@ class OverviewController extends Controller
 {
     public function index()
     {
-        // Get all collectes for the map
-        $mapCollectes = Collecte::with(['contributors'])
-            ->get()
-            ->map(function ($collecte) {
-                // Get the first signal's data for display purposes
-                $signalIds = is_array($collecte->signal_ids) ? $collecte->signal_ids : json_decode($collecte->signal_ids, true);
-                $firstSignal = null;
-                
-                if (!empty($signalIds)) {
-                    $firstSignal = Signal::with('wasteTypes')
-                        ->find($signalIds[0] ?? null);
-                }
-                
-                // Attach the signal data to the collecte
-                $collecte->signal = $firstSignal;
-                return $collecte;
-            });
+        // Get ALL collectes with their own coordinates
+        $mapCollectes = Collecte::select(
+            'id', 
+            'signal_ids', 
+            'starting_date', 
+            'status', 
+            'current_contributors', 
+            'nbrContributors',
+            'actual_volume',
+            'latitude',  // Use collecte's own coordinates
+            'longitude',
+            'location'
+        )->get();
 
-        // Get upcoming collectes for the slider
-        $upcomingCollectes = Collecte::with(['contributors'])
-            ->whereNotNull('signal_ids')
-            ->where('signal_ids', '!=', '[]')
-            ->where('starting_date', '>', Carbon::now())
+        // Map the collectes to include necessary data
+        $mapCollectes = $mapCollectes->map(function ($collecte) {
+            // Keep the collecte's own coordinates
+            $collecte->display_latitude = $collecte->latitude;
+            $collecte->display_longitude = $collecte->longitude;
+            
+            // If collecte has signals, use them for volume calculation and heatmap
+            if (!empty($collecte->signal_ids)) {
+                $signalIds = is_array($collecte->signal_ids) ? $collecte->signal_ids : json_decode($collecte->signal_ids, true);
+                if ($signalIds) {
+                    $signals = Signal::whereIn('id', $signalIds)->get();
+                    // Calculate total volume from signals if needed
+                    $collecte->volume = $signals->sum('volume');
+                    // Keep signals for heatmap
+                    $collecte->signals = $signals;
+                }
+            } else {
+                // For collectes without signals (urgent ones)
+                $collecte->volume = $collecte->actual_volume;
+                $collecte->signals = [];
+            }
+            
+            return $collecte;
+        });
+
+        // Debug: Log the final count
+        \Log::info('Collectes after processing: ' . $mapCollectes->count());
+
+        // Get upcoming collectes
+        $upcomingCollectes = Collecte::where('starting_date', '>', Carbon::now())
             ->where('status', 'planned')
             ->orderBy('starting_date')
             ->take(6)
             ->get()
             ->map(function ($collecte) {
-                $signalIds = is_array($collecte->signal_ids) ? $collecte->signal_ids : json_decode($collecte->signal_ids, true);
-                $firstSignal = Signal::with('wasteTypes')
-                    ->find($signalIds[0] ?? null);
-                $collecte->signal = $firstSignal;
+                if (!empty($collecte->signal_ids)) {
+                    $signalIds = is_array($collecte->signal_ids) ? $collecte->signal_ids : json_decode($collecte->signal_ids, true);
+                    $firstSignal = Signal::with('wasteTypes')->find($signalIds[0] ?? null);
+                    $collecte->signal = $firstSignal;
+                }
                 return $collecte;
             });
 
-        // Get featured and recent articles
+        // Get articles
         $articles = Article::with(['author', 'tags'])
             ->where('published_at', '<=', Carbon::now())
             ->where(function($query) {
@@ -61,36 +83,13 @@ class OverviewController extends Controller
             ->take(6)
             ->get();
 
-        // Get all waste types for filters
+        // Get waste types
         $wasteTypes = WasteTypes::all();
 
-        // Get locations for the map with additional data for filtering
+        // Simplified locations query
         $locations = Signal::with('wasteTypes')
-            ->whereIn('id', function($query) {
-                $query->selectRaw('DISTINCT JSON_UNQUOTE(JSON_EXTRACT(signal_ids, "$[*]"))')
-                    ->from('collectes')
-                    ->whereIn('status', ['planned', 'completed', 'validated'])
-                    ->whereNotNull('signal_ids')
-                    ->where('signal_ids', '!=', '[]');
-            })
             ->select('id', 'latitude', 'longitude', 'volume', 'signal_date')
-            ->get()
-            ->map(function($signal) {
-                $collecte = Collecte::whereRaw('JSON_CONTAINS(signal_ids, ?)', [json_encode($signal->id)])
-                    ->first();
-
-                return [
-                    'id' => $signal->id,
-                    'latitude' => $signal->latitude,
-                    'longitude' => $signal->longitude,
-                    'volume' => $collecte && $collecte->status === 'completed' ? 
-                               $collecte->actual_volume : $signal->volume,
-                    'waste_types' => $signal->wasteTypes->pluck('name'),
-                    'waste_type_ids' => $signal->wasteTypes->pluck('id'),
-                    'starting_date' => $collecte ? $collecte->starting_date : null,
-                    'status' => $collecte ? $collecte->status : null,
-                ];
-            });
+            ->get();
 
         return view('overview', compact('mapCollectes', 'upcomingCollectes', 'articles', 'locations', 'wasteTypes'));
     }

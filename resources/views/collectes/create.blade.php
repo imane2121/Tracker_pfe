@@ -592,36 +592,67 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize map
-    const map = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+    // Initialize the collection location map separately
+    const locationMap = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    }).addTo(locationMap);
 
-    // Add marker for collection center
-    let marker = L.marker([{{ $centerLat }}, {{ $centerLng }}], {
+    // Create draggable marker
+    let locationMarker = L.marker([{{ $centerLat }}, {{ $centerLng }}], {
         draggable: true
-    }).addTo(map);
+    }).addTo(locationMap);
 
-    // Update coordinates when marker is dragged
-    marker.on('dragend', function(e) {
-        const position = marker.getLatLng();
+    // Update form inputs immediately when marker is dragged
+    locationMarker.on('dragend', function(event) {
+        const position = locationMarker.getLatLng();
+        
+        // Update hidden inputs
         document.getElementById('latitude').value = position.lat;
         document.getElementById('longitude').value = position.lng;
+        
+        // Debug log
+        console.log('New marker position:', {
+            lat: position.lat,
+            lng: position.lng,
+            formLat: document.getElementById('latitude').value,
+            formLng: document.getElementById('longitude').value
+        });
     });
 
-    // Update marker when coordinates are manually changed
-    document.getElementById('latitude').addEventListener('change', updateMarker);
-    document.getElementById('longitude').addEventListener('change', updateMarker);
+    // Form submission validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Get final coordinates
+        const finalLat = document.getElementById('latitude').value;
+        const finalLng = document.getElementById('longitude').value;
+        
+        // Debug log before submission
+        console.log('Submitting coordinates:', {
+            lat: finalLat,
+            lng: finalLng,
+            markerPosition: locationMarker.getLatLng()
+        });
+    });
 
-    function updateMarker() {
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lng = parseFloat(document.getElementById('longitude').value);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            marker.setLatLng([lat, lng]);
-            map.setView([lat, lng]);
-        }
-    }
+    // Reset Map Pin Handler with proper coordinate update
+    document.getElementById('resetMapPin').addEventListener('click', function() {
+        const initialLat = {{ $centerLat }};
+        const initialLng = {{ $centerLng }};
+        
+        locationMarker.setLatLng([initialLat, initialLng]);
+        locationMap.setView([initialLat, initialLng], 13);
+        
+        // Update form inputs
+        document.getElementById('latitude').value = initialLat;
+        document.getElementById('longitude').value = initialLng;
+        
+        // Debug log
+        console.log('Reset to initial coordinates:', {
+            lat: initialLat,
+            lng: initialLng
+        });
+    });
 
     // Set minimum date for starting_date to today
     const today = new Date().toISOString().split('T')[0];
@@ -940,14 +971,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store initial coordinates
     const initialLat = {{ $centerLat }};
     const initialLng = {{ $centerLng }};
-
-    // Reset Map Pin Handler
-    document.getElementById('resetMapPin').addEventListener('click', function() {
-        marker.setLatLng([initialLat, initialLng]);
-        map.setView([initialLat, initialLng], 13);
-        document.getElementById('latitude').value = initialLat;
-        document.getElementById('longitude').value = initialLng;
-    });
 
     // Reset Waste Types Handler
     document.getElementById('resetWasteTypes').addEventListener('click', function() {
