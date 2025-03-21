@@ -12,8 +12,13 @@
                 </div>
             <div class="card-content">
                 <h2 class="title">
-                    <span class="highlight">Create Collection</span>
-                    <span class="highlight">From Selected Signals</span>
+                    <span class="highlight">
+                        @if($isUrgent)
+                            Create Urgent Collection
+                        @else
+                            Create Collection From Selected Signals
+                        @endif
+                    </span>
                 </h2>
                 <p class="message">
                     Organize cleanup efforts and make a difference
@@ -24,16 +29,20 @@
 
     <form action="{{ route('collecte.store') }}" method="POST" enctype="multipart/form-data" class="waste-signal-form">
                         @csrf
-        <input type="hidden" name="signal_ids" value="{{ json_encode($signals->pluck('id')) }}">
+                        
+        @if(!$isUrgent)
+            <input type="hidden" name="signal_ids" value="{{ json_encode($signals->pluck('id')) }}">
+        @endif
+        <input type="hidden" name="is_urgent" value="{{ $isUrgent ? '1' : '0' }}">
 
         <!-- Location Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
                 <h10 class="mb-0">Collection Location</h10>
-                            </div>
+            </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
+                                    <div class="col-md-6">
                         <div class="mb-3">
                             <label for="location" class="form-label">Location Name</label>
                             <input type="text" class="form-control @error('location') is-invalid @enderror" 
@@ -73,10 +82,27 @@
                     </div>
                                 <div class="col-md-6">
                         <div id="map" class="rounded shadow-sm" style="height: 300px;"></div>
+                        <button type="button" class="btn btn-outline-secondary mt-2" id="resetMapPin">
+                            <i class="bi bi-geo-alt"></i> Reset Pin Location
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Replace the signals checkbox section with this map-based selection -->
+        @unless($isUrgent)
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h10 class="mb-0">Selected Signals</h10>
+                    <span class="badge bg-primary" id="selectedCount">{{ $signals->count() }} signals selected</span>
+                </div>
+                <div class="card-body">
+                    <div id="signalsMap" style="height: 400px;" class="rounded mb-3"></div>
+                    <input type="hidden" name="signal_ids" id="finalSignalIds" value="{{ json_encode($signals->pluck('id')) }}">
+                </div>
+            </div>
+        @endunless
 
         <!-- Collection Details -->
         <div class="card mb-4 shadow-sm">
@@ -133,7 +159,7 @@
 
         <!-- Waste Types Section -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h10 class="mb-0">Please Select Waste Type</h10>
                                                     </div>
             <div class="card-body">
@@ -167,7 +193,7 @@
                         </div>
                     @endforeach
                     
-                    <!-- Custom Waste Type -->
+                    <!-- Custom Waste Type 
                     <div class="wsf-type-group">
                         <button type="button" class="wsf-btn-option wsf-general-type" id="autreBtn">
                             Other
@@ -179,8 +205,11 @@
                                     class="form-control" placeholder="Enter waste type">
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="resetWasteTypes">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset Selection
+                </button>
             </div>
         </div>
 
@@ -319,7 +348,7 @@
     }
 
     .wsf-type-group {
-        flex: 0 0 calc(33.333% - 1rem);
+        flex: 0 0 calc(33.333% - 1rem); /* 3 items per row with gap */
         min-width: 250px;
         margin-bottom: 0.5rem;
     }
@@ -348,12 +377,12 @@
     }
 
     .wsf-btn-option.active {
-        background-color: #294c81;
+        background-color: #364e9c;
         color: white;
     }
 
     .wsf-btn-option.has-selected {
-        background-color: #294c81;
+        background-color: #364e9c;
         color: white;
     }
 
@@ -393,13 +422,13 @@
 
     .wsf-specific-type:hover {
         background-color: #f8f9fa !important;
-        border-color: #294c81 !important;
+        border-color: #364e9c !important;
     }
 
     .wsf-specific-type.active {
-        background-color: #294c81 !important;
+        background-color: #364e9c !important;
         color: white !important;
-        border-color: #294c81 !important;
+        border-color: #364e9c !important;
     }
 
     #autreInput {
@@ -409,8 +438,8 @@
     }
 
     #autreInput:focus {
-        border-color: #294c81;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        border-color: #364e9c;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
     }
 
     @keyframes slideDown {
@@ -758,6 +787,223 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    });
+
+    // Replace the signals map initialization section with:
+    @if(!$isUrgent)
+        // Initialize signals map
+        const signalsMap = L.map('signalsMap').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(signalsMap);
+
+        // Store markers and selected signals
+        const markers = {};
+        let selectedSignals = new Set({{ json_encode($signals ? $signals->pluck('id') : []) }});
+
+        // Define marker colors
+        const markerColors = {
+            selected: '#0d6efd',   // blue for selected
+            unselected: '#dc3545', // red for unselected
+            validated: '#198754',  // green for validated status
+            pending: '#ffc107'     // yellow for pending status
+        };
+
+        // Create markers for all signals
+        @if($signals)
+            @foreach($signals as $signal)
+                const marker{{ $signal->id }} = L.circleMarker(
+                    [{{ $signal->latitude }}, {{ $signal->longitude }}],
+                    {
+                        radius: 8,
+                        fillColor: markerColors.selected,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }
+                ).addTo(signalsMap);
+
+                // Add popup with signal info and toggle button
+                marker{{ $signal->id }}.bindPopup(`
+                    <div class="text-center">
+                        <strong>{{ $signal->location }}</strong><br>
+                        Volume: {{ $signal->volume }}m³<br>
+                        Status: <span class="badge bg-${getStatusColor('{{ $signal->status }}')}">
+                            {{ ucfirst($signal->status) }}
+                        </span><br>
+                        <button type="button" 
+                                class="btn btn-sm btn-toggle mt-2 ${selectedSignals.has({{ $signal->id }}) ? 'btn-danger' : 'btn-primary'}"
+                                onclick="toggleSignal({{ $signal->id }})">
+                            ${selectedSignals.has({{ $signal->id }}) ? 'Remove' : 'Add'} Signal
+                        </button>
+                    </div>
+                `);
+
+                markers[{{ $signal->id }}] = marker{{ $signal->id }};
+            @endforeach
+        @endif
+    @else
+        // For urgent collectes
+        const markers = {};
+        let selectedSignals = new Set([]);
+    @endif
+
+    // Function to toggle signal selection
+    window.toggleSignal = function(signalId) {
+        if (selectedSignals.has(signalId)) {
+            selectedSignals.delete(signalId);
+            markers[signalId].setStyle({ fillColor: markerColors.unselected });
+        } else {
+            selectedSignals.add(signalId);
+            markers[signalId].setStyle({ fillColor: markerColors.selected });
+        }
+
+        // Update hidden input and counter
+        document.getElementById('finalSignalIds').value = JSON.stringify(Array.from(selectedSignals));
+        document.getElementById('selectedCount').textContent = `${selectedSignals.size} signals selected`;
+        
+        // Update popup content
+        const marker = markers[signalId];
+        const popup = marker.getPopup();
+        const content = popup.getContent();
+        popup.setContent(content.replace(
+            selectedSignals.has(signalId) ? 'btn-primary' : 'btn-danger',
+            selectedSignals.has(signalId) ? 'btn-danger' : 'btn-primary'
+        ).replace(
+            selectedSignals.has(signalId) ? 'Add' : 'Remove',
+            selectedSignals.has(signalId) ? 'Remove' : 'Add'
+        ));
+    }
+
+    // Helper function to get status color
+    function getStatusColor(status) {
+        return status === 'validated' ? 'success' : 'warning';
+    }
+
+    // Fit map bounds to show all signals
+    @if(!$isUrgent && $signals && $signals->count() > 0)
+        const bounds = L.featureGroup(Object.values(markers)).getBounds();
+        signalsMap.fitBounds(bounds);
+    @endif
+
+    // Add form submission validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        @if(!$isUrgent)
+            if (selectedSignals.size === 0) {
+                e.preventDefault();
+                alert('Please select at least one signal for the collection.');
+            }
+        @endif
+    });
+
+    // Get waste types from selected signals
+    @if(!$isUrgent && $signals)
+        const signalWasteTypes = @json($signals->pluck('waste_types')->flatten()->unique());
+
+        // Pre-select waste types from signals
+        signalWasteTypes.forEach(wasteTypeId => {
+            // Find the specific type button
+            const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
+            if (specificTypeBtn) {
+                // Get parent type button and container
+                const parentId = specificTypeBtn.dataset.parentId;
+                const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
+                const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
+
+                // Show subtypes container
+                if (subtypesContainer) {
+                    subtypesContainer.classList.add('show');
+                    parentBtn.classList.add('expanded');
+                }
+
+                // Activate the specific type
+                specificTypeBtn.classList.add('active');
+                const input = specificTypeBtn.previousElementSibling;
+                if (input) {
+                    input.disabled = false;
+                }
+
+                // Update parent button state
+                if (parentBtn) {
+                    parentBtn.classList.add('has-selected');
+                }
+
+                // Add to selected types set
+                selectedTypes.add(wasteTypeId.toString());
+            }
+        });
+    @else
+        const signalWasteTypes = [];
+    @endif
+
+    // Store initial coordinates
+    const initialLat = {{ $centerLat }};
+    const initialLng = {{ $centerLng }};
+
+    // Reset Map Pin Handler
+    document.getElementById('resetMapPin').addEventListener('click', function() {
+        marker.setLatLng([initialLat, initialLng]);
+        map.setView([initialLat, initialLng], 13);
+        document.getElementById('latitude').value = initialLat;
+        document.getElementById('longitude').value = initialLng;
+    });
+
+    // Reset Waste Types Handler
+    document.getElementById('resetWasteTypes').addEventListener('click', function() {
+        // Reset all specific types
+        document.querySelectorAll('.wsf-specific-type.active').forEach(button => {
+            button.classList.remove('active');
+            const input = button.previousElementSibling;
+            if (input) {
+                input.disabled = true;
+            }
+        });
+
+        // Reset all parent buttons
+        document.querySelectorAll('.wsf-general-type.has-selected').forEach(button => {
+            button.classList.remove('has-selected');
+        });
+
+        // Clear selected types set
+        selectedTypes.clear();
+
+        // Hide all expanded subtype containers
+        document.querySelectorAll('.wsf-subtypes.show').forEach(container => {
+            container.classList.remove('show');
+        });
+
+        // Remove expanded state from parent buttons
+        document.querySelectorAll('.wsf-general-type.expanded').forEach(button => {
+            button.classList.remove('expanded');
+        });
+
+        // Re-initialize with signal waste types
+        signalWasteTypes.forEach(wasteTypeId => {
+            const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
+            if (specificTypeBtn) {
+                const parentId = specificTypeBtn.dataset.parentId;
+                const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
+                const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
+
+                if (subtypesContainer) {
+                    subtypesContainer.classList.add('show');
+                    parentBtn.classList.add('expanded');
+                }
+
+                specificTypeBtn.classList.add('active');
+                const input = specificTypeBtn.previousElementSibling;
+                if (input) {
+                    input.disabled = false;
+                }
+
+                if (parentBtn) {
+                    parentBtn.classList.add('has-selected');
+                }
+
+                selectedTypes.add(wasteTypeId.toString());
+            }
+        });
     });
 });
 </script>

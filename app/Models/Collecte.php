@@ -14,22 +14,7 @@ class Collecte extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'signal_ids',
-        'region',
-        'location',
-        'description',
-        'latitude',
-        'longitude',
-        'nbrContributors',
-        'actual_volume',
-        'starting_date',
-        'end_date',
-        'actual_waste_types',
-        'status',
-        'current_contributors',
-        'user_id'
-    ];
+    protected $guarded = []; // Allow mass assignment of all fields
 
     protected $casts = [
         'signal_ids' => 'array',
@@ -176,29 +161,6 @@ class Collecte extends Model
     protected static function boot()
     {
         parent::boot();
-
-        static::creating(function ($collecte) {
-            $collecteService = app(CollecteService::class);
-            
-            if (!$collecteService->canCreateCollecte(
-                $collecte->creator, 
-                $collecte->signal,
-                $collecte->latitude,
-                $collecte->longitude
-            )) {
-                throw new \Exception('Insufficient signals in the area to create a collection.');
-            }
-
-            if ($collecte->current_contributors > $collecte->nbrContributors) {
-                $collecte->current_contributors = $collecte->nbrContributors;
-            }
-        });
-
-        static::saving(function ($collecte) {
-            if ($collecte->current_contributors > $collecte->nbrContributors) {
-                $collecte->current_contributors = $collecte->nbrContributors;
-            }
-        });
     }
 
     // Add mutator to ensure waste type IDs are integers

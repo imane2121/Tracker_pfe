@@ -39,8 +39,11 @@
                             <a href="{{ route('admin.signals.index') }}" class="btn btn-primary btn-lg rounded-3 shadow-sm hover-lift">
                                 <i class="bi bi-flag"></i> Manage Reports
                             </a>
-                            <a href="{{ route('collecte.create') }}" class="btn btn-success btn-lg rounded-3 shadow-sm hover-lift">
+                            <a href="{{ route('collecte.cluster') }}" class="btn btn-success btn-lg rounded-3 shadow-sm hover-lift">
                                 <i class="bi bi-people"></i> Create Collection
+                            </a>                           
+                            <a href="{{ route('collecte.create', ['type' => 'urgent']) }}" class="btn btn-danger">
+                                <i class="bi bi-people"></i> Create Urgent Collection
                             </a>
                             <div class="d-flex gap-3">
                                 <a href="{{ route('collecte.index') }}" class="btn btn-outline-success rounded-3 flex-grow-1 hover-lift">
@@ -59,10 +62,15 @@
                                 <i class="bi bi-plus-circle"></i> Report Marine Waste
                             </a>
                             
-                            @if(auth()->user()->isSupervisor())
-                                <a href="{{ route('collecte.cluster') }}" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle"></i> Create Collection
-                                </a>
+                            @if(auth()->user()->role === 'supervisor')
+                                    <div class="d-flex gap-2 mb-3">
+                                        <a href="{{ route('collecte.cluster') }}" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Create Collection
+                                        </a>
+                                        <a href="{{ route('collecte.create') }}?type=urgent" class="btn btn-danger">
+                                            <i class="bi bi-exclamation-triangle"></i> Create Urgent Collection
+                                        </a>
+                                    </div>
                             @endif
                             
                             <div class="d-flex gap-3">

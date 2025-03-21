@@ -34,57 +34,45 @@ class CollecteController extends Controller
         return view('collectes.index', compact('collectes'));
     }
 
+
     public function cluster()
     {
-        // Get both validated and pending signals
-        $signals = Signal::whereIn('status', ['validated', 'pending'])
-            ->whereNotIn('id', function($query) {
-                $query->select(DB::raw('DISTINCT JSON_UNQUOTE(JSON_EXTRACT(signal_ids, "$[*]"))'))
-                      ->from('collectes')
-                      ->whereNotNull('signal_ids');
+        // Get all signal IDs used in collectes (from the JSON signal_ids field)
+        $usedSignalIds = DB::table('collectes')
+            ->whereNotNull('signal_ids')
+            ->pluck('signal_ids')
+            ->flatMap(function ($ids) {
+                return json_decode($ids, true);
             })
+            ->unique()
+            ->toArray();
+    
+        // Get only signals that are not used in any collecte
+        $signals = Signal::whereNotIn('id', $usedSignalIds)
+            ->whereIn('status', ['validated', 'pending'])
             ->get();
-        
+    
         return view('collectes.cluster', compact('signals'));
     }
+    
 
     public function create(Request $request)
     {
+        $isUrgent = $request->query('type') === 'urgent';
+        $signals = null;
+        
+        // Set center coordinates from request or default
+        $centerLat = $request->query('lat', 31.7917);
+        $centerLng = $request->query('lng', -7.0926);
+        
+        if (!$isUrgent && $request->has('signals')) {
+            $signalIds = explode(',', $request->signals);
+            $signals = Signal::with('wasteTypes')->whereIn('id', $signalIds)->get();
+        }
 
         $wasteTypes = WasteTypes::all();
 
-        if ($request->has('signal_ids')) {
-            $signalIds = explode(',', $request->signal_ids);
-            $signals = Signal::whereIn('id', $signalIds)->get();
-            
-            // Calculate center point for the signals
-            $centerLat = $signals->avg('latitude');
-            $centerLng = $signals->avg('longitude');
-            
-            return view('collectes.create', [
-                'signals' => $signals,
-                'centerLat' => $centerLat,
-                'centerLng' => $centerLng,
-                'wasteTypes' => $wasteTypes
-            ]);
-        }
-        
-        // Handle cluster_id from existing logic
-        if (!$request->has('cluster_id')) {
-            return redirect()->route('collecte.clusters')
-                ->with('error', 'Please select a cluster first');
-        }
-
-        $selectedCluster = session('clusters')[$request->cluster_id] ?? null;
-        if (!$selectedCluster) {
-            return redirect()->route('collecte.clusters')
-                ->with('error', 'Invalid cluster selected');
-        }
-
-        return view('collectes.create', [
-            'cluster' => $selectedCluster,
-            'wasteTypes' => $wasteTypes
-        ]);
+        return view('collectes.create', compact('wasteTypes', 'isUrgent', 'centerLat', 'centerLng', 'signals'));
     }
 
     private function getRegionFromCoordinates($lat, $lng)
@@ -96,89 +84,35 @@ class CollecteController extends Controller
     public function store(Request $request)
     {
         try {
-
-            // Validate the request
-        $validated = $request->validate([
-                'signal_ids' => 'required|json',
-                'location' => 'required|string|max:255',
-                'region' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'nbrContributors' => 'required|integer|min:1',
-                'actual_volume' => 'required|numeric|min:0',
-                'starting_date' => 'required|date|after:today',
-            'end_date' => 'required|date|after:starting_date',
-                'waste_types' => 'required|array|min:1',
-                'waste_types.*' => 'exists:waste_types,id',
-            'media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4|max:2048'
-        ]);
-
-            // Decode signal_ids JSON
-            $signalIds = json_decode($validated['signal_ids'], true);
+            $collecte = new Collecte();
+            $collecte->location = $request->location;
+            $collecte->description = $request->description;
+            $collecte->starting_date = $request->starting_date;
+            $collecte->end_date = $request->end_date;
+            $collecte->actual_waste_types = array_map('intval', $request->waste_types);
+            $collecte->nbrContributors = $request->nbrContributors;
+            $collecte->current_contributors = 0;
+            $collecte->status = 'planned';
+            $collecte->user_id = auth()->id();
+            $collecte->actual_volume = $request->actual_volume;
+            $collecte->latitude = $request->latitude;
+            $collecte->longitude = $request->longitude;
+            $collecte->region = $request->region;
             
-            // Verify signals exist
-            $signalsCount = Signal::whereIn('id', $signalIds)->count();
-            if ($signalsCount !== count($signalIds)) {
-                return redirect()->back()
-                    ->with('error', 'One or more selected signals are invalid.')
-                    ->withInput();
+            // Convert signal_ids to integers before saving
+            if (!$request->is_urgent && $request->signal_ids) {
+                $signalIds = json_decode($request->signal_ids, true);
+                $collecte->signal_ids = array_map('intval', $signalIds);
             }
+            
+            $collecte->saveOrFail();
 
-            DB::beginTransaction();
+            return redirect()->route('collecte.show', $collecte)
+                ->with('success', 'Collection created successfully!');
 
-            try {
-                // Convert waste type IDs to integers
-                $wasteTypeIds = array_map('intval', $validated['waste_types']);
-
-                // Create the collecte with integer waste type IDs
-                $collecte = Collecte::create([
-                    'signal_ids' => $signalIds,
-                    'region' => $validated['region'],
-                    'location' => $validated['location'],
-                    'description' => $validated['description'],
-                    'latitude' => $validated['latitude'],
-                    'longitude' => $validated['longitude'],
-                    'nbrContributors' => $validated['nbrContributors'],
-                    'actual_volume' => $validated['actual_volume'],
-                    'starting_date' => $validated['starting_date'],
-                    'end_date' => $validated['end_date'],
-                    'actual_waste_types' => $wasteTypeIds, // Now contains integer values
-                    'status' => 'planned',
-                    'current_contributors' => 0,
-                    'user_id' => auth()->id()
-                ]);
-
-                // Handle media files
-        if ($request->hasFile('media')) {
-            foreach ($request->file('media') as $file) {
-                        if ($file->getSize() > 2048 * 1024) {
-                            throw new \Exception('File size exceeds 2MB limit');
-                        }
-                $path = $file->store('collecte-media', 'public');
-                $collecte->media()->create([
-                    'file_path' => $path,
-                    'media_type' => $file->getClientMimeType()
-                ]);
-            }
-        }
-
-                DB::commit();
-
-        return redirect()->route('collecte.show', $collecte)
-                    ->with('success', 'Collection created successfully!');
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return redirect()->back()
-                    ->with('error', 'Failed to create collection: ' . $e->getMessage())
-                    ->withInput();
-            }
-
-        } catch (ValidationException $e) {
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput();
+        } catch (\Exception $e) {
+            //\Log::error($e->getMessage());
+            return back()->with('error', $e->getMessage())->withInput();
         }
     }
 

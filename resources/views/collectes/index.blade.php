@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     @if(auth()->user()->isAdmin() || auth()->user()->isSupervisor())
-                        <a href="{{ route('collecte.create') }}" class="btn btn-light btn-lg">
+                        <a href="{{ route('collecte.cluster') }}" class="btn btn-light btn-lg">
                             <i class="bi bi-plus-circle"></i> Create New Collecte
                         </a>
                     @endif

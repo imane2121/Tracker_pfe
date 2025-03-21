@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <small class="text-muted">
                             ${validatedSignals.length} validated, ${pendingSignals.length} pending
                         </small><br>
-                        <a href="{{ route('collecte.create') }}?signal_ids=${signalIds}" 
+                        <a href="{{ route('collecte.create') }}?signals=${signalIds}&lat=${group.center.lat}&lng=${group.center.lng}" 
                            class="btn btn-primary btn-sm mt-2">Create Collection</a>
                     </div>
                 `
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="badge bg-primary">${group.signals.length} signals</span>
-                        <a href="{{ route('collecte.create') }}?signal_ids=${signalIds}" 
+                        <a href="{{ route('collecte.create') }}?signals=${signalIds}&lat=${group.center.lat}&lng=${group.center.lng}" 
                            class="btn btn-primary btn-sm">Create Collection</a>
                     </div>
                 `;
@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <small class="text-muted">
                             ${validatedSignals.length} validated, ${pendingSignals.length} pending
                         </small><br>
-                        <a href="{{ route('collecte.create') }}?signal_ids=${signalIds}" 
+                        <a href="{{ route('collecte.create') }}?signals=${signalIds}&lat=${clickedLat}&lng=${clickedLng}" 
                            class="btn btn-primary btn-sm mt-2">Create Collection</a>
                     </div>
                 `
