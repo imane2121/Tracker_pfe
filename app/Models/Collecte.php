@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Services\CollecteService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 class Collecte extends Model
 {
     use HasFactory, SoftDeletes;
@@ -61,6 +60,12 @@ class Collecte extends Model
     {
         return $this->belongsToMany(Signal::class)
             ->whereIn('signals.id', $this->signal_ids ?? []);
+    }
+
+    // Add this relationship for chat functionality
+    public function chatRoom()
+    {
+        return $this->hasOne(ChatRoom::class);
     }
 
     // Scopes

@@ -5,6 +5,7 @@ use App\Models\Signal;
 use App\Observers\SignalObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,5 +28,7 @@ class AppServiceProvider extends ServiceProvider
         if(str_contains(config('app.url'), 'ngrok')) {
             URL::forceScheme('https');
         }
+
+        Blade::componentNamespace('App\\View\\Components', 'messaging');
     }
 }

@@ -82,6 +82,14 @@
           @if(!auth()->check() || !auth()->user()->isAdmin())
             <li><a href="{{ route('contact.index') }}">Contact</a></li>
           @endif
+          @auth
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('messaging.*') ? 'active' : '' }}" 
+                   href="{{ route('messaging.index') }}">
+                    <i class="bi bi-chat-dots"></i> Messages
+                </a>
+            </li>
+          @endauth
         </ul>
       </nav>
     </div>

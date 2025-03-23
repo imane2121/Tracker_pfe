@@ -25,12 +25,12 @@
                 </p>
             </div>
         </div>
-    </div>
+                    </div>
 
     <form action="{{ route('collecte.update', $collecte) }}" method="POST" enctype="multipart/form-data" class="waste-signal-form">
-        @csrf
-        @method('PUT')
-        
+                            @csrf
+                            @method('PUT')
+
         @if(!$collecte->is_urgent)
             <input type="hidden" name="signal_ids" value="{{ json_encode($collecte->signal_ids) }}">
         @endif
@@ -43,45 +43,45 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
+                                    <div class="col-md-6">
                         <div class="mb-3">
                             <label for="location" class="form-label">Location Name</label>
                             <input type="text" class="form-control @error('location') is-invalid @enderror" 
                                    id="location" name="location" value="{{ old('location', $collecte->location) }}" required>
                             @error('location')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
                         <div class="mb-3">
                             <label for="region" class="form-label">Region</label>
                             <input type="text" class="form-control @error('region') is-invalid @enderror" 
                                    id="region" name="region" value="{{ old('region', $collecte->region) }}" required>
                             @error('region')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="latitude" class="form-label">Latitude</label>
                                 <input type="number" step="any" class="form-control @error('latitude') is-invalid @enderror" 
                                        id="latitude" name="latitude" value="{{ old('latitude', $collecte->latitude) }}" required>
-                                @error('latitude')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                                        @error('latitude')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                             <div class="col-md-6 mb-3">
                                 <label for="longitude" class="form-label">Longitude</label>
                                 <input type="number" step="any" class="form-control @error('longitude') is-invalid @enderror" 
                                        id="longitude" name="longitude" value="{{ old('longitude', $collecte->longitude) }}" required>
-                                @error('longitude')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                        @error('longitude')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
+                                    <div class="col-md-6">
                         <div id="map" class="rounded shadow-sm" style="height: 300px;"></div>
                         <button type="button" class="btn btn-outline-secondary mt-2" id="resetMapPin">
                             <i class="bi bi-geo-alt"></i> Reset Pin Location
@@ -130,29 +130,29 @@
                                class="form-control @error('starting_date') is-invalid @enderror"
                                id="starting_date" name="starting_date" 
                                value="{{ old('starting_date', $collecte->starting_date->format('Y-m-d\TH:i')) }}" required>
-                        @error('starting_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                                        @error('starting_date')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                     <div class="col-md-6 mb-3">
                         <label for="end_date" class="form-label">End Date</label>
                         <input type="datetime-local" 
                                class="form-control @error('end_date') is-invalid @enderror"
                                id="end_date" name="end_date" 
                                value="{{ old('end_date', $collecte->end_date->format('Y-m-d\TH:i')) }}" required>
-                        @error('end_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-        </div>
+                                        @error('end_date')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
 
         <!-- Waste Types Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h10 class="mb-0">Please Select Waste Type</h10>
-            </div>
+                                            </div>
             <div class="card-body">
                 <div class="wsf-buttons-container d-flex flex-wrap gap-3">
                     @foreach($wasteTypes->where('parent_id', null) as $wasteType)
@@ -180,21 +180,21 @@
                                         </div>
                                     @endforeach
                                 </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
+                                                @endif
+                                        </div>
+                                    @endforeach
+                                </div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="resetWasteTypes">
                     <i class="bi bi-arrow-counterclockwise"></i> Reset Selection
                 </button>
-            </div>
-        </div>
+                                </div>
+                            </div>
 
         <!-- Description Section -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
                 <h10 class="mb-0">Additional Details</h10>
-            </div>
+                            </div>
             <div class="card-body">
                 <div class="mb-3">
                     <label for="description" class="form-label">Description (Optional)</label>
@@ -216,7 +216,7 @@
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="bi bi-check-circle"></i> Update Collection
             </button>
-        </div>
+    </div>
     </form>
 </div>
 

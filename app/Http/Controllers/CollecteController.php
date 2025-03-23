@@ -13,7 +13,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Services\CriticalAreaService;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Messaging\ChatRoomController;
 
+/**
+ * @modified Added automatic chat room creation for non-urgent collectes
+ */
 class CollecteController extends Controller
 {
     public function __construct()
@@ -134,6 +138,11 @@ class CollecteController extends Controller
             
             $collecte->saveOrFail();
 
+            // Add this block to create chat room automatically
+            if (!$collecte->is_urgent) {
+                app(ChatRoomController::class)->create($collecte);
+            }
+
             return redirect()->route('collecte.show', $collecte)
                 ->with('success', 'Collection created successfully!');
 
@@ -186,6 +195,11 @@ class CollecteController extends Controller
 
         $collecte->update($validated);
 
+        // Add this block to create chat room if needed
+        if (!$collecte->is_urgent && !$collecte->chatRoom) {
+            app(ChatRoomController::class)->create($collecte);
+        }
+
         if ($request->hasFile('media')) {
             foreach ($request->file('media') as $file) {
                 $path = $file->store('collecte-media', 'public');
@@ -222,22 +236,56 @@ class CollecteController extends Controller
      */
     public function join(Collecte $collecte)
     {
-        if ($collecte->isFull) {
-            return redirect()->back()->with('error', 'This collection is already full.');
+        try {
+            DB::beginTransaction();
+            
+            // Join the collecte
+            $collecte->contributors()->attach(auth()->id(), [
+                'joined_at' => now()
+            ]);
+            
+            // Increment contributors count
+            $collecte->increment('current_contributors');
+            
+            // If collecte has a chat room, add user as participant
+            if ($chatRoom = $collecte->chatRoom) {
+                $chatRoom->addParticipant(auth()->user(), 'participant');
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('collectes.show', $collecte)
+                ->with('success', 'Successfully joined the collection.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to join the collection. Please try again.');
         }
-
-        $collecte->contributors()->attach(auth()->id(), ['joined_at' => now()]);
-        $collecte->increment('current_contributors');
-
-        return redirect()->back()->with('success', 'You have joined the collection.');
     }
 
     public function leave(Collecte $collecte)
     {
+        try {
+            DB::beginTransaction();
+            
+            // Remove from collecte
         $collecte->contributors()->detach(auth()->id());
+            
+            // Decrement contributors count
         $collecte->decrement('current_contributors');
 
-        return redirect()->back()->with('success', 'You have left the collection.');
+            // If collecte has a chat room, remove user from participants
+            if ($chatRoom = $collecte->chatRoom) {
+                $chatRoom->removeParticipant(auth()->user());
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('collectes.index')
+                ->with('success', 'Successfully left the collection.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to leave the collection. Please try again.');
+        }
     }
 
     public function updateStatus(Request $request, Collecte $collecte)
