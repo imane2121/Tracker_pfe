@@ -182,8 +182,15 @@ document.addEventListener('DOMContentLoaded', function() {
             Status: <span class="badge" style="background-color: ${statusColors[signal.status] || statusColors.default}">
                 ${signal.status}
             </span><br>
-            Created: ${new Date(signal.created_at).toLocaleDateString()}
-        `)
+            Created: ${new Date(signal.created_at).toLocaleDateString()}<br>
+             ${signal.status === 'validated' ? `
+                 <div class="mt-2 text-center">
+                     <a href="{{ route('collecte.create') }}?signals=${signal.id}&lat=${signal.latitude}&lng=${signal.longitude}" 
+                        class="btn btn-primary btn-sm w-100">
+                         <i class="bi bi-plus-circle"></i> Create Collection
+                     </a>
+                 </div>
+             ` : ''}        `)
         .addTo(map);
         markers[signal.id] = marker;
     });
