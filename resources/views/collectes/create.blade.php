@@ -54,12 +54,17 @@
 
                         <div class="mb-3">
                             <label for="region" class="form-label">Region</label>
-                            <input type="text" class="form-control @error('region') is-invalid @enderror" 
+                            <select class="form-select @error('region') is-invalid @enderror" 
                                    id="region" name="region" required>
+                                <option value="">Select a region</option>
+                                @foreach($regions as $region)
+                                    <option value="{{ $region }}">{{ $region }}</option>
+                                @endforeach
+                            </select>
                             @error('region')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                </div>
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">

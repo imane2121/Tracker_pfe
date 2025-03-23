@@ -463,6 +463,40 @@ html body section.report-callout .pulse {
     padding-top: 0 !important;
     display: block !important; /* Removes any potential inline spacing */
 }
+
+.volunteer-button {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 120px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.volunteer-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    color: white;
+    text-decoration: none;
+}
+
+.collecte-actions {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+    width: 100%;
+}
+
+/* For the modal version of the button */
+.modal-footer .volunteer-button {
+    margin: 0 auto;
+}
 </style>
 
     <!-- Hero Section -->
@@ -526,7 +560,11 @@ html body section.report-callout .pulse {
                     <div class="swiper-slide">
                         <div class="collecte-card">
                             <div class="collecte-image">
-                                <img src="{{ $collecte->image_url ?? asset('assets/img/collectes/default.png') }}" alt="Collecte Location">
+                                @if($collecte->media->isNotEmpty())
+                                    <img src="{{ Storage::url($collecte->media->first()->file_path) }}" alt="Collecte Location">
+                                @else
+                                    <img src="{{ asset('assets/img/collectes/default.png') }}" alt="Default Collecte Image">
+                                @endif
                                 <div class="icon-buttons">
                                     <button class="icon-button expand-button" title="See More" data-bs-toggle="modal" data-bs-target="#collecteModal{{ $collecte->id }}">
                                         <i class="fas fa-expand-alt"></i>
@@ -547,7 +585,7 @@ html body section.report-callout .pulse {
         </div>
           </div>
                             <div class="collecte-info">
-                                <h2 class="collecte-location">{{ $collecte->signal->location ?? 'Location Not Available' }}</h2>
+                                <h2 class="collecte-location">{{ $collecte->location ?? 'Location Not Available' }}</h2>
                                 <p class="collecte-description">
                                     {{ Str::limit($collecte->description, 100) }}
                                     @if (strlen($collecte->description) > 100)
@@ -566,12 +604,12 @@ html body section.report-callout .pulse {
       </div>    
                                 <div class="collecte-actions">
                                     @auth
-                                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" style="display: inline;">
+                                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" class="d-flex justify-content-center w-100">
                                             @csrf
                                             <button type="submit" class="volunteer-button">Volunteer</button>
                                         </form>
                                     @else
-                                        <a href="{{ route('login') }}" class="volunteer-button">Sign Up to Volunteer</a>
+                                        <a href="{{ route('login') }}" class="volunteer-button text-center">Volunteer</a>
                                     @endauth
       </div>
             </div>
@@ -594,9 +632,13 @@ html body section.report-callout .pulse {
                 </button>
                 <div class="modal-body">
                     <div class="collecte-modal-image">
-                        <img src="{{ $collecte->image_url ?? asset('assets/img/collectes/default.png') }}" alt="Collecte Location">
+                        @if($collecte->media->isNotEmpty())
+                            <img src="{{ Storage::url($collecte->media->first()->file_path) }}" alt="Collecte Location">
+                        @else
+                            <img src="{{ asset('assets/img/collectes/default.png') }}" alt="Default Collecte Image">
+                        @endif
                         <div class="collecte-modal-title">
-                            <h5>{{ $collecte->signal->location ?? 'Location Not Available' }}</h5>
+                            <h5>{{ $collecte->location ?? 'Location Not Available' }}</h5>
                             @if($collecte->signal && $collecte->signal->wasteTypes->count() > 0)
                                 <div class="waste-types">
                                     @foreach($collecte->signal->wasteTypes as $wasteType)
@@ -650,7 +692,7 @@ html body section.report-callout .pulse {
                 </div>
                 <div class="modal-footer">
                     @auth
-                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" class="d-flex justify-content-center w-100">
                             @csrf
                             <button type="submit" class="volunteer-button">Volunteer Now</button>
                         </form>

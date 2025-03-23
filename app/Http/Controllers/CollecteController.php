@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Services\CriticalAreaService;
@@ -16,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\Messaging\ChatRoomController;
 use App\Models\RegionSubscription;
 use App\Notifications\NewCollectionInRegion;
+use App\Models\City;
 
 /**
  * @modified Added automatic chat room creation for non-urgent collectes
@@ -34,6 +36,12 @@ class CollecteController extends Controller
     public function index(Request $request)
     {
         $query = Collecte::with(['creator', 'contributors']);
+        $user = auth()->user();
+
+        // For contributors, only show planned collectes
+        if ($user->role === 'contributor') {
+            $query->where('status', 'planned');
+        }
 
         // Handle search
         if ($request->filled('search')) {
@@ -103,9 +111,12 @@ class CollecteController extends Controller
             $signals = Signal::with('wasteTypes')->whereIn('id', $signalIds)->get();
         }
 
+        // Get unique regions from cities table
+        $regions = City::distinct()->pluck('region')->sort()->values();
+        
         $wasteTypes = WasteTypes::all();
 
-        return view('collectes.create', compact('wasteTypes', 'isUrgent', 'centerLat', 'centerLng', 'signals'));
+        return view('collectes.create', compact('wasteTypes', 'isUrgent', 'centerLat', 'centerLng', 'signals', 'regions'));
     }
 
     private function getRegionFromCoordinates($lat, $lng)
@@ -140,6 +151,19 @@ class CollecteController extends Controller
             
             $collecte->saveOrFail();
 
+            // Handle media files upload
+            if ($request->hasFile('media')) {
+                foreach ($request->file('media') as $file) {
+                    if ($file->isValid()) {
+                        $path = $file->store('collecte-media', 'public');
+                        $collecte->media()->create([
+                            'file_path' => $path,
+                            'media_type' => $file->getClientMimeType()
+                        ]);
+                    }
+                }
+            }
+
             // Send notifications to subscribed users
             $subscribedUsers = RegionSubscription::where('region', $collecte->region)
                 ->where(function($query) {
@@ -165,7 +189,6 @@ class CollecteController extends Controller
                 ->with('success', 'Collection created successfully!');
 
         } catch (\Exception $e) {
-            //\Log::error($e->getMessage());
             return back()->with('error', $e->getMessage())->withInput();
         }
     }

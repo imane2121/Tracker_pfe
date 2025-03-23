@@ -61,3 +61,34 @@
     opacity: 0.7;
 }
 </style>
+
+<div class="message {{ $message->user_id === auth()->id() ? 'own-message' : 'other-message' }}">
+    @unless($message->user_id === auth()->id())
+        <small class="text-muted">{{ $message->user->name }}</small>
+    @endunless
+    <div class="message-content">
+        <a href="{{ route('messaging.attachments.download', $message) }}" 
+           class="d-flex align-items-center text-decoration-none">
+            <i class="bi bi-file-earmark-text me-2"></i>
+            {{ $message->file_name }}
+        </a>
+        @if($message->message_content)
+            <p class="mt-2 mb-0">{{ $message->message_content }}</p>
+        @endif
+    </div>
+    <small class="message-time">
+        {{ $message->created_at->format('H:i') }}
+        @if($message->user_id === auth()->id() || auth()->user()->role === 'admin')
+            <button class="btn btn-link btn-sm text-danger p-0 ms-2" 
+                    onclick="event.preventDefault(); document.getElementById('delete-message-{{ $message->id }}').submit();">
+                <i class="bi bi-trash"></i>
+            </button>
+            <form id="delete-message-{{ $message->id }}" 
+                  action="{{ route('messaging.messages.destroy', $message) }}" 
+                  method="POST" class="d-none">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endif
+    </small>
+</div>
