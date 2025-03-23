@@ -132,4 +132,25 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')
             ->with('success', 'Preferences updated successfully.');
     }
+
+    public function updatePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $user = auth()->user();
+
+        // Delete old profile picture if exists
+        if ($user->profile_picture) {
+            Storage::delete('public/' . $user->profile_picture);
+        }
+
+        // Store new profile picture
+        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+        $user->profile_picture = $path;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile picture updated successfully.');
+    }
 } 

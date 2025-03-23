@@ -286,4 +286,21 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->regionSubscriptions()->where('region', $region)->exists();
     }
+
+    /**
+     * Get the user's collections.
+     */
+    public function collections()
+    {
+        return $this->hasMany(Collecte::class, 'user_id');
+    }
+
+    /**
+     * Get the user's contributions.
+     */
+    public function contributions()
+    {
+        return $this->belongsToMany(Collecte::class, 'collecte_contributor')
+                    ->withTimestamps();
+    }
 }

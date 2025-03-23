@@ -63,12 +63,16 @@
       
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="{{ route('collecte.index') }}">Collections</a></li>
-          <li><a href="{{ route('signal.create') }}">Report</a></li>
           @auth
             <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
             @include('layouts.partials.notifications-dropdown')
             <li><a href="{{ route('profile.show') }}"><i class="bi bi-person-circle"></i> Profile</a></li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('messaging.*') ? 'active' : '' }}" 
+                   href="{{ route('messaging.index') }}">
+                    <i class="bi bi-chat-dots"></i> Messages
+                </a>
+            </li>
             <li>
               <form method="POST" action="{{ route('logout') }}" class="d-inline">
                 @csrf
@@ -83,14 +87,6 @@
           @if(!auth()->check() || !auth()->user()->isAdmin())
             <li><a href="{{ route('contact.index') }}">Contact</a></li>
           @endif
-          @auth
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('messaging.*') ? 'active' : '' }}" 
-                   href="{{ route('messaging.index') }}">
-                    <i class="bi bi-chat-dots"></i> Messages
-                </a>
-            </li>
-          @endauth
         </ul>
       </nav>
     </div>

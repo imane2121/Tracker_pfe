@@ -23,12 +23,11 @@
             @endif
         </div>
         <div class="dropdown-divider"></div>
-        <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
+        <div class="notification-list">
             @forelse($notifications as $notification)
-                <a href="{{ route('notifications.show', $notification->id) }}" 
-                   class="dropdown-item notification-item {{ $notification->read_at ? '' : 'unread' }}">
-                    <div class="d-flex align-items-center">
-                        <div class="notification-icon me-3">
+                <div class="notification-item {{ $notification->read_at ? '' : 'unread' }}">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon">
                             @if($notification->type === 'App\Notifications\NewCollectionInRegion')
                                 <i class="bi bi-calendar-event text-primary"></i>
                             @else
@@ -36,28 +35,36 @@
                             @endif
                         </div>
                         <div class="notification-content">
-                            <div class="notification-title">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                            <div class="notification-header">
+                                <div class="notification-title">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                                <div class="notification-actions">
+                                    <form action="{{ route('notifications.destroy', $notification->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-link text-danger p-0">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                             <div class="notification-text">{{ $notification->data['message'] ?? '' }}</div>
                             @if(isset($notification->data['details']))
-                                <div class="notification-details small text-muted">
-                                    <div><i class="bi bi-geo-alt"></i> {{ $notification->data['details']['location'] }}</div>
-                                    <div><i class="bi bi-calendar"></i> {{ $notification->data['details']['date'] }}</div>
-                                    <div><i class="bi bi-people"></i> {{ $notification->data['details']['current_contributors'] }}/{{ $notification->data['details']['contributors_needed'] }} contributors</div>
+                                <div class="notification-details">
+                                    <div class="detail-item"><i class="bi bi-geo-alt"></i> {{ $notification->data['details']['location'] }}</div>
+                                    <div class="detail-item"><i class="bi bi-calendar"></i> {{ $notification->data['details']['date'] }}</div>
+                                    <div class="detail-item"><i class="bi bi-people"></i> {{ $notification->data['details']['current_contributors'] }}/{{ $notification->data['details']['contributors_needed'] }} contributors</div>
                                 </div>
                             @endif
-                            <div class="notification-time text-muted small">
-                                {{ $notification->created_at->diffForHumans() }}
-                            </div>
-                            @if(isset($notification->data['action_url']))
-                                <div class="mt-2">
+                            <div class="notification-footer">
+                                <div class="notification-time">{{ $notification->created_at->diffForHumans() }}</div>
+                                @if(isset($notification->data['action_url']))
                                     <a href="{{ $notification->data['action_url'] }}" class="btn btn-sm btn-primary">
                                         {{ $notification->data['action_text'] ?? 'Join Collection' }}
                                     </a>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
-                </a>
+                </div>
             @empty
                 <div class="dropdown-item text-center text-muted">
                     No notifications
@@ -93,17 +100,19 @@
     margin: 0;
 }
 
+.notification-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
 .notification-item {
     padding: 1rem;
     border-bottom: 1px solid #dee2e6;
     transition: background-color 0.2s;
-    color: #212529;
-    text-decoration: none;
 }
 
 .notification-item:hover {
     background-color: #f8f9fa;
-    color: #212529;
 }
 
 .notification-item.unread {
@@ -118,31 +127,63 @@
     justify-content: center;
     border-radius: 50%;
     background-color: #f8f9fa;
+    flex-shrink: 0;
+    margin-right: 1rem;
 }
 
 .notification-content {
     flex: 1;
+    min-width: 0;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
 }
 
 .notification-title {
     font-weight: 500;
-    margin-bottom: 0.25rem;
     color: #212529;
+    margin-right: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .notification-text {
     color: #6c757d;
     font-size: 0.875rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .notification-details {
     font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
     margin-bottom: 0.25rem;
 }
 
-.notification-details i {
-    margin-right: 0.25rem;
+.detail-item i {
+    margin-right: 0.5rem;
+    width: 16px;
+}
+
+.notification-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
 }
 
 .notification-time {
@@ -155,18 +196,124 @@
     border-top: 1px solid #dee2e6;
 }
 
+/* Mobile Styles */
 @media (max-width: 991px) {
     .notification-dropdown {
-        width: 100%;
-        position: static !important;
-        transform: none !important;
-        margin-top: 0;
-        border: none;
-        box-shadow: none;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        z-index: 1050;
     }
-    
+
+    .notification-list {
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
     .notification-item {
-        padding: 0.75rem 1rem;
+        padding: 0.75rem;
+    }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        margin-right: 0.75rem;
+    }
+
+    .notification-content {
+        width: 100%;
+    }
+
+    .notification-header {
+        flex-wrap: wrap;
+    }
+
+    .notification-title {
+        width: 100%;
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-actions {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+    }
+
+    .notification-details {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .detail-item {
+        margin-bottom: 0;
+    }
+
+    .notification-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .notification-footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .notification-dropdown {
+        background-color: #212529;
+        border-color: #343a40;
+    }
+
+    .notification-dropdown .dropdown-header {
+        background-color: #343a40;
+        border-color: #495057;
+    }
+
+    .notification-item {
+        border-color: #343a40;
+    }
+
+    .notification-item:hover {
+        background-color: #343a40;
+    }
+
+    .notification-item.unread {
+        background-color: #1a1d20;
+    }
+
+    .notification-icon {
+        background-color: #343a40;
+    }
+
+    .notification-title {
+        color: #f8f9fa;
+    }
+
+    .notification-text {
+        color: #adb5bd;
+    }
+
+    .notification-details {
+        color: #adb5bd;
+    }
+
+    .notification-time {
+        color: #adb5bd;
+    }
+
+    .dropdown-divider {
+        border-color: #343a40;
     }
 }
 </style> 

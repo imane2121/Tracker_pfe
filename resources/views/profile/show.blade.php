@@ -392,192 +392,170 @@
 @endsection
 
 @section('content')
-<div class="profile-container">
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-4 text-center text-md-start">
-                    <img src="{{ $user->profile_picture ? Storage::url($user->profile_picture) : asset('images/default-avatar.png') }}" 
-                         alt="Profile Picture" 
-                         class="profile-picture">
-                </div>
-                <div class="col-md-8 text-center text-md-start mt-4 mt-md-0">
-                    <h1 class="profile-name">{{ $user->first_name }} {{ $user->last_name }}</h1>
-                    <p class="profile-role mb-0">
-                        @switch($user->role)
-                            @case('admin')
-                                <i class="fas fa-shield-alt me-2"></i>Administrator
-                                @break
-                            @case('supervisor')
-                                <i class="fas fa-user-tie me-2"></i>Supervisor
-                                @break
-                            @case('contributor')
-                                <i class="fas fa-user me-2"></i>Contributor
-                                @break
-                        @endswitch
-                    </p>
-                    <div class="profile-actions mt-3">
-                        <a href="{{ route('profile.edit') }}" class="btn btn-light">
-                            <i class="fas fa-edit me-2"></i>Edit Profile
-                        </a>
+<div class="container py-4">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card profile-card">
+                <div class="card-body text-center">
+                    <div class="profile-picture-container mb-4">
+                        <img src="{{ $user->profile_picture ? asset('storage/' . $user->profile_picture) : asset('assets/images/default-avatar.png') }}" 
+                             alt="{{ $user->first_name }}'s profile picture" 
+                             class="profile-picture">
+                        @if(auth()->id() === $user->id)
+                            <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                                @csrf
+                                <div class="mb-3">
+                                    <label for="profile_picture" class="form-label">Change Profile Picture</label>
+                                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Update Picture</button>
+                            </form>
+                        @endif
                     </div>
+                    <h4 class="mb-1">{{ $user->first_name }} {{ $user->last_name }}</h4>
+                    <p class="text-muted mb-3">{{ $user->email }}</p>
+                    <div class="profile-stats d-flex justify-content-center gap-4 mb-4">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ $user->collections ? $user->collections->count() : 0 }}</div>
+                            <div class="stat-label">Collections</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ $user->contributions ? $user->contributions->count() : 0 }}</div>
+                            <div class="stat-label">Contributions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ $user->regionSubscriptions ? $user->regionSubscriptions->count() : 0 }}</div>
+                            <div class="stat-label">Regions</div>
+                        </div>
+                    </div>
+                    @if(auth()->id() === $user->id)
+                        <a href="{{ route('profile.edit') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-pencil-square me-2"></i>Edit Profile
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="container">
-        <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
             <!-- Profile Information -->
-            <div class="col-md-8">
-                <div class="profile-card">
-                    <div class="profile-card-header">
-                        <i class="fas fa-user-circle"></i>
-                        Personal Information
-                    </div>
-                    <div class="profile-card-body">
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">
-                                <i class="fas fa-envelope"></i>
-                                Email Address
-                            </div>
-                            <div class="profile-info-value">{{ $user->email }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Location
-                            </div>
-                            <div class="profile-info-value">{{ $user->city ? $user->city->name : 'Not specified' }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">
-                                <i class="fas fa-phone"></i>
-                                Phone Number
-                            </div>
-                            <div class="profile-info-value">{{ $user->phone_number ?? 'Not specified' }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">
-                                <i class="fas fa-building"></i>
-                                Organization
-                            </div>
-                            <div class="profile-info-value">{{ $user->organisation ?? 'Not specified' }}</div>
-                        </div>
-                    </div>
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Profile Information</h5>
                 </div>
-
-                <div class="profile-card">
-                    <div class="profile-card-header">
-                        <i class="fas fa-chart-bar"></i>
-                        Statistics
-                    </div>
-                    <div class="profile-card-body">
-                        <div class="profile-stats">
-                            <div class="stat-card">
-                                <div class="stat-value">{{ $user->signals ? $user->signals->count() : 0 }}</div>
-                                <div class="stat-label">Signals Created</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">{{ $user->contributors ? $user->contributors->count() : 0 }}</div>
-                                <div class="stat-label">Collections Joined</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">{{ $user->credibility_score ?? 0 }}</div>
-                                <div class="stat-label">Credibility Score</div>
-                            </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Name</label>
+                            <p class="mb-0">{{ $user->first_name }} {{ $user->last_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <p class="mb-0">{{ $user->email }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            <p class="mb-0">{{ $user->phone ?? 'Not provided' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Member Since</label>
+                            <p class="mb-0">{{ $user->created_at->format('F Y') }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Region Subscriptions -->
-            <div class="col-md-4">
-                <div class="region-card">
-                    <div class="region-header">
-                        <h3 class="region-title">
-                            <i class="fas fa-map-marker-alt"></i>
-                            Region Subscriptions
-                        </h3>
-                    </div>
-                    <div class="region-content">
-                        @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        @endif
-
-                        <div class="region-grid">
-                            @foreach($availableRegions as $region)
-                                @if(in_array($region, $subscribedRegions))
-                                    <div class="region-item">
-                                        <span class="region-name">{{ $region }}</span>
-                                        <div class="region-actions">
-                                            <form action="{{ route('subscriptions.destroy', $region) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="region-btn region-btn-unsubscribe" onclick="return confirm('Are you sure you want to unsubscribe from this region?')">
-                                                    <i class="fas fa-times"></i>
-                                                    Unsubscribe
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="region-item">
-                                        <span class="region-name">{{ $region }}</span>
-                                        <div class="region-actions">
-                                            <form action="{{ route('subscriptions.store') }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="region" value="{{ $region }}">
-                                                <button type="submit" class="region-btn region-btn-subscribe">
-                                                    <i class="fas fa-plus"></i>
-                                                    Subscribe
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-
-                        @if(!empty($subscriptions))
-                            <div class="mt-4">
-                                <h4 class="text-muted mb-3">Notification Preferences</h4>
-                                @foreach($subscriptions as $subscription)
-                                    <div class="region-item mb-2">
-                                        <div>
-                                            <span class="region-name">{{ $subscription->region }}</span>
-                                            <div class="notification-preferences">
-                                                <form action="{{ route('subscriptions.update', $subscription->region) }}" method="POST" class="d-flex gap-3">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <label class="notification-preference">
-                                                        <input type="checkbox" name="email_notifications" value="1" {{ $subscription->email_notifications ? 'checked' : '' }} class="form-check-input">
-                                                        <span>Email</span>
-                                                    </label>
-                                                    <label class="notification-preference">
-                                                        <input type="checkbox" name="push_notifications" value="1" {{ $subscription->push_notifications ? 'checked' : '' }} class="form-check-input">
-                                                        <span>Push</span>
-                                                    </label>
-                                                    <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
-                                                </form>
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Region Subscriptions</h5>
+                    @if(auth()->id() === $user->id)
+                        <a href="{{ route('subscriptions.index') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-gear me-1"></i>Manage
+                        </a>
+                    @endif
+                </div>
+                <div class="card-body">
+                    @if($user->regionSubscriptions->count() > 0)
+                        <div class="row g-3">
+                            @foreach($user->regionSubscriptions as $subscription)
+                                <div class="col-md-6">
+                                    <div class="region-card">
+                                        <div class="region-header">
+                                            <h6 class="mb-1">{{ $subscription->region }}</h6>
+                                            <div class="notification-badges">
+                                                @if($subscription->email_notifications)
+                                                    <span class="badge bg-info" title="Email notifications enabled">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </span>
+                                                @endif
+                                                @if($subscription->push_notifications)
+                                                    <span class="badge bg-success" title="Push notifications enabled">
+                                                        <i class="bi bi-bell"></i>
+                                                    </span>
+                                                @endif
                                             </div>
                                         </div>
+                                        <p class="mb-2 text-muted small">{{ $subscription->region }} Region</p>
+                                        <div class="region-stats">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                {{ $subscription->region }} collections
+                                            </span>
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-people me-1"></i>
+                                                {{ $subscription->region }} subscribers
+                                            </span>
+                                        </div>
                                     </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No region subscriptions yet.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Recent Collections -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">Recent Collections</h5>
+                </div>
+                <div class="card-body">
+                    @if($user->collections && $user->collections->count() > 0)
+                        <div class="list-group">
+                            @foreach($user->collections->take(5) as $collection)
+                                <a href="{{ route('collections.show', $collection) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ $collection->location }}</h6>
+                                            <p class="mb-1 text-muted small">{{ $collection->description ?? 'No description provided' }}</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    {{ $collection->starting_date->format('M d, Y') }}
+                                                </span>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-geo-alt me-1"></i>
+                                                    {{ $collection->region }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary">
+                                                {{ $collection->current_contributors }}/{{ $collection->nbrContributors }} contributors
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">No collections created yet.</p>
+                    @endif
                 </div>
             </div>
         </div>
