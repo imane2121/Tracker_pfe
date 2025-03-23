@@ -14,6 +14,8 @@ use Carbon\Carbon;
 use App\Services\CriticalAreaService;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\Messaging\ChatRoomController;
+use App\Models\RegionSubscription;
+use App\Notifications\NewCollectionInRegion;
 
 /**
  * @modified Added automatic chat room creation for non-urgent collectes
@@ -137,6 +139,22 @@ class CollecteController extends Controller
             }
             
             $collecte->saveOrFail();
+
+            // Send notifications to subscribed users
+            $subscribedUsers = RegionSubscription::where('region', $collecte->region)
+                ->where(function($query) {
+                    $query->where('email_notifications', true)
+                          ->orWhere('push_notifications', true);
+                })
+                ->with('user')
+                ->get();
+
+            foreach ($subscribedUsers as $subscription) {
+                $user = $subscription->user;
+                if ($user->id !== auth()->id()) { // Don't notify the creator
+                    $user->notify(new NewCollectionInRegion($collecte));
+                }
+            }
 
             // Add this block to create chat room automatically
             if (!$collecte->is_urgent) {

@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\SignalManagementController;
 use App\Http\Controllers\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\RegionSubscriptionController;
+use App\Http\Controllers\NotificationController;
 
 
 /*
@@ -72,12 +74,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
+
+    // Region Subscription Routes
+    Route::get('/subscriptions', [RegionSubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::post('/subscriptions', [RegionSubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::put('/subscriptions/{region}', [RegionSubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::delete('/subscriptions/{region}', [RegionSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 });
 
 
@@ -204,8 +219,3 @@ Route::middleware(['auth', 'role:admin,supervisor'])->group(function () {
     Route::post('/collectes', [CollecteController::class, 'store'])
         ->name('collecte.store');
 });
-
-// Add this at the top level of your routes file, not inside any groups
-Route::get('/collectes/clusters', function() {
-    return view('collectes.clusters');
-})->name('collecte.clusters');

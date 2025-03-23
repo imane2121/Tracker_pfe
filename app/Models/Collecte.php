@@ -9,6 +9,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Services\CollecteService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Notifications\NewCollectionInRegion;
+use App\Models\RegionSubscription;
+
 class Collecte extends Model
 {
     use HasFactory, SoftDeletes;
@@ -166,6 +169,28 @@ class Collecte extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::created(function ($collecte) {
+            // Get all users subscribed to the region
+            $subscribers = RegionSubscription::where('region', $collecte->region)
+                ->with('user')
+                ->get();
+
+            // Send notifications to each subscriber
+            foreach ($subscribers as $subscription) {
+                $user = $subscription->user;
+
+                // Check notification preferences
+                if ($subscription->email_notifications) {
+                    $user->notify(new NewCollectionInRegion($collecte));
+                }
+
+                // Add push notification logic here if needed
+                // if ($subscription->push_notifications) {
+                //     // Implement push notification
+                // }
+            }
+        });
     }
 
     // Add mutator to ensure waste type IDs are integers

@@ -67,6 +67,7 @@
           <li><a href="{{ route('signal.create') }}">Report</a></li>
           @auth
             <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+            @include('layouts.partials.notifications-dropdown')
             <li><a href="{{ route('profile.show') }}"><i class="bi bi-person-circle"></i> Profile</a></li>
             <li>
               <form method="POST" action="{{ route('logout') }}" class="d-inline">

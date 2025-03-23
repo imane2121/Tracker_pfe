@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
+use App\Models\RegionSubscription;
 
 class ProfileController extends Controller
 {
@@ -25,7 +26,11 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user();
-        return view('profile.show', compact('user'));
+        $availableRegions = RegionSubscription::getAvailableRegions();
+        $subscriptions = $user->regionSubscriptions;
+        $subscribedRegions = $subscriptions->pluck('region')->toArray();
+
+        return view('profile.show', compact('user', 'availableRegions', 'subscriptions', 'subscribedRegions'));
     }
 
     /**

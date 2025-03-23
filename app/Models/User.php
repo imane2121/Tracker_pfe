@@ -250,4 +250,40 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(ChatMessage::class);
     }
+
+    /**
+     * Get the user's region subscriptions.
+     */
+    public function regionSubscriptions()
+    {
+        return $this->hasMany(RegionSubscription::class);
+    }
+
+    /**
+     * Subscribe to a region.
+     */
+    public function subscribeToRegion(string $region, bool $emailNotifications = true, bool $pushNotifications = true)
+    {
+        return $this->regionSubscriptions()->create([
+            'region' => $region,
+            'email_notifications' => $emailNotifications,
+            'push_notifications' => $pushNotifications,
+        ]);
+    }
+
+    /**
+     * Unsubscribe from a region.
+     */
+    public function unsubscribeFromRegion(string $region)
+    {
+        return $this->regionSubscriptions()->where('region', $region)->delete();
+    }
+
+    /**
+     * Check if user is subscribed to a region.
+     */
+    public function isSubscribedToRegion(string $region): bool
+    {
+        return $this->regionSubscriptions()->where('region', $region)->exists();
+    }
 }
