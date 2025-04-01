@@ -351,45 +351,63 @@
             attribution: ''
         }).addTo(criticalAreasMap);
 
-        // Add markers for critical areas first
+        // Add heatmap layer first (underneath)
+        var heatmapPoints = @json($heatmapPoints);
+        var heatmapLayer;
+        if (heatmapPoints && heatmapPoints.length > 0) {
+            var validHeatmapPoints = heatmapPoints.map(function(point) {
+                return [
+                    parseFloat(point[0]),
+                    parseFloat(point[1]),
+                    parseFloat(point[2])
+                ];
+            }).filter(function(point) {
+                return !isNaN(point[0]) && !isNaN(point[1]) && !isNaN(point[2]);
+            });
+
+            if (validHeatmapPoints.length > 0) {
+                heatmapLayer = L.heatLayer(validHeatmapPoints, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 10,
+                    gradient: {
+                        0.4: 'blue',
+                        0.6: 'cyan',
+                        0.7: 'lime',
+                        0.8: 'yellow',
+                        1.0: 'red'
+                    }
+                }).addTo(criticalAreasMap);
+            }
+        }
+
+        // Add markers for critical areas (on top)
         var criticalAreaPoints = @json($topAreas);
         var markers = [];
+        var markerLayer = L.layerGroup().addTo(criticalAreasMap);
         
         if (criticalAreaPoints && criticalAreaPoints.length > 0) {
             criticalAreaPoints.forEach(function(area) {
-                // Parse coordinates to ensure they are numbers
                 var lat = parseFloat(area.coordinates.lat);
                 var lng = parseFloat(area.coordinates.lng);
                 
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    var marker = L.circleMarker(
-                        [lat, lng],
-                        {
-                            radius: 8,
-                            fillColor: area.severity >= 75 ? '#dc3545' : (area.severity >= 50 ? '#ffc107' : '#28a745'),
-                            color: '#fff',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        }
-                    ).addTo(criticalAreasMap);
+                    var marker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'critical-area-marker',
+                            html: `<div style="
+                                width: 30px;
+                                height: 30px;
+                                background-color: ${area.severity >= 75 ? '#dc3545' : (area.severity >= 50 ? '#ffc107' : '#28a745')};
+                                border: 2px solid white;
+                                border-radius: 50%;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                            "></div>`,
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    });
 
-                    // Create collection button if user is admin or contributor and no collection exists
-                    var collectionButton = '';
-                    @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
-                        if (!area.has_collection) {
-                            collectionButton = `
-                                <div class="mt-3">
-                                    <a href="{{ route('collecte.create') }}?signal_id=${area.signal_id}" 
-                                       class="btn btn-sm btn-success w-100">
-                                        <i class="bi bi-plus-circle"></i> Create Collection
-                                    </a>
-                                </div>
-                            `;
-                        }
-                    @endif
-
-                    // Add popup with area information
                     marker.bindPopup(`
                         <div class="p-2">
                             <h6 class="mb-2">${area.name}</h6>
@@ -406,41 +424,20 @@
                                 <p class="mb-1"><i class="bi bi-trash"></i> ${area.total_volume}m³</p>
                                 <p class="mb-0"><i class="bi bi-clock"></i> ${area.latest_report}</p>
                             </div>
-                            ${area.has_collection ? `
-                                <div class="border-top mt-2 pt-2">
-                                    <h6 class="mb-2">
-                                        <i class="bi bi-truck"></i> Collection Status: 
-                                        <span class="badge bg-${
-                                            area.collection_status === 'completed' ? 'success' :
-                                            area.collection_status === 'in_progress' ? 'warning' :
-                                            area.collection_status === 'planned' ? 'info' :
-                                            area.collection_status === 'validated' ? 'primary' : 'secondary'
-                                        }">
-                                            ${area.collection_status ? area.collection_status.charAt(0).toUpperCase() + area.collection_status.slice(1) : 'Unknown'}
-                                        </span>
-                                    </h6>
-                                    <a href="{{ route('collecte.show', '') }}/${area.collection_id}" class="btn btn-sm btn-info w-100">
-                                        <i class="bi bi-eye"></i> View Collection Details
-                                    </a>
-                                </div>
-                            ` : `
-                                @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
-                                <div class="border-top mt-2 pt-2">
-                                    <h6 class="text-danger mb-2">
-                                        <i class="bi bi-exclamation-triangle"></i> No Collection Assigned
-                                    </h6>
-                                    <a href="{{ route('collecte.create') }}?signal_id=${area.signal_id}" 
-                                       class="btn btn-sm btn-success w-100">
-                                        <i class="bi bi-plus-circle"></i> Create Collection
-                                    </a>
-                                </div>
-                                @endif
-                            `}
+                            @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
+                            <div class="border-top mt-2 pt-2">
+                                <a href="{{ route('collecte.create') }}?signal_id=${area.signal_id}" 
+                                   class="btn btn-sm btn-success w-100">
+                                    <i class="bi bi-plus-circle"></i> Create Collection
+                                </a>
+                            </div>
+                            @endif
                         </div>
                     `, {
                         maxWidth: 300
                     });
 
+                    markerLayer.addLayer(marker);
                     markers.push(marker);
                 }
             });
@@ -452,44 +449,14 @@
             }
         }
 
-        // Add heatmap layer after markers
-        var heatmapPoints = @json($heatmapPoints);
-        if (heatmapPoints && heatmapPoints.length > 0) {
-            // Convert heatmap points to ensure they are valid numbers
-            var validHeatmapPoints = heatmapPoints.map(function(point) {
-                return [
-                    parseFloat(point[0]), // latitude
-                    parseFloat(point[1]), // longitude
-                    parseFloat(point[2])  // intensity
-                ];
-            }).filter(function(point) {
-                return !isNaN(point[0]) && !isNaN(point[1]) && !isNaN(point[2]);
-            });
-
-            if (validHeatmapPoints.length > 0) {
-                L.heatLayer(validHeatmapPoints, {
-                    radius: 25,
-                    blur: 15,
-                    maxZoom: 10,
-                    gradient: {
-                        0.4: 'blue',
-                        0.6: 'cyan',
-                        0.7: 'lime',
-                        0.8: 'yellow',
-                        1.0: 'red'
-                    }
-                }).addTo(criticalAreasMap);
-            }
-        }
+        // Debug logging
+        console.log('Critical Area Points:', criticalAreaPoints);
+        console.log('Heatmap Points:', heatmapPoints);
 
         // Handle window resize
         window.addEventListener('resize', function() {
             criticalAreasMap.invalidateSize();
         });
-
-        // Debug logging
-        console.log('Critical Area Points:', criticalAreaPoints);
-        console.log('Heatmap Points:', heatmapPoints);
     });
 </script>
 @endpush
@@ -606,6 +573,17 @@
     /* Map Styles */
     .leaflet-container {
         border-radius: 0 0 1rem 1rem;
+    }
+
+    /* Critical Area Markers */
+    .critical-area-marker {
+        z-index: 1000 !important;
+    }
+
+    .critical-area-marker path {
+        stroke-width: 2px !important;
+        stroke: #fff !important;
+        fill-opacity: 1 !important;
     }
 
     /* Responsive */

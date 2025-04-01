@@ -181,6 +181,39 @@ class SignalSeeder extends Seeder
             );
         }
 
+        // Get a random user for the signals
+        $user = User::inRandomOrder()->first();
+        
+        // Define the Coaster area coordinates (approximate center)
+        $centerLat = 33.5731; // Casablanca latitude
+        $centerLng = -7.5898; // Casablanca longitude
+        
+        // Create 20 signals in clusters around the Coaster area
+        for ($i = 0; $i < 20; $i++) {
+            // Generate random offset within 5km radius
+            $offsetLat = (rand(-5000, 5000) / 1000000); // Random offset in degrees
+            $offsetLng = (rand(-5000, 5000) / 1000000);
+            
+            // Create signal with random status (70% pending, 30% validated)
+            $status = rand(1, 100) <= 70 ? 'pending' : 'validated';
+            
+            $signal = Signal::create([
+                'created_by' => $user->id,
+                'location' => 'Coaster Area, Casablanca',
+                'latitude' => $centerLat + $offsetLat,
+                'longitude' => $centerLng + $offsetLng,
+                'volume' => rand(1, 50), // Random volume between 1 and 50 m³
+                'status' => $status,
+                'signal_date' => Carbon::now()->subDays(rand(0, 30)), // Random date within last 30 days
+                'description' => 'Waste accumulation in the Coaster area of Casablanca',
+                'custom_type' => null,
+            ]);
+            
+            // Attach random waste types (1-3 types per signal)
+            $randomWasteTypes = $wasteTypes->random(rand(1, 3));
+            $signal->wasteTypes()->attach($randomWasteTypes);
+        }
+
         $this->command->info('Signal seeding completed!');
     }
 }

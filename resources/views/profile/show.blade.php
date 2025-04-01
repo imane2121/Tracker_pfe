@@ -4,12 +4,12 @@
 <style>
 .profile-container {
     padding-top: 80px !important;
-    background-color: #f8f9fa !important;
-    min-height: 100vh !important;
-}
+        background-color: #f8f9fa !important;
+        min-height: 100vh !important;
+    }
 
 .profile-header {
-    background: linear-gradient(135deg, #0e346a 0%, #1a5f9e 100%) !important;
+        background: linear-gradient(135deg, #0e346a 0%, #1a5f9e 100%) !important;
     padding: 4rem 0 !important;
     margin-bottom: 3rem !important;
     color: white !important;
@@ -29,25 +29,93 @@
     opacity: 0.1 !important;
 }
 
-.profile-picture {
-    width: 150px !important;
-    height: 150px !important;
-    border-radius: 50% !important;
-    border: 4px solid white !important;
-    object-fit: cover !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-    transition: transform 0.3s ease !important;
+.profile-picture-container {
+    position: relative !important;
+        margin-bottom: 2rem !important;
+    width: 100% !important;
 }
 
-.profile-picture:hover {
+.profile-picture-wrapper {
+    position: relative !important;
+    width: 150px !important;
+    height: 150px !important;
+    margin: 0 auto !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    border: 3px solid #fff !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    background: #f8f9fa !important;
+}
+
+.profile-picture-inner {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+        border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+.profile-picture {
+    width: 100% !important;
+    height: 100% !important;
+        object-fit: cover !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+    object-position: center !important;
+    border-radius: 50% !important;
+}
+
+.profile-picture-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0 !important;
+    transition: all 0.3s ease !important;
+    border-radius: 50% !important;
+}
+
+.profile-picture-wrapper:hover .profile-picture-overlay {
+    opacity: 1 !important;
+}
+
+.profile-picture-wrapper:hover .profile-picture {
     transform: scale(1.05) !important;
+}
+
+.profile-picture-overlay .btn {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: white !important;
+    color: #333 !important;
+    border: none !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+    font-size: 1.1rem !important;
+}
+
+.profile-picture-overlay .btn:hover {
+    transform: scale(1.1) !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
 .profile-name {
     font-size: 2.5rem !important;
     font-weight: 700 !important;
     margin: 1.5rem 0 0.75rem 0 !important;
-    color: white !important;
+        color: white !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -59,17 +127,17 @@
 }
 
 .profile-card {
-    background: white !important;
+        background: white !important;
     border-radius: 20px !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-    margin-bottom: 2rem !important;
-    overflow: hidden !important;
+        margin-bottom: 2rem !important;
+        overflow: hidden !important;
     transition: all 0.3s ease !important;
     border: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
+    }
 
 .profile-card:hover {
-    transform: translateY(-5px) !important;
+        transform: translateY(-5px) !important;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -77,8 +145,8 @@
     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
     padding: 1.5rem !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    font-weight: 600 !important;
-    color: #0e346a !important;
+        font-weight: 600 !important;
+        color: #0e346a !important;
     font-size: 1.2rem !important;
     display: flex !important;
     align-items: center !important;
@@ -87,106 +155,106 @@
 
 .profile-card-header i {
     color: #1a5f9e !important;
-    font-size: 1.1rem !important;
-}
+        font-size: 1.1rem !important;
+    }
 
 .profile-card-body {
-    padding: 2rem !important;
-}
+        padding: 2rem !important;
+    }
 
 .profile-info-item {
-    display: flex !important;
-    align-items: center !important;
-    margin-bottom: 1.5rem !important;
-    padding-bottom: 1.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        margin-bottom: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
+    }
 
 .profile-info-item:last-child {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-    border-bottom: none !important;
-}
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none !important;
+    }
 
 .profile-info-label {
     width: 160px !important;
-    color: #666 !important;
-    font-weight: 500 !important;
-    font-size: 1rem !important;
+        color: #666 !important;
+        font-weight: 500 !important;
+        font-size: 1rem !important;
     display: flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
-}
+    }
 
 .profile-info-value {
-    flex: 1 !important;
-    color: #333 !important;
-    font-size: 1rem !important;
+        flex: 1 !important;
+        color: #333 !important;
+        font-size: 1rem !important;
     font-weight: 500 !important;
-}
+    }
 
 .profile-stats {
-    display: grid !important;
+        display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-    gap: 1.5rem !important;
-    margin-top: 2rem !important;
-}
+        gap: 1.5rem !important;
+        margin-top: 2rem !important;
+    }
 
 .stat-card {
     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
     padding: 1.75rem !important;
     border-radius: 15px !important;
-    text-align: center !important;
+        text-align: center !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
     transition: all 0.3s ease !important;
     border: 1px solid rgba(0, 0, 0, 0.05) !important;
-}
+    }
 
 .stat-card:hover {
-    transform: translateY(-5px) !important;
+        transform: translateY(-5px) !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
 }
 
 .stat-value {
     font-size: 2.5rem !important;
     font-weight: 700 !important;
-    color: #0e346a !important;
+        color: #0e346a !important;
     margin-bottom: 0.75rem !important;
     line-height: 1 !important;
-}
+    }
 
 .stat-label {
-    color: #666 !important;
+        color: #666 !important;
     font-size: 1.1rem !important;
-    font-weight: 500 !important;
-}
+        font-weight: 500 !important;
+    }
 
 .profile-actions {
-    display: flex !important;
-    gap: 1rem !important;
+        display: flex !important;
+        gap: 1rem !important;
     margin-top: 2rem !important;
 }
 
 .profile-actions .btn {
     padding: 0.875rem 2rem !important;
     border-radius: 12px !important;
-    font-weight: 500 !important;
-    transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     gap: 0.5rem !important;
-}
+    }
 
 .profile-actions .btn-light {
     background: rgba(255, 255, 255, 0.95) !important;
-    border: none !important;
-    color: #0e346a !important;
+        border: none !important;
+        color: #0e346a !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
-}
+    }
 
 .profile-actions .btn-light:hover {
-    background: white !important;
-    transform: translateY(-2px) !important;
+        background: white !important;
+        transform: translateY(-2px) !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
 }
 
@@ -318,28 +386,28 @@
 }
 
 .form-check-input:checked {
-    background-color: #0e346a !important;
-    border-color: #0e346a !important;
-}
+        background-color: #0e346a !important;
+        border-color: #0e346a !important;
+    }
 
 .form-select {
     border-radius: 10px !important;
-    border: 1px solid #dee2e6 !important;
-    padding: 0.75rem !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 0.75rem !important;
     transition: all 0.3s ease !important;
-}
+    }
 
 .form-select:focus {
-    border-color: #0e346a !important;
-    box-shadow: 0 0 0 0.2rem rgba(14, 52, 106, 0.25) !important;
-}
+        border-color: #0e346a !important;
+        box-shadow: 0 0 0 0.2rem rgba(14, 52, 106, 0.25) !important;
+    }
 
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
     .profile-header {
         padding: 3rem 0 !important;
     }
 
-    .profile-picture {
+    .profile-picture-wrapper {
         width: 120px !important;
         height: 120px !important;
     }
@@ -349,14 +417,14 @@
     }
 
     .profile-info-item {
-        flex-direction: column !important;
-        align-items: flex-start !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
         gap: 0.75rem !important;
-    }
+        }
 
     .profile-info-label {
-        width: 100% !important;
-    }
+            width: 100% !important;
+        }
 
     .profile-stats {
         grid-template-columns: 1fr !important;
@@ -376,18 +444,108 @@
     }
 
     .region-grid {
-        grid-template-columns: 1fr !important;
-    }
+            grid-template-columns: 1fr !important;
+        }
 
     .region-actions {
-        flex-direction: column !important;
-    }
+            flex-direction: column !important;
+        }
 
     .region-btn {
         width: 100% !important;
         justify-content: center !important;
     }
 }
+
+/* Override any existing profile picture styles */
+.card .profile-picture-container {
+    position: relative !important;
+    margin-bottom: 1.5rem !important;
+            width: 100% !important;
+        }
+
+.card .profile-picture-wrapper {
+    position: relative !important;
+    width: 100px !important;
+    height: 100px !important;
+    margin: 0 auto !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    background: #f8f9fa !important;
+}
+
+.card .profile-picture-inner {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+.card .profile-picture {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: all 0.3s ease !important;
+    display: block !important;
+    object-position: center !important;
+    border-radius: 50% !important;
+}
+
+.card .profile-picture-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0 !important;
+    transition: all 0.3s ease !important;
+    border-radius: 50% !important;
+}
+
+.card .profile-picture-wrapper:hover .profile-picture-overlay {
+    opacity: 1 !important;
+}
+
+.card .profile-picture-wrapper:hover .profile-picture {
+    transform: scale(1.05) !important;
+}
+
+.card .profile-picture-overlay .btn {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: white !important;
+    color: #333 !important;
+    border: none !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+    font-size: 0.9rem !important;
+}
+
+.card .profile-picture-overlay .btn:hover {
+    transform: scale(1.1) !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+@media (max-width: 768px) {
+    .card .profile-picture-wrapper {
+        width: 80px !important;
+        height: 80px !important;
+        }
+    }
 </style>
 @endsection
 
@@ -399,17 +557,24 @@
             <div class="card profile-card">
                 <div class="card-body text-center">
                     <div class="profile-picture-container mb-4">
-                        <img src="{{ $user->profile_picture ? asset('storage/' . $user->profile_picture) : asset('assets/images/default-avatar.png') }}" 
-                             alt="{{ $user->first_name }}'s profile picture" 
-                             class="profile-picture">
+                        <div class="profile-picture-wrapper">
+                            <div class="profile-picture-inner">
+                                <img src="{{ $user->profile_picture ? Storage::url($user->profile_picture) : asset('assets/images/default-avatar.png') }}" 
+                                     alt="{{ $user->first_name }}'s profile picture" 
+                         class="profile-picture">
+                                @if(auth()->id() === $user->id)
+                                    <div class="profile-picture-overlay">
+                                        <label for="profile_picture" class="btn btn-light btn-sm">
+                                            <i class="bi bi-camera"></i>
+                                        </label>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                         @if(auth()->id() === $user->id)
-                            <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                            <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" class="mt-3" id="profile-picture-form">
                                 @csrf
-                                <div class="mb-3">
-                                    <label for="profile_picture" class="form-label">Change Profile Picture</label>
-                                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-sm">Update Picture</button>
+                                <input type="file" class="d-none" id="profile_picture" name="profile_picture" accept="image/*">
                             </form>
                         @endif
                     </div>
@@ -428,15 +593,15 @@
                             <div class="stat-value">{{ $user->regionSubscriptions ? $user->regionSubscriptions->count() : 0 }}</div>
                             <div class="stat-label">Regions</div>
                         </div>
-                    </div>
+                </div>
                     @if(auth()->id() === $user->id)
                         <a href="{{ route('profile.edit') }}" class="btn btn-outline-primary w-100">
                             <i class="bi bi-pencil-square me-2"></i>Edit Profile
                         </a>
                     @endif
-                </div>
             </div>
         </div>
+    </div>
 
         <!-- Main Content -->
         <div class="col-lg-8">
@@ -444,7 +609,7 @@
             <div class="card mb-4">
                 <div class="card-header bg-white">
                     <h5 class="card-title mb-0">Profile Information</h5>
-                </div>
+                    </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -497,7 +662,7 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                        </div>
+                    </div>
                                         <p class="mb-2 text-muted small">{{ $subscription->region }} Region</p>
                                         <div class="region-stats">
                                             <span class="badge bg-light text-dark">
@@ -508,8 +673,8 @@
                                                 <i class="bi bi-people me-1"></i>
                                                 {{ $subscription->region }} subscribers
                                             </span>
-                                        </div>
-                                    </div>
+                                </div>
+                            </div>
                                 </div>
                             @endforeach
                         </div>
@@ -542,17 +707,17 @@
                                                     <i class="bi bi-geo-alt me-1"></i>
                                                     {{ $collection->region }}
                                                 </span>
-                                            </div>
-                                        </div>
+                                </div>
+                            </div>
                                         <div class="text-end">
                                             <span class="badge bg-primary">
                                                 {{ $collection->current_contributors }}/{{ $collection->nbrContributors }} contributors
                                             </span>
-                                        </div>
-                                    </div>
+                            </div>
+                            </div>
                                 </a>
                             @endforeach
-                        </div>
+                    </div>
                     @else
                         <p class="text-muted mb-0">No collections created yet.</p>
                     @endif
@@ -562,3 +727,51 @@
     </div>
 </div>
 @endsection 
+
+@push('scripts')
+<script>
+document.getElementById('profile_picture').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Create a canvas for cropping
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas size to match the profile picture size
+                canvas.width = 400;
+                canvas.height = 400;
+                
+                // Calculate the size and position for cropping
+                const size = Math.min(img.width, img.height);
+                const x = (img.width - size) / 2;
+                const y = (img.height - size) / 2;
+                
+                // Draw the cropped image
+                ctx.drawImage(img, x, y, size, size, 0, 0, 400, 400);
+                
+                // Convert to blob and create a new file
+                canvas.toBlob(function(blob) {
+                    const croppedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(croppedFile);
+                    e.target.files = dataTransfer.files;
+                    
+                    // Update preview
+                    document.querySelector('.profile-picture').src = canvas.toDataURL();
+                    
+                    // Submit the form
+                    document.getElementById('profile-picture-form').submit();
+                }, 'image/jpeg', 0.9);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+@endpush 

@@ -1328,12 +1328,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     { icon: getVolumeIcon(collecte.volume) }
                 ).bindPopup(`
                     <div class="map-popup">
-                        <h5 class="popup-title">Collection #${collecte.id}</h5>
+                        <h5 class="popup-title">${collecte.location}</h5>
                         <div class="popup-content">
-                            <div class="popup-item">
-                                <i class="fas fa-map-marker-alt text-primary"></i>
-                                <span>${collecte.location}</span>
-                            </div>
                             <div class="popup-item">
                                 <i class="fas fa-info-circle text-info"></i>
                                 <span>Status: ${collecte.status}</span>

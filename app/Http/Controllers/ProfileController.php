@@ -143,7 +143,7 @@ class ProfileController extends Controller
 
         // Delete old profile picture if exists
         if ($user->profile_picture) {
-            Storage::delete('public/' . $user->profile_picture);
+            Storage::disk('public')->delete($user->profile_picture);
         }
 
         // Store new profile picture

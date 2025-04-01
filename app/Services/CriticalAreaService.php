@@ -21,20 +21,13 @@ class CriticalAreaService
     {
         $signals = Signal::with(['creator', 'wasteTypes'])
             ->where('created_at', '>=', Carbon::now()->subDays($days))
-            ->where('status', '!=', 'rejected')
+            ->where('status', 'validated')
             ->get()
             ->map(function ($signal) {
-                // Get all collectes that contain this signal
-                $collecte = Collecte::whereJsonContains('signal_ids', $signal->id)
-                                  ->where('status', 'completed')
-                                  ->first();
-
-                $volume = $collecte ? $collecte->actual_volume : $signal->volume;
-
                 return [
                     'latitude' => $signal->latitude,
                     'longitude' => $signal->longitude,
-                    'volume' => $volume,
+                    'volume' => $signal->volume,
                     'credibility_score' => $signal->creator->credibility_score ?? 100
                 ];
             })
@@ -43,16 +36,17 @@ class CriticalAreaService
                 return round($signal['latitude'], 5) . ',' . round($signal['longitude'], 5);
             })
             ->map(function ($group) {
-                $maxCredibilitySignal = $group->sortByDesc('credibility_score')->first();
+                // Get the signal with highest credibility score
+                $highestCredibilitySignal = $group->sortByDesc('credibility_score')->first();
                 $count = $group->count();
                 
-                // Calculate intensity based on both volume and report count
+                // Calculate intensity based on report count only
                 // Normalize to a value between 0 and 1
-                $intensity = min(1.0, ($count * $maxCredibilitySignal['volume']) / 1000);
+                $intensity = min(1.0, $count / 10); // Assuming 10 reports is maximum intensity
                 
                 return [
-                    $maxCredibilitySignal['latitude'],
-                    $maxCredibilitySignal['longitude'],
+                    $highestCredibilitySignal['latitude'],
+                    $highestCredibilitySignal['longitude'],
                     $intensity
                 ];
             })
@@ -71,54 +65,67 @@ class CriticalAreaService
      */
     public function getTopAffectedAreas($limit = 5, $days = 30)
     {
-        // Get all non-rejected signals from the last X days
+        // Get all validated signals from the last X days that are not in any collection
         $signals = Signal::with(['creator', 'wasteTypes'])
             ->where('created_at', '>=', Carbon::now()->subDays($days))
-            ->where('status', '!=', 'rejected')
+            ->where('status', 'validated')
+            ->whereRaw('NOT EXISTS (
+                SELECT 1 FROM collectes 
+                WHERE JSON_CONTAINS(collectes.signal_ids, CAST(signals.id AS JSON))
+            )')
             ->get()
             ->map(function ($signal) {
                 return [
                     'id' => $signal->id,
-                    'latitude' => $signal->latitude,
-                    'longitude' => $signal->longitude,
-                    'volume' => $signal->volume,
+                    'latitude' => floatval($signal->latitude),
+                    'longitude' => floatval($signal->longitude),
+                    'volume' => floatval($signal->volume),
                     'location' => $signal->location,
                     'created_at' => $signal->created_at,
-                    'credibility_score' => $signal->creator->credibility_score ?? 100
+                    'credibility_score' => $signal->creator->credibility_score ?? 100,
+                    'waste_types' => $signal->wasteTypes->pluck('name')->join(', ')
                 ];
             });
 
         // Group signals into clusters based on proximity
         $clusters = $this->clusterSignals($signals);
 
-        // Sort clusters by total volume and get top N
+        // Sort clusters by report count and get top N
         $topClusters = collect($clusters)
-            ->sortByDesc('total_volume')
-            ->take($limit);
+            ->filter(function ($cluster) {
+                // Only include clusters with at least 5 signals
+                return $cluster['signal_count'] >= 5;
+            })
+            ->sortByDesc('signal_count')
+            ->take($limit)
+            ->values();  // Convert to array with numeric keys
 
-        $maxVolume = $topClusters->max('total_volume');
+        $maxCount = $topClusters->max('signal_count');
 
-        return $topClusters->map(function ($cluster) use ($maxVolume) {
-            $severityPercentage = $maxVolume > 0
-                ? round(($cluster['total_volume'] / $maxVolume) * 100)
+        return $topClusters->map(function ($cluster) use ($maxCount) {
+            // Get the signal with highest credibility score
+            $highestCredibilitySignal = collect($cluster['signals'])
+                ->sortByDesc('credibility_score')
+                ->first();
+
+            $severityPercentage = $maxCount > 0
+                ? round(($cluster['signal_count'] / $maxCount) * 100)
                 : 0;
-
-            // Get the latest report date from the cluster
-            $latestReport = collect($cluster['signals'])
-                ->max('created_at');
 
             return [
                 'name' => $cluster['location'],
                 'coordinates' => [
-                    'lat' => $cluster['center']['lat'],
-                    'lng' => $cluster['center']['lng']
+                    'lat' => floatval($cluster['center']['lat']),
+                    'lng' => floatval($cluster['center']['lng'])
                 ],
-                'total_volume' => round($cluster['total_volume'], 2),
-                'report_count' => count($cluster['signals']),
+                'total_volume' => round(floatval($highestCredibilitySignal['volume']), 2),
+                'report_count' => $cluster['signal_count'],
                 'severity' => $severityPercentage,
-                'latest_report' => Carbon::parse($latestReport)->diffForHumans()
+                'latest_report' => Carbon::parse(collect($cluster['signals'])->max('created_at'))->diffForHumans(),
+                'waste_types' => $highestCredibilitySignal['waste_types'],
+                'signal_id' => $highestCredibilitySignal['id']
             ];
-        });
+        })->values()->toArray();
     }
 
     /**

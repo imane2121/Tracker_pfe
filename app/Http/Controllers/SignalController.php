@@ -54,27 +54,16 @@ class SignalController extends Controller
                 'longitude' => 'required|numeric',
                 'waste_types' => 'nullable|array',
                 'waste_types.*' => 'nullable|exists:waste_types,id',
-                'general_waste_type' => 'nullable|array',
-                'general_waste_type.*' => 'nullable|exists:waste_types,id',
                 'media.*' => 'nullable|file|mimes:jpg,jpeg,png,mp4|max:10240',
                 'volume' => 'required|numeric|min:0',
                 'custom_type' => 'nullable|string',
                 'description' => 'nullable|string|max:1000',
             ]);
 
-            // Combine and filter waste types
-            $generalTypes = array_filter($validated['general_waste_type'] ?? []);
-            $specificTypes = array_filter($validated['waste_types'] ?? []);
-            $allWasteTypes = array_values(array_unique(array_merge($generalTypes, $specificTypes)));
+            // Filter out any null values and ensure we have an array of integers
+            $wasteTypes = array_values(array_filter(array_map('intval', $validated['waste_types'] ?? [])));
 
-            // Log waste types data
-            Log::info('Waste types:', [
-                'general' => $generalTypes,
-                'specific' => $specificTypes,
-                'combined' => $allWasteTypes
-            ]);
-
-            if (empty($allWasteTypes)) {
+            if (empty($wasteTypes)) {
                 throw new \Exception('At least one waste type must be selected');
             }
 
@@ -88,7 +77,7 @@ class SignalController extends Controller
                 'custom_type' => $validated['custom_type'] ?? '',
                 'description' => $validated['description'] ?? null,
                 'signal_date' => now(),
-                'waste_types' => json_encode($allWasteTypes)
+                'waste_types' => $wasteTypes
             ];
 
             // Log the data we're about to save
@@ -101,9 +90,9 @@ class SignalController extends Controller
                 Log::info('Signal created:', $signal->toArray());
 
                 // Attach waste types using the pivot table
-                if (!empty($allWasteTypes)) {
-                    $signal->wasteTypes()->attach($allWasteTypes);
-                    Log::info('Waste types attached:', ['signal_id' => $signal->id, 'types' => $allWasteTypes]);
+                if (!empty($wasteTypes)) {
+                    $signal->wasteTypes()->attach($wasteTypes);
+                    Log::info('Waste types attached:', ['signal_id' => $signal->id, 'types' => $wasteTypes]);
                 }
 
                 // Handle media uploads

@@ -35,7 +35,6 @@
                 <div class="wsf-buttons-container d-flex flex-wrap gap-2">
                     @foreach($wasteTypes as $wasteType)
                         <div class="wsf-type-group">
-                            <input type="hidden" name="general_waste_type[]" value="" class="wsf-type-input">
                             <button type="button" class="wsf-btn-option wsf-general-type" data-waste-type="{{ $wasteType->id }}">
                                 {{ $wasteType->name }}
                             </button>
@@ -46,7 +45,8 @@
                                             <input type="hidden" class="wsf-specific-input" 
                                                 name="waste_types[]" 
                                                 value="{{ $specificType->id }}" 
-                                                data-parent-id="{{ $wasteType->id }}">
+                                                data-parent-id="{{ $wasteType->id }}"
+                                                disabled>
                                             <button type="button" class="wsf-btn-option wsf-specific-type" 
                                                 data-specific-id="{{ $specificType->id }}"
                                                 data-parent-id="{{ $wasteType->id }}">
@@ -850,6 +850,66 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Waste Type Selection Handling
+    const generalTypeButtons = document.querySelectorAll('.wsf-general-type');
+    const specificTypeButtons = document.querySelectorAll('.wsf-specific-type');
+    const autreBtn = document.getElementById('autreBtn');
+    const autreInputContainer = document.getElementById('autreInputContainer');
+
+    // Handle general type button clicks
+    generalTypeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const wasteTypeId = this.getAttribute('data-waste-type');
+            const subtypesContainer = document.getElementById(`subTypes_${wasteTypeId}`);
+            
+            // Close all other subtype containers
+            document.querySelectorAll('.wsf-subtypes').forEach(container => {
+                if (container !== subtypesContainer) {
+                    container.classList.remove('show');
+                }
+            });
+
+            // Toggle the clicked subtype container
+            if (subtypesContainer) {
+                subtypesContainer.classList.toggle('show');
+                this.classList.toggle('active');
+            }
+        });
+    });
+
+    // Handle specific type button clicks
+    specificTypeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const parentId = this.getAttribute('data-parent-id');
+            const parentButton = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
+            const input = this.closest('.wsf-subtype-item').querySelector('.wsf-specific-input');
+            
+            // Toggle active state
+            this.classList.toggle('active');
+            
+            // Enable/disable the hidden input based on selection
+            if (this.classList.contains('active')) {
+                input.disabled = false;
+            } else {
+                input.disabled = true;
+            }
+            
+            // Update parent button state
+            if (parentButton) {
+                const hasActiveSubtypes = this.closest('.wsf-subtypes').querySelectorAll('.wsf-specific-type.active').length > 0;
+                parentButton.classList.toggle('has-selected', hasActiveSubtypes);
+            }
+        });
+    });
+
+    // Handle "Other" button click
+    if (autreBtn) {
+        autreBtn.addEventListener('click', function() {
+            autreInputContainer.classList.toggle('wsf-hidden');
+            this.classList.toggle('active');
+        });
+    }
+
     // Initialize map with Morocco center coordinates
     var map = L.map('locationMap').setView([31.7917, -7.0926], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1223,6 +1283,12 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const formData = new FormData(this);
+        
+        // Remove any disabled inputs from the form data
+        const disabledInputs = document.querySelectorAll('input[disabled]');
+        disabledInputs.forEach(input => {
+            formData.delete(input.name);
+        });
         
         // Add media files
         const mediaItems = mediaContainer.querySelectorAll('img, video');
