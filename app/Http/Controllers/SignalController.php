@@ -56,7 +56,7 @@ class SignalController extends Controller
                 'waste_types.*' => 'nullable|exists:waste_types,id',
                 'media.*' => 'nullable|file|mimes:jpg,jpeg,png,mp4|max:10240',
                 'volume' => 'required|numeric|min:0',
-                'custom_type' => 'nullable|string',
+                'customType' => 'nullable|string',
                 'description' => 'nullable|string|max:1000',
             ]);
 
@@ -74,7 +74,7 @@ class SignalController extends Controller
                 'latitude' => $validated['latitude'],
                 'longitude' => $validated['longitude'],
                 'volume' => $validated['volume'],
-                'custom_type' => $validated['custom_type'] ?? '',
+                'custom_type' => $validated['customType'] ?? '',
                 'description' => $validated['description'] ?? null,
                 'signal_date' => now(),
                 'waste_types' => $wasteTypes
@@ -97,15 +97,62 @@ class SignalController extends Controller
 
                 // Handle media uploads
                 if ($request->hasFile('media')) {
+                    Log::info('Media files received:', [
+                        'count' => count($request->file('media')),
+                        'files' => array_map(function($file) {
+                            return [
+                                'name' => $file->getClientOriginalName(),
+                                'mime' => $file->getMimeType(),
+                                'size' => $file->getSize()
+                            ];
+                        }, $request->file('media'))
+                    ]);
+
                     foreach ($request->file('media') as $file) {
-                        $filePath = $file->store('signals_media');
-                        Media::create([
+                        try {
+                            // Store the file in storage/app/signals_media directory
+                            $filePath = $file->storeAs('signals_media', $file->getClientOriginalName());
+                            
+                            // Get the full storage path
+                            $fullPath = Storage::path($filePath);
+                            Log::info('Attempting to store file:', [
+                                'original_name' => $file->getClientOriginalName(),
+                                'storage_path' => $filePath,
+                                'full_path' => $fullPath
+                            ]);
+                            
+                            // Verify file exists after storage
+                            if (!Storage::exists($filePath)) {
+                                throw new \Exception("File was not stored successfully at path: {$filePath}");
+                            }
+                            
+                            // Create media record
+                            $media = Media::create([
                             'signal_id' => $signal->id,
                             'media_type' => $file->getMimeType(),
                             'file_path' => $filePath,
                         ]);
+                            
+                            Log::info('Media file stored successfully:', [
+                                'signal_id' => $signal->id,
+                                'media_id' => $media->id,
+                                'file_path' => $filePath,
+                                'mime_type' => $file->getMimeType(),
+                                'storage_path' => $fullPath
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Error storing media file:', [
+                                'error' => $e->getMessage(),
+                                'file_name' => $file->getClientOriginalName(),
+                                'signal_id' => $signal->id,
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                            throw $e;
+                        }
                     }
-                    Log::info('Media files processed for signal ID: ' . $signal->id);
+                    Log::info('Media files processing completed for signal ID: ' . $signal->id);
+                } else {
+                    Log::info('No media files received in request');
                 }
 
                 DB::commit();

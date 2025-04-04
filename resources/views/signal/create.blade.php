@@ -1297,9 +1297,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(res => res.blob())
                 .then(blob => {
                     const ext = media.tagName === 'IMG' ? 'jpg' : 'webm';
-                    formData.append(`media[]`, blob, `file${index}.${ext}`);
+                    formData.append('media[]', blob, `file${index}.${ext}`);
+                    console.log('Added media file to form data:', `file${index}.${ext}`);
+                })
+                .catch(error => {
+                    console.error('Error adding media file to form data:', error);
                 });
         });
+
+        // Log form data contents
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         // Submit the form
         fetch(this.action, {
