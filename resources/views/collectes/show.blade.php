@@ -603,14 +603,14 @@
                                 @method('PATCH')
                                 <div class="mb-3">
                                     <label class="form-label">Update Status</label>
-                                    <select name="status" class="form-select">
+                                    <select name="status" class="form-select" id="statusSelect">
                                         <option value="planned" {{ $collecte->status === 'planned' ? 'selected' : '' }}>Planned</option>
                                         <option value="in_progress" {{ $collecte->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                         <option value="completed" {{ $collecte->status === 'completed' ? 'selected' : '' }}>Completed</option>
                                         <option value="cancelled" {{ $collecte->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                                     </select>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100">
+                                <button type="submit" class="btn btn-primary w-100" id="updateStatusBtn">
                                     <i class="bi bi-check-circle"></i> Update Status
                                 </button>
                             </form>
@@ -629,6 +629,36 @@
                                         <i class="bi bi-person-x"></i> Leave Collection
                                     </button>
                                 </form>
+                            @endif
+                        @endif
+                        @if(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id() && $collecte->status === 'completed')
+                            @php
+                                $rapport = \App\Models\Rapport::where('collecte_id', $collecte->id)->first();
+                            @endphp
+                            
+                            @if($rapport)
+                                <a href="{{ route('rapport.edit', $collecte) }}" class="btn btn-primary w-100 mt-3">
+                                    <i class="bi bi-pencil"></i> Edit Rapport
+                                </a>
+                                
+                                <!-- Export Rapport Dropdown Button -->
+                                <div class="dropdown w-100 mt-3">
+                                    <button class="btn btn-outline-primary w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-download"></i> Export Rapport
+                                    </button>
+                                    <ul class="dropdown-menu w-100">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('rapport.export', ['collecte' => $collecte, 'format' => 'pdf']) }}">
+                                                <i class="bi bi-file-pdf"></i> Export as PDF
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('rapport.export', ['collecte' => $collecte, 'format' => 'csv']) }}">
+                                                <i class="bi bi-file-excel"></i> Export as CSV
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             @endif
                         @endif
                     </div>
@@ -687,6 +717,25 @@
             .addTo(map)
             .bindPopup('{{ $collecte->location }}')
             .openPopup();
+
+        // Status change handling
+        const statusSelect = document.getElementById('statusSelect');
+        const statusForm = statusSelect?.closest('form');
+
+        if (statusSelect && statusForm) {
+            statusForm.addEventListener('submit', function(e) {
+                if (statusSelect.value === 'completed') {
+                    const currentStatus = '{{ $collecte->status }}';
+                    if (currentStatus === 'in_progress') {
+                        e.preventDefault();
+                        window.location.href = '{{ route('rapport.generate', $collecte) }}';
+                    } else if (currentStatus !== 'completed') {
+                        e.preventDefault();
+                        alert('Collection must be in progress before it can be marked as completed.');
+                    }
+                }
+            });
+        }
     });
 </script>
 @endpush

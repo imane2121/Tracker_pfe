@@ -20,6 +20,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\RegionSubscriptionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RapportController;
 
 
 /*
@@ -94,6 +95,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/subscriptions', [RegionSubscriptionController::class, 'store'])->name('subscriptions.store');
     Route::put('/subscriptions/{region}', [RegionSubscriptionController::class, 'update'])->name('subscriptions.update');
     Route::delete('/subscriptions/{region}', [RegionSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+
+    // Rapport routes
+    Route::get('/rapports/generate/{collecte}', [RapportController::class, 'generate'])
+        ->name('rapport.generate');
+    Route::post('/rapports', [RapportController::class, 'store'])
+        ->name('rapport.store');
 });
 
 
@@ -219,4 +226,18 @@ Route::middleware(['auth', 'role:admin,supervisor'])->group(function () {
         ->name('collecte.create');
     Route::post('/collectes', [CollecteController::class, 'store'])
         ->name('collecte.store');
+});
+
+Route::get('/rapport/{collecte}/edit', [RapportController::class, 'edit'])->name('rapport.edit');
+Route::put('/rapport/{collecte}', [RapportController::class, 'update'])->name('rapport.update');
+Route::get('/rapport/{collecte}/export', [RapportController::class, 'export'])->name('rapport.export');
+
+Route::middleware(['auth'])->group(function () {
+    // For creating new rapport
+    Route::get('/rapport/{collecte}/generate', [RapportController::class, 'generate'])->name('rapport.generate');
+    Route::post('/rapport/{collecte}', [RapportController::class, 'store'])->name('rapport.store');
+    
+    // For updating existing rapport
+    Route::get('/rapport/{collecte}/edit', [RapportController::class, 'edit'])->name('rapport.edit');
+    Route::put('/rapport/{collecte}', [RapportController::class, 'update'])->name('rapport.update');
 });

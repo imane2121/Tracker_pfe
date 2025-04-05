@@ -71,6 +71,11 @@ class Collecte extends Model
         return $this->hasOne(ChatRoom::class);
     }
 
+    public function rapport()
+    {
+        return $this->hasOne(Rapport::class);
+    }
+
     // Scopes
     public function scopeUpcoming($query)
     {

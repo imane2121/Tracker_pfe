@@ -388,7 +388,7 @@
                                                 <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </form>
-                                    @elseif(!$collecte->isFull && !$collecte->contributors->contains(auth()->id()))
+                                    @elseif(!$collecte->isFull && !$collecte->contributors->contains(auth()->id()) && $collecte->status === 'planned')
                                         <form action="{{ route('collecte.join', $collecte) }}" method="POST" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-success">

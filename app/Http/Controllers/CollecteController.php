@@ -195,8 +195,11 @@ class CollecteController extends Controller
 
     public function show(Collecte $collecte)
     {
+        // Get all waste types
+        $wasteTypes = WasteTypes::all();
+        
         $collecte->load(['signal', 'creator', 'contributors', 'media']);
-        return view('collectes.show', compact('collecte'));
+        return view('collectes.show', compact('collecte', 'wasteTypes'));
     }
 
     public function edit(Collecte $collecte)
