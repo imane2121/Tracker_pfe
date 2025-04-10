@@ -24,7 +24,7 @@ html body section.report-callout .report-callout-wrapper::before {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
-    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E") !important;
+    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-3.134-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E") !important;
     opacity: 0.6 !important;
     z-index: 1 !important;
 }
@@ -503,7 +503,7 @@ html body section.report-callout .pulse {
     <section id="hero" class="hero section accent-background">
     <img src="{{ asset('assets/img/hero-bg.jpg') }}" alt="" data-aos="fade-in">
       <div class="container text-center" data-aos="fade-up" data-aos-delay="100">
-        <h9>Clean Seas Project</h9>
+        <h9>AquaScan</h9>
         <p>Protect Our Seas—Together, Let's Fight Marine Pollution!</p>
         <a href="#articles" class="btn-scroll" title="Scroll Down"><i class="bi bi-chevron-down"></i></a>
       </div>
@@ -604,7 +604,7 @@ html body section.report-callout .pulse {
       </div>    
                                 <div class="collecte-actions">
                                     @auth
-                                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" class="d-flex justify-content-center w-100">
+                                        <form action="{{ route('collecte.join', $collecte) }}" method="POST" class="d-flex justify-content-center w-100">
                                             @csrf
                                             <button type="submit" class="volunteer-button">Volunteer</button>
                                         </form>
@@ -692,12 +692,27 @@ html body section.report-callout .pulse {
                 </div>
                 <div class="modal-footer">
                     @auth
-                        <form action="{{ route('collecte.join', $collecte->id) }}" method="POST" class="d-flex justify-content-center w-100">
-                            @csrf
-                            <button type="submit" class="volunteer-button">Volunteer Now</button>
-                        </form>
+                        <div class="popup-item mt-3">
+                            @if(!$collecte->isFull && !$collecte->contributors->contains(auth()->id()))
+                                <form action="{{ route('collecte.join', $collecte) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-user-plus"></i> Volunteer
+                                    </button>
+                                </form>
+                            @elseif($collecte->contributors->contains(auth()->id()))
+                                <form action="{{ route('collecte.leave', $collecte) }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                        <i class="fas fa-user-minus"></i> Leave
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     @else
-                        <a href="{{ route('login') }}" class="volunteer-button">Sign Up to Volunteer</a>
+                        <a href="{{ route('login') }}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-sign-in-alt"></i> Sign in to volunteer
+                        </a>
                     @endauth
                 </div>
               </div>
@@ -1326,35 +1341,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 var marker = L.marker(
                     [collecte.display_latitude, collecte.display_longitude],
                     { icon: getVolumeIcon(collecte.volume) }
-                ).bindPopup(`
-                    <div class="map-popup">
-                        <h5 class="popup-title">${collecte.location}</h5>
-                        <div class="popup-content">
-                            <div class="popup-item">
-                                <i class="fas fa-info-circle text-info"></i>
-                                <span>Status: ${collecte.status}</span>
-                            </div>
-                            <div class="popup-item">
-                                <i class="fas fa-calendar-alt text-warning"></i>
-                                <span>Date: ${collecte.starting_date ? new Date(collecte.starting_date).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            <div class="popup-item">
-                                <i class="fas fa-users text-success"></i>
-                                <span>${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0} volunteers</span>
-                            </div>
-                            ${collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors ? `
+                ).bindPopup(function() {
+                    // Need to determine whether current user is already a volunteer
+                    var isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+                    var currentUserId = {{ auth()->check() ? auth()->id() : '0' }};
+                    var isAlreadyVolunteer = false;
+                    
+                    // Check if user is already a volunteer
+                    if (isLoggedIn && collecte.contributors) {
+                        isAlreadyVolunteer = collecte.contributors.some(function(contributor) {
+                            return contributor.id === currentUserId;
+                        });
+                    }
+                    
+                    var volunteerButton = '';
+                    if (isLoggedIn) {
+                        if (!isAlreadyVolunteer && collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors) {
+                            volunteerButton = `
+                                <div class="popup-item mt-3">
+                                    <form action="/collectes/${collecte.id}/join" method="POST" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            <i class="fas fa-user-plus"></i> Volunteer
+                                        </button>
+                                    </form>
+                                </div>
+                            `;
+                        } else if (isAlreadyVolunteer) {
+                            volunteerButton = `
+                                <div class="popup-item mt-3">
+                                    <form action="/collectes/${collecte.id}/leave" method="POST" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm w-100">
+                                            <i class="fas fa-user-minus"></i> Leave
+                                        </button>
+                                    </form>
+                                </div>
+                            `;
+                        }
+                    } else if (collecte.status === 'planned' && collecte.current_contributors < collecte.nbrContributors) {
+                        volunteerButton = `
                             <div class="popup-item mt-3">
-                                <form action="{{ route('collecte.join', '') }}/${collecte.id}" method="POST" style="display: inline;">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                                        <i class="fas fa-user-plus"></i> Volunteer
-                                    </button>
-                                </form>
+                                <a href="/login" class="btn btn-primary btn-sm w-100">
+                                    <i class="fas fa-sign-in-alt"></i> Sign in to volunteer
+                                </a>
                             </div>
-                            ` : ''}
+                        `;
+                    }
+                    
+                    return `
+                        <div class="map-popup">
+                            <h5 class="popup-title">${collecte.location}</h5>
+                            <div class="popup-content">
+                                <div class="popup-item">
+                                    <i class="fas fa-info-circle text-info"></i>
+                                    <span>Status: ${collecte.status}</span>
+                                </div>
+                                <div class="popup-item">
+                                    <i class="fas fa-calendar-alt text-warning"></i>
+                                    <span>Date: ${collecte.starting_date ? new Date(collecte.starting_date).toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                                <div class="popup-item">
+                                    <i class="fas fa-users text-success"></i>
+                                    <span>${collecte.current_contributors || 0} / ${collecte.nbrContributors || 0} volunteers</span>
+                                </div>
+                                ${volunteerButton}
+                            </div>
                         </div>
-                    </div>
-                `);
+                    `;
+                });
                 
                 marker.addTo(map);
                 markers.push(marker);

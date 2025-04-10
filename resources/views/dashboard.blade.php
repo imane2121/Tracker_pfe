@@ -9,7 +9,7 @@
                 <div class="position-relative z-2">
                     <h2 class="welcome-title text-white mb-2 d-flex align-items-center">
                         <i class="bi bi-person-circle me-2"></i>
-                        Welcome back, {{ Auth::user()->first_name }}!
+                        Welcome back, {{ Auth::user()->first_name }}! Your contribution matters!
                     </h2>
                     <p class="text-white-50 mb-0">
                         @if(Auth::user()->isAdmin())
@@ -265,68 +265,7 @@
         @endif
     </div>
 
-    <!-- Map and Critical Areas Row -->
-    @if(Auth::user()->isAdmin() || Auth::user()->isSupervisor())
-    <div class="row g-4">
-        <!-- Critical Areas -->
-        <div class="col-12 {{ Auth::user()->isAdmin() ? 'col-lg-12' : 'col-lg-4' }}">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-gradient-danger text-white rounded-top-4">
-                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Critical Areas</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div id="critical-areas-map" class="mb-4 rounded-4 shadow-sm" style="height: {{ Auth::user()->isAdmin() ? '400px' : '200px' }};"></div>
-                    <hr class="my-4">
-                    <h6 class="text-muted mb-4">Top Affected Areas</h6>
-                    <ul class="list-unstyled">
-                        @forelse($topAreas as $area)
-                        <li class="mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <div>
-                                    <span class="text-dark fw-medium">{{ $area['name'] ?? 'Area ' . $loop->iteration }}</span>
-                                    <small class="text-muted d-block">
-                                        <i class="bi bi-geo-alt"></i> {{ number_format($area['coordinates']['lat'], 4) }}, {{ number_format($area['coordinates']['lng'], 4) }}
-                                    </small>
-                                </div>
-                                <span class="ms-auto badge {{ $area['severity'] >= 75 ? 'bg-danger' : ($area['severity'] >= 50 ? 'bg-warning' : 'bg-success') }} rounded-pill">
-                                    {{ $area['severity'] }}%
-                                </span>
-                            </div>
-                            <div class="progress rounded-pill" style="height: 0.5rem;">
-                                <div class="progress-bar {{ $area['severity'] >= 75 ? 'bg-danger' : ($area['severity'] >= 50 ? 'bg-warning' : 'bg-success') }}"
-                                     role="progressbar"
-                                     style="width: {{ $area['severity'] }}%"
-                                     aria-valuenow="{{ $area['severity'] }}"
-                                     aria-valuemin="0"
-                                     aria-valuemax="100">
-                                </div>
-                            </div>
-                            <div class="mt-2 d-flex justify-content-between">
-                                <small class="text-muted">
-                                    <i class="bi bi-flag"></i> {{ $area['report_count'] ?? 0 }} reports
-                                </small>
-                                <small class="text-muted">
-                                    <i class="bi bi-trash"></i> {{ $area['total_volume'] ?? 0 }}m³
-                                </small>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock"></i> {{ $area['latest_report'] ?? 'N/A' }}
-                                </small>
-                            </div>
-                        </li>
-                        @empty
-                        <li class="text-center py-4">
-                            <div class="empty-state-icon mb-3">
-                                <i class="bi bi-emoji-smile text-muted"></i>
-                            </div>
-                            <p class="text-muted mb-0">No critical areas found</p>
-                        </li>
-                        @endforelse
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
+
 </div>
 
 @push('scripts')

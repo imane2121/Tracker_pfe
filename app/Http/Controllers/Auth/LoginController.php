@@ -45,16 +45,26 @@ class LoginController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        if ($user->role === 'supervisor' && $user->account_status === 'under_review') {
-            auth()->logout();
-            return redirect()->route('login')
-                ->with('error', 'Votre compte est en cours d\'examen par un administrateur.');
+        // Check for supervisor account status
+        if ($user->role === 'supervisor') {
+            if ($user->account_status === 'under_review') {
+                auth()->logout();
+                return redirect()->route('login')
+                    ->with('error', 'Votre compte superviseur est en cours d\'examen. Vous ne pouvez pas vous connecter tant que votre compte n\'est pas activé par un administrateur.');
+            }
+            
+            if ($user->account_status !== 'active') {
+                auth()->logout();
+                return redirect()->route('login')
+                    ->with('error', 'Votre compte superviseur n\'est pas actif. Veuillez contacter l\'administrateur.');
+            }
         }
 
-        if ($user->account_status !== 'active') {
+        // For contributors, check if account is active
+        if ($user->role === 'contributor' && $user->account_status !== 'active') {
             auth()->logout();
             return redirect()->route('login')
-                ->with('error', 'Votre compte n\'est pas actif.');
+                ->with('error', 'Votre compte n\'est pas actif. Veuillez contacter l\'administrateur.');
         }
 
         return redirect()->intended($this->redirectTo);

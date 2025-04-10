@@ -53,9 +53,7 @@ class RegisterController extends Controller
         // Log the user in after registration
         auth()->login($user);
         
-        // Send verification email
-        $user->sendEmailVerificationNotification();
-        
+        // The verification email will be sent automatically by the VerifiesEmails trait
         return redirect()->route('verification.notice');
     }
 }

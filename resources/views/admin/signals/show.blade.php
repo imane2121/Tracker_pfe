@@ -232,61 +232,107 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-info-circle me-1"></i>
-                    Report Information
+                    Signal Details
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
+                    <div class="row">
                         <div class="col-md-6">
-                            <h5>Location</h5>
-                            <p>{{ $signal->location }}</p>
+                            <p><strong>Location:</strong> {{ $signal->location }}</p>
+                            <p><strong>Coordinates:</strong> {{ $signal->latitude }}, {{ $signal->longitude }}</p>
+                            <p><strong>Volume:</strong> {{ $signal->volume }} m³</p>
+                            <p><strong>Waste Types:</strong></p>
+                            <ul>
+                                @foreach($signal->wasteTypes as $type)
+                                    <li>{{ $type->name }}</li>
+                                @endforeach
+                            </ul>
+                            <p><strong>Description:</strong> {{ $signal->description ?? 'No description provided' }}</p>
                         </div>
                         <div class="col-md-6">
-                            <h5>Reporter</h5>
-                            <div class="reporter-info">
-                                <span class="name">{{ $signal->creator->full_name ?? 'Unknown' }}</span>
-                                <span class="email">{{ $signal->creator->email ?? 'No email provided' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Date Reported</h5>
-                            <p>{{ $signal->signal_date->format('Y-m-d H:i') }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Status</h5>
-                            <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'pending' ? 'warning' : 'danger') }}">
-                                {{ ucfirst($signal->status) }}
-                            </span>
-                            @if($signal->anomaly_flag)
-                                <span class="badge bg-danger ms-2">Anomaly Detected</span>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-{{ $signal->status === 'validated' ? 'success' : ($signal->status === 'rejected' ? 'danger' : 'warning') }}">
+                                    {{ ucfirst($signal->status) }}
+                                </span>
+                            </p>
+                            <p><strong>Reporter:</strong> {{ $signal->creator->first_name }} {{ $signal->creator->last_name }}</p>
+                            <p><strong>Date Reported:</strong> {{ $signal->signal_date->format('Y-m-d H:i') }}</p>
+                            <p><strong>Created:</strong> {{ $signal->created_at->format('Y-m-d H:i') }}</p>
+                            <p><strong>Last Updated:</strong> {{ $signal->updated_at->format('Y-m-d H:i') }}</p>
+                            @if($signal->admin_note)
+                                <p><strong>Admin Note:</strong> {{ $signal->admin_note }}</p>
                             @endif
                         </div>
                     </div>
-                    <div class="row mb-3">
+                </div>
+            </div>
+
+            <!-- AI Analysis Card -->
+            @if($signal->aiAnalysis)
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-robot me-1"></i>
+                    AI Analysis Results
+                </div>
+                <div class="card-body">
+                    <div class="row">
                         <div class="col-md-6">
-                            <h5>Waste Types</h5>
+                            <h5>Detection Summary</h5>
+                            <p>
+                                <strong>Debris Detected:</strong> 
+                                {{ $signal->aiAnalysis->debris_detected ? 'Yes' : 'No' }}
+                            </p>
+                            <p>
+                                <strong>Confidence Score:</strong> 
+                                {{ number_format($signal->aiAnalysis->confidence_score * 100, 1) }}%
+                            </p>
+                            <p>
+                                <strong>Matches Reporter Selection:</strong> 
+                                {{ $signal->aiAnalysis->matches_reporter_selection ? 'Yes' : 'No' }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Detected Waste Types</h5>
                             <ul class="list-unstyled">
-                                @foreach($signal->wasteTypes as $type)
-                                    <li><i class="fas fa-trash me-2"></i>{{ $type->name }}</li>
+                                @foreach($signal->aiAnalysis->detected_waste_types as $type => $confidence)
+                                    <li>
+                                        {{ ucfirst($type) }} 
+                                        ({{ number_format($confidence * 100, 1) }}%)
+                                    </li>
                                 @endforeach
                             </ul>
                         </div>
-                        <div class="col-md-6">
-                            <h5>Volume</h5>
-                            <p>{{ $signal->volume }} m³</p>
-                        </div>
                     </div>
-                    @if($signal->description)
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <h5>Description</h5>
-                                <p>{{ $signal->description }}</p>
-                            </div>
+                    
+                    @if($signal->aiAnalysis->analysis_notes)
+                        <div class="mt-3">
+                            <h5>Analysis Notes</h5>
+                            <p class="text-muted">{{ $signal->aiAnalysis->analysis_notes }}</p>
+                        </div>
+                    @endif
+
+                    @if($signal->aiAnalysis->media_analysis_results)
+                        <div class="mt-3">
+                            <h5>Media Analysis</h5>
+                            @foreach($signal->aiAnalysis->media_analysis_results as $mediaId => $analysis)
+                                <div class="mb-3">
+                                    <h6>Media #{{ str_replace('media_', '', $mediaId) }}</h6>
+                                    @if($analysis['annotated_image'])
+                                        <img src="data:image/jpeg;base64,{{ $analysis['annotated_image'] }}" 
+                                             class="img-fluid mb-2" 
+                                             alt="Annotated Image">
+                                    @endif
+                                    <p>
+                                        <small class="text-muted">
+                                            Processing Time: {{ number_format($analysis['process_time'], 2) }}s
+                                        </small>
+                                    </p>
+                                </div>
+                            @endforeach
                         </div>
                     @endif
                 </div>
             </div>
+            @endif
 
             <!-- Media Gallery -->
             @if($signal->media->count() > 0)

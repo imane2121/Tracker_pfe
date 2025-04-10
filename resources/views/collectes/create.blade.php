@@ -166,55 +166,37 @@
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h10 class="mb-0">Please Select Waste Type</h10>
-                                                    </div>
+            </div>
             <div class="card-body">
-                <div class="wsf-buttons-container d-flex flex-wrap gap-3">
-                    @foreach($wasteTypes->where('parent_id', null) as $wasteType)
-                        <div class="wsf-type-group">
-                            <button type="button" class="wsf-btn-option wsf-general-type" 
-                                    data-waste-type="{{ $wasteType->id }}">
-                                {{ $wasteType->name }}
-                                @if($wasteTypes->where('parent_id', $wasteType->id)->isNotEmpty())
-                                    <i class="bi bi-chevron-down ms-2 toggle-icon"></i>
-                                @endif
-                            </button>
-                            @if($wasteTypes->where('parent_id', $wasteType->id)->isNotEmpty())
-                                <div class="wsf-subtypes" id="subTypes_{{ $wasteType->id }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="waste_type_selector" class="form-label">Select Waste Types</label>
+                        <select class="form-select waste-type-select" id="waste_type_selector" multiple="multiple">
+                            @foreach($wasteTypes->where('parent_id', null) as $wasteType)
+                                <optgroup label="{{ $wasteType->name }}">
                                     @foreach($wasteTypes->where('parent_id', $wasteType->id) as $specificType)
-                                        <div class="wsf-subtype-item">
-                                            <input type="hidden" name="waste_types[]" 
-                                                   value="{{ $specificType->id }}" 
-                                                   data-parent-id="{{ $wasteType->id }}" 
-                                                   disabled>
-                                            <button type="button" class="wsf-btn-option wsf-specific-type" 
-                                                    data-specific-id="{{ $specificType->id }}"
-                                                    data-parent-id="{{ $wasteType->id }}">
-                                                {{ $specificType->name }}
-                                            </button>
-                                        </div>
+                                        <option value="{{ $specificType->id }}" data-parent-id="{{ $wasteType->id }}">
+                                            {{ $specificType->name }}
+                                        </option>
                                     @endforeach
-                                </div>
-                            @endif
+                                </optgroup>
+                            @endforeach
+                        </select>
+                        <div id="selected_waste_types_container">
+                            <!-- Hidden inputs will be added here via JavaScript -->
                         </div>
-                    @endforeach
-                    
-                    <!-- Custom Waste Type 
-                    <div class="wsf-type-group">
-                        <button type="button" class="wsf-btn-option wsf-general-type" id="autreBtn">
-                            Other
-                            <i class="bi bi-chevron-down ms-2 toggle-icon"></i>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Selected Types:</label>
+                        <div id="selected_types_display" class="p-2 border rounded bg-light min-height-100">
+                            <p class="text-muted mb-0" id="no_types_message">No waste types selected</p>
+                            <div id="selected_badges_container" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="resetWasteTypes">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear Selection
                         </button>
-                        <div id="autreInputContainer" class="wsf-subtypes">
-                            <div class="wsf-subtype-item">
-                                <input type="text" name="customType" id="autreInput" 
-                                    class="form-control" placeholder="Enter waste type">
-                            </div>
-                        </div>
-                    </div>-->
+                    </div>
                 </div>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="resetWasteTypes">
-                    <i class="bi bi-arrow-counterclockwise"></i> Reset Selection
-                </button>
             </div>
         </div>
 
@@ -283,6 +265,7 @@
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     /* Add all the styles from signal/create.blade.php */
     .mb-7 { margin-bottom: 7rem !important; }
@@ -346,122 +329,45 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    .wsf-buttons-container {
+    /* New Waste Type Selection Styles */
+    .select2-container--default .select2-selection--multiple {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem;
+        min-height: 100px;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 0.2rem rgba(32, 84, 144, 0.1);
+    }
+
+    .waste-type-badge {
+        background-color: #364e9c;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .waste-type-badge .badge-remove {
+        margin-left: 0.5rem;
+        cursor: pointer;
+    }
+
+    .min-height-100 {
+        min-height: 100px;
+    }
+
+    #selected_badges_container {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .wsf-type-group {
-        flex: 0 0 calc(33.333% - 1rem); /* 3 items per row with gap */
-        min-width: 250px;
-        margin-bottom: 0.5rem;
-    }
-
-    .wsf-btn-option {
-        width: 100%;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 8px;
-        background-color: #f8f9fa;
-        color: #495057;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .wsf-btn-option:hover {
-        background-color: #e9ecef;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .wsf-btn-option.active {
-        background-color: #364e9c;
-        color: white;
-    }
-
-    .wsf-btn-option.has-selected {
-        background-color: #364e9c;
-        color: white;
-    }
-
-    .toggle-icon {
-        transition: transform 0.3s ease;
-    }
-
-    .wsf-btn-option.expanded .toggle-icon {
-        transform: rotate(180deg);
-    }
-
-    .wsf-subtypes {
-        display: none;
-        padding: 0.75rem;
-        margin-top: 0.5rem;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        border: 1px solid #dee2e6;
-    }
-
-    .wsf-subtypes.show {
-        display: block;
-        animation: slideDown 0.3s ease;
-    }
-
-    .wsf-subtype-item {
-        margin: 0.5rem 0;
-    }
-
-    .wsf-specific-type {
-        background-color: white !important;
-        border: 1px solid #dee2e6 !important;
-        box-shadow: none !important;
-        padding: 0.5rem 1rem !important;
-    }
-
-    .wsf-specific-type:hover {
-        background-color: #f8f9fa !important;
-        border-color: #364e9c !important;
-    }
-
-    .wsf-specific-type.active {
-        background-color: #364e9c !important;
-        color: white !important;
-        border-color: #364e9c !important;
-    }
-
-    #autreInput {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 0.5rem 1rem;
-    }
-
-    #autreInput:focus {
-        border-color: #364e9c;
-        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .wsf-type-group {
-            flex: 0 0 100%;
-        }
+        gap: 0.5rem;
+        padding-top: 0.5rem;
     }
 
     /* Media Upload Styles */
@@ -595,7 +501,386 @@
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize waste type select with Select2
+        $('.waste-type-select').select2({
+            placeholder: "Select waste types",
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Handle waste type selection
+        $('#waste_type_selector').on('change', function() {
+            const selectedOptions = $(this).find(':selected');
+            const container = $('#selected_waste_types_container');
+            const badgesContainer = $('#selected_badges_container');
+            
+            // Clear current inputs and badges
+            container.empty();
+            badgesContainer.empty();
+            
+            if (selectedOptions.length === 0) {
+                $('#no_types_message').show();
+                return;
+            }
+            
+            $('#no_types_message').hide();
+            
+            // Add hidden inputs and visual badges for each selected option
+            selectedOptions.each(function() {
+                const typeId = $(this).val();
+                const typeName = $(this).text();
+                
+                // Add hidden input for form submission
+                container.append(`<input type="hidden" name="waste_types[]" value="${typeId}">`);
+                
+                // Add visual badge
+                badgesContainer.append(`
+                    <span class="waste-type-badge" data-type-id="${typeId}">
+                        ${typeName}
+                        <span class="badge-remove ms-2" onclick="removeWasteType(${typeId})">
+                            <i class="bi bi-x"></i>
+                        </span>
+                    </span>
+                `);
+            });
+        });
+        
+        // Reset waste types selection
+        $('#resetWasteTypes').click(function() {
+            $('#waste_type_selector').val(null).trigger('change');
+            $('#selected_waste_types_container').empty();
+            $('#selected_badges_container').empty();
+            $('#no_types_message').show();
+        });
+
+        // Add to global scope for onclick handler
+        window.removeWasteType = function(typeId) {
+            const select = $('#waste_type_selector');
+            
+            // Remove from select2
+            const currentValues = select.val() || [];
+            const newValues = currentValues.filter(value => value != typeId);
+            select.val(newValues).trigger('change');
+        };
+        
+        // Initialize the collection location map separately
+        const locationMap = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(locationMap);
+
+        // Create draggable marker
+        let locationMarker = L.marker([{{ $centerLat }}, {{ $centerLng }}], {
+            draggable: true
+        }).addTo(locationMap);
+
+        // Update form inputs immediately when marker is dragged
+        locationMarker.on('dragend', function(event) {
+            const position = locationMarker.getLatLng();
+            
+            // Update hidden inputs
+            document.getElementById('latitude').value = position.lat;
+            document.getElementById('longitude').value = position.lng;
+            
+            // Debug log
+            console.log('New marker position:', {
+                lat: position.lat,
+                lng: position.lng,
+                formLat: document.getElementById('latitude').value,
+                formLng: document.getElementById('longitude').value
+            });
+        });
+
+        // Form submission validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            // Get final coordinates
+            const finalLat = document.getElementById('latitude').value;
+            const finalLng = document.getElementById('longitude').value;
+            
+            // Debug log before submission
+            console.log('Submitting coordinates:', {
+                lat: finalLat,
+                lng: finalLng,
+                markerPosition: locationMarker.getLatLng()
+            });
+        });
+
+        // Reset Map Pin Handler with proper coordinate update
+        document.getElementById('resetMapPin').addEventListener('click', function() {
+            const initialLat = {{ $centerLat }};
+            const initialLng = {{ $centerLng }};
+            
+            locationMarker.setLatLng([initialLat, initialLng]);
+            locationMap.setView([initialLat, initialLng], 13);
+            
+            // Update form inputs
+            document.getElementById('latitude').value = initialLat;
+            document.getElementById('longitude').value = initialLng;
+            
+            // Debug log
+            console.log('Reset to initial coordinates:', {
+                lat: initialLat,
+                lng: initialLng
+            });
+        });
+
+        // Set minimum date for starting_date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('starting_date').min = today;
+
+        // Update end_date minimum when starting_date changes
+        document.getElementById('starting_date').addEventListener('change', function() {
+            document.getElementById('end_date').min = this.value;
+        });
+
+        // Media Upload Handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const mediaContainer = document.getElementById('mediaContainer');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles({ target: { files } });
+        });
+
+        fileInput.addEventListener('change', handleFiles);
+
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                    alert('File size should not exceed 2MB');
+                    return;
+                }
+
+                if (!file.type.match('image.*') && !file.type.match('video.*')) {
+                    alert('Only image and video files are allowed');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => createPreviewItem(e.target.result, file.type);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function createPreviewItem(src, type) {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-3';
+            
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+
+            const media = type.startsWith('image/') ? 
+                document.createElement('img') : 
+                document.createElement('video');
+
+            media.src = src;
+            if (type.startsWith('video/')) {
+                media.controls = true;
+            }
+            previewItem.appendChild(media);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+            removeBtn.onclick = () => col.remove();
+
+            previewItem.appendChild(removeBtn);
+            col.appendChild(previewItem);
+            mediaContainer.appendChild(col);
+        }
+
+        // Replace the signals map initialization section with:
+        @if(!$isUrgent)
+            // Initialize signals map
+            const signalsMap = L.map('signalsMap').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(signalsMap);
+
+            // Store markers and selected signals
+            const markers = {};
+            let selectedSignals = new Set({{ json_encode($signals ? $signals->pluck('id') : []) }});
+
+            // Define marker colors
+            const markerColors = {
+                selected: '#0d6efd',   // blue for selected
+                unselected: '#dc3545', // red for unselected
+                validated: '#198754',  // green for validated status
+                pending: '#ffc107'     // yellow for pending status
+            };
+
+            // Create markers for all signals
+            @if($signals)
+                @foreach($signals as $signal)
+                    const marker{{ $signal->id }} = L.circleMarker(
+                        [{{ $signal->latitude }}, {{ $signal->longitude }}],
+                        {
+                            radius: 8,
+                            fillColor: markerColors.selected,
+                            color: '#fff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }
+                    ).addTo(signalsMap);
+
+                    // Add popup with signal info and toggle button
+                    marker{{ $signal->id }}.bindPopup(`
+                        <div class="text-center">
+                            <strong>{{ $signal->location }}</strong><br>
+                            Volume: {{ $signal->volume }}m³<br>
+                            Status: <span class="badge bg-${getStatusColor('{{ $signal->status }}')}">
+                                {{ ucfirst($signal->status) }}
+                            </span><br>
+                            <button type="button" 
+                                    class="btn btn-sm btn-toggle mt-2 ${selectedSignals.has({{ $signal->id }}) ? 'btn-danger' : 'btn-primary'}"
+                                    onclick="toggleSignal({{ $signal->id }})">
+                                ${selectedSignals.has({{ $signal->id }}) ? 'Remove' : 'Add'} Signal
+                            </button>
+                        </div>
+                    `);
+
+                    markers[{{ $signal->id }}] = marker{{ $signal->id }};
+                @endforeach
+            @endif
+        @else
+            // For urgent collectes
+            const markers = {};
+            let selectedSignals = new Set([]);
+        @endif
+
+        // Function to toggle signal selection
+        window.toggleSignal = function(signalId) {
+            if (selectedSignals.has(signalId)) {
+                selectedSignals.delete(signalId);
+                markers[signalId].setStyle({ fillColor: markerColors.unselected });
+            } else {
+                selectedSignals.add(signalId);
+                markers[signalId].setStyle({ fillColor: markerColors.selected });
+            }
+
+            // Update hidden input and counter
+            document.getElementById('finalSignalIds').value = JSON.stringify(Array.from(selectedSignals));
+            document.getElementById('selectedCount').textContent = `${selectedSignals.size} signals selected`;
+            
+            // Update popup content
+            const marker = markers[signalId];
+            const popup = marker.getPopup();
+            const content = popup.getContent();
+            popup.setContent(content.replace(
+                selectedSignals.has(signalId) ? 'btn-primary' : 'btn-danger',
+                selectedSignals.has(signalId) ? 'btn-danger' : 'btn-primary'
+            ).replace(
+                selectedSignals.has(signalId) ? 'Add' : 'Remove',
+                selectedSignals.has(signalId) ? 'Remove' : 'Add'
+            ));
+        }
+
+        // Helper function to get status color
+        function getStatusColor(status) {
+            return status === 'validated' ? 'success' : 'warning';
+        }
+
+        // Fit map bounds to show all signals
+        @if(!$isUrgent && $signals && $signals->count() > 0)
+            const bounds = L.featureGroup(Object.values(markers)).getBounds();
+            signalsMap.fitBounds(bounds);
+        @endif
+
+        // Add form submission validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            @if(!$isUrgent)
+                if (selectedSignals.size === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one signal for the collection.');
+                }
+            @endif
+        });
+
+        // Get waste types from selected signals
+        @if(!$isUrgent && $signals)
+            const signalWasteTypes = @json($signals->pluck('waste_types')->flatten()->unique());
+
+            // Pre-select waste types from signals
+            signalWasteTypes.forEach(wasteTypeId => {
+                // Find the specific type button
+                const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
+                if (specificTypeBtn) {
+                    // Get parent type button and container
+                    const parentId = specificTypeBtn.dataset.parentId;
+                    const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
+                    const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
+
+                    // Show subtypes container
+                    if (subtypesContainer) {
+                        subtypesContainer.classList.add('show');
+                        parentBtn.classList.add('expanded');
+                    }
+
+                    // Activate the specific type
+                    specificTypeBtn.classList.add('active');
+                    const input = specificTypeBtn.previousElementSibling;
+                    if (input) {
+                        input.disabled = false;
+                    }
+
+                    // Update parent button state
+                    if (parentBtn) {
+                        parentBtn.classList.add('has-selected');
+                    }
+
+                    // Add to selected types set
+                    selectedTypes.add(wasteTypeId.toString());
+                }
+            });
+        @else
+            const signalWasteTypes = [];
+        @endif
+
+        // Store initial coordinates
+        const initialLat = {{ $centerLat }};
+        const initialLng = {{ $centerLng }};
+
+        // Reset Waste Types Handler
+        document.getElementById('resetWasteTypes').addEventListener('click', function() {
+            // Reset all specific types
+            document.querySelectorAll('.wsf-specific-type.active').forEach(button => {
+                button.classList.remove('active');
+                const input = button.previousElementSibling;
+                if (input) {
+                    input.disabled = true;
+                }
+            });
+
+            // Reset all parent buttons
+            document.querySelectorAll('.wsf-general-type.has-selected').forEach(button => {
+                button.classList.remove('has-selected');
+            });
+
+            // Clear selected types set
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the collection location map separately
     const locationMap = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);

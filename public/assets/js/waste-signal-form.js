@@ -35,9 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     // Dark Mode Toggle
-    const darkModeToggle = document.createElement('button');
-    darkModeToggle.className = 'btn btn-dark position-fixed bottom-0 end-0 m-3';
-    darkModeToggle.innerHTML = '<i class="bi bi-moon"></i> Dark Mode';
     darkModeToggle.onclick = () => {
         document.body.classList.toggle('dark-mode');
         darkModeToggle.innerHTML = document.body.classList.contains('dark-mode')

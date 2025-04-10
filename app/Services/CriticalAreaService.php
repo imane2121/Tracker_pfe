@@ -71,7 +71,7 @@ class CriticalAreaService
             ->where('status', 'validated')
             ->whereRaw('NOT EXISTS (
                 SELECT 1 FROM collectes 
-                WHERE JSON_CONTAINS(collectes.signal_ids, CAST(signals.id AS JSON))
+                WHERE JSON_CONTAINS(collectes.signal_ids, CAST(signals.id AS CHAR))
             )')
             ->get()
             ->map(function ($signal) {

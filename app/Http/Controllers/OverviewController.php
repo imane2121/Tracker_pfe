@@ -9,13 +9,15 @@ use App\Models\WasteTypes;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OverviewController extends Controller
 {
     public function index()
     {
         // Get ALL collectes with their own coordinates
-        $mapCollectes = Collecte::select(
+        $mapCollectes = Collecte::with('contributors')
+            ->select(
             'id', 
             'signal_ids', 
             'starting_date', 
@@ -54,7 +56,7 @@ class OverviewController extends Controller
         });
 
         // Debug: Log the final count
-        \Log::info('Collectes after processing: ' . $mapCollectes->count());
+        Log::info('Collectes after processing: ' . $mapCollectes->count());
 
         // Get upcoming collectes
         $upcomingCollectes = Collecte::where('starting_date', '>', Carbon::now())

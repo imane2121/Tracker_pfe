@@ -36,7 +36,7 @@ class VerificationController extends Controller
         }
 
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect($this->redirectTo);
+            return $this->redirectBasedOnStatus($request->user());
         }
 
         if ($request->user()->markEmailAsVerified()) {
@@ -52,10 +52,15 @@ class VerificationController extends Controller
             $user->save();
         }
 
-        if ($request->user()->role === 'supervisor') {
-            return redirect($this->redirectTo)->with('status', 'Your email has been verified. Your account is under review by an administrator.');
-        }
+        return $this->redirectBasedOnStatus($request->user());
+    }
 
+    protected function redirectBasedOnStatus($user)
+    {
+        if ($user->role === 'supervisor' && $user->account_status === 'under_review') {
+            return redirect()->route('account.under.review');
+        }
+        
         return redirect($this->redirectTo)->with('status', 'Your email has been verified!');
     }
 

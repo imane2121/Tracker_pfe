@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\SignalService;
 use App\Models\WasteTypes;
+use App\Services\AiAnalysisService;
 
 class Signal extends Model
 {
@@ -52,6 +53,11 @@ class Signal extends Model
         return $this->hasMany(Media::class);
     }
 
+    public function aiAnalysis()
+    {
+        return $this->hasOne(SignalAiAnalysis::class);
+    }
+
     public function collectes()
     {
         // Don't use belongsToMany since we're using a JSON column
@@ -87,7 +93,9 @@ class Signal extends Model
 
     public function getWasteTypeNames()
     {
-        return $this->waste_types->pluck('name')->toArray();
+        // The waste_types property is an array, not a collection, so we can't use pluck()
+        // Instead, we need to use the relationship to get the waste type names
+        return $this->waste_types()->pluck('name')->toArray();
     }
 
     protected static function boot()
@@ -99,11 +107,97 @@ class Signal extends Model
             $signal->status = $signalService->determineSignalStatus($signal, $signal->creator);
         });
 
-        static::saved(function ($signal) {
-            if ($signal->isDirty('anomaly_flag') && $signal->anomaly_flag) {
-                $signalService = app(SignalService::class);
-                $signalService->handleAnomalyDetection($signal);
+        static::created(function ($signal) {
+            try {
+                // Ensure we have the latest media relationship
+                $signal->refresh();
+                $signal->load('media');
+                
+                // Trigger AI analysis when media is added during creation
+                if ($signal->media->isNotEmpty()) {
+                    \Illuminate\Support\Facades\Log::info('Triggering AI analysis after signal creation', [
+                        'signal_id' => $signal->id,
+                        'media_count' => $signal->media->count()
+                    ]);
+                    
+                    $aiService = app(\App\Services\AiAnalysisService::class);
+                    $aiService->analyzeSignal($signal);
+                } else {
+                    \Illuminate\Support\Facades\Log::info('No media found after signal creation, skipping AI analysis', [
+                        'signal_id' => $signal->id
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error triggering AI analysis after signal creation', [
+                    'signal_id' => $signal->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
             }
         });
+
+        static::saved(function ($signal) {
+            try {
+                if ($signal->isDirty('anomaly_flag') && $signal->anomaly_flag) {
+                    $signalService = app(SignalService::class);
+                    $signalService->handleAnomalyDetection($signal);
+                }
+                
+                // Reload the model to get the latest relationships
+                $signal->refresh();
+                $signal->load(['media', 'aiAnalysis']);
+                
+                // Check if we need to run AI analysis
+                $shouldRunAnalysis = $signal->media->isNotEmpty() && 
+                                     (!$signal->aiAnalysis || 
+                                     ($signal->wasChanged('waste_types') && $signal->aiAnalysis));
+                
+                if ($shouldRunAnalysis) {
+                    \Illuminate\Support\Facades\Log::info('Triggering AI analysis after signal update', [
+                        'signal_id' => $signal->id,
+                        'media_count' => $signal->media->count(),
+                        'has_analysis' => (bool)$signal->aiAnalysis
+                    ]);
+                    
+                    $aiService = app(\App\Services\AiAnalysisService::class);
+                    $aiService->analyzeSignal($signal);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error in signal saved event', [
+                    'signal_id' => $signal->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        });
+    }
+    
+    /**
+     * Manually trigger AI analysis after media has been attached
+     * This should be called from the controller after all media is saved
+     */
+    public function triggerAiAnalysisAfterMediaAttached()
+    {
+        try {
+            // Reload with fresh media
+            $this->refresh();
+            $this->load(['media', 'aiAnalysis']);
+            
+            if ($this->media->isNotEmpty() && !$this->aiAnalysis) {
+                \Illuminate\Support\Facades\Log::info('Manually triggering AI analysis after media attachment', [
+                    'signal_id' => $this->id,
+                    'media_count' => $this->media->count()
+                ]);
+                
+                $aiService = app(\App\Services\AiAnalysisService::class);
+                $aiService->analyzeSignal($this);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error in manual AI analysis trigger', [
+                'signal_id' => $this->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 }

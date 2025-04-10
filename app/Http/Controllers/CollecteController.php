@@ -281,6 +281,12 @@ class CollecteController extends Controller
     public function join(Collecte $collecte)
     {
         try {
+            // Check if user has already joined this collecte
+            if ($collecte->contributors()->where('user_id', auth()->id())->exists()) {
+                return redirect()->route('collecte.show', $collecte)
+                    ->with('info', 'You are already a volunteer for this collection.');
+            }
+            
             DB::beginTransaction();
             
             // Join the collecte
@@ -298,7 +304,7 @@ class CollecteController extends Controller
             
             DB::commit();
             
-            return redirect()->route('collectes.show', $collecte)
+            return redirect()->route('collecte.show', $collecte)
                 ->with('success', 'Successfully joined the collection.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -324,7 +330,7 @@ class CollecteController extends Controller
             
             DB::commit();
             
-            return redirect()->route('collectes.index')
+            return redirect()->route('collecte.index')
                 ->with('success', 'Successfully left the collection.');
         } catch (\Exception $e) {
             DB::rollBack();

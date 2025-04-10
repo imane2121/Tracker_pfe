@@ -67,10 +67,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
         ->name('verification.resend')
         ->middleware('throttle:3,1');
+
+    // Account under review route
+    Route::get('/account/under-review', function () {
+        return view('auth.account-under-review');
+    })->name('account.under.review');
 });
 
-// Dashboard Route - Protected by auth and verified middleware
-Route::middleware(['auth', 'verified'])->group(function () {
+// Dashboard Route - Protected by auth, verified, and active account middleware
+Route::middleware(['auth', 'verified', 'active.account'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');

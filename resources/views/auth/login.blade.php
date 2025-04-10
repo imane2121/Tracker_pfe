@@ -7,23 +7,23 @@
 
             <!-- Display success message -->
             @if (session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-2">
-                {{ session('success') }}
-            </div>
-        @endif
-        
-        @if (session('info'))
-            <div class="alert alert-info">
-                {{ session('info') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
-        @endif
-        
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+            
+            @if (session('info'))
+                <div class="alert alert-info">
+                    {{ session('info') }}
+                </div>
+            @endif
 
+            @if (session('error'))
+                <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border: 1px solid #f5c6cb; border-radius: 4px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
@@ -41,10 +41,9 @@
                     @enderror
                 </div>
 
-                    <div class="form-check">
-                        <input class="form-check-input" name="remember" type="checkbox" id="remember">
-                        <label class="form-check-label" for="remember">Remember Me</label>
-                    </div>
+                <div class="form-check">
+                    <input class="form-check-input" name="remember" type="checkbox" id="remember">
+                    <label class="form-check-label" for="remember">Remember Me</label>
                 </div>
 
                 <button type="submit" class="SignInBut">Sign In</button>

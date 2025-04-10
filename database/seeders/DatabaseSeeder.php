@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             WasteTypesSeeder::class,
+            MarineWasteTypesSeeder::class,
             SignalSeeder::class,
             ArticleSeeder::class, // Articles before Collectes as they're independent
             CollecteSeeder::class, // Collectes depend on Signals and Users

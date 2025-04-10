@@ -273,13 +273,13 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="mb-0">Collectes</h1>
-                    <p class="mb-0 mt-2">Manage and participate in waste collection events</p>
+                    <h1 class="mb-0">Collections</h1>
+                    <p class="mb-0 mt-2">Participate in waste collection events</p>
                 </div>
                 <div class="col-md-4 text-md-end">
                     @if(auth()->user()->isAdmin() || auth()->user()->isSupervisor())
                         <a href="{{ route('collecte.cluster') }}" class="btn btn-light btn-lg">
-                            <i class="bi bi-plus-circle"></i> Create New Collecte
+                            <i class="bi bi-plus-circle"></i> Create a new collection
                         </a>
                     @endif
                 </div>
@@ -331,8 +331,8 @@
         @if($collectes->isEmpty())
             <div class="collecte-empty-state">
                 <i class="bi bi-people"></i>
-                <h3>No Collectes Found</h3>
-                <p>There are no collectes matching your criteria.</p>
+                <h3>No Collections Found</h3>
+                <p>There are no collections matching your criteria.</p>
                 @if(auth()->user()->isAdmin() || auth()->user()->isSupervisor())
                     <a href="{{ route('collecte.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> Create New Collecte

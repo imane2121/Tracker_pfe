@@ -8,16 +8,16 @@ class WasteTypesSeeder extends Seeder
 {
     public function run()
     {
-        // General Waste Types from cahier des charges
+        // General Waste Types aligned with AI detection categories
         $generalWasteTypes = [
-            'Plastiques',
-            'Métaux',
-            'Verre',
-            'Déchets dangereux',
-            'Matériel de pêche abandonné',
-            'Déchets de bois',
-            'Déchets organiques',
-            'Textiles'
+            'Plastic',
+            'Metal',
+            'Glass',
+            'Hazardous Waste',
+            'Fishing Equipment',
+            'Wood',
+            'Organic Waste',
+            'Textile'
         ];
 
         // Insert General Waste Types
@@ -50,45 +50,45 @@ class WasteTypesSeeder extends Seeder
     private function getSpecificWasteTypes($generalWasteType)
     {
         $specificWasteTypes = [
-            'Plastiques' => [
-                'Bouteilles en plastique',
-                'Emballages alimentaires',
-                'Sachets et sacs en plastique',
-                'Microplastiques'
+            'Plastic' => [
+                'Plastic Bottles',
+                'Food Packaging',
+                'Plastic Bags and Sachets',
+                'Microplastics'
             ],
-            'Métaux' => [
-                'Canettes et boîtes métalliques',
-                'Fragments de ferraille',
-                'Matériaux de construction'
+            'Metal' => [
+                'Cans and Metal Containers',
+                'Metal Fragments',
+                'Construction Materials'
             ],
-            'Verre' => [
-                'Bouteilles en verre',
-                'Fragments de verre cassé'
+            'Glass' => [
+                'Glass Bottles',
+                'Broken Glass'
             ],
-            'Déchets dangereux' => [
-                'Piles et batteries',
-                'Huiles usagées',
-                'Contenants de produits chimiques'
+            'Hazardous Waste' => [
+                'Batteries',
+                'Used Oil',
+                'Chemical Containers'
             ],
-            'Matériel de pêche abandonné' => [
-                'Filets de pêche perdus',
-                'Cordes et lignes de pêche',
-                'Hameçons et plombs'
+            'Fishing Equipment' => [
+                'Fishing Nets',
+                'Ropes and Fishing Lines',
+                'Hooks and Weights'
             ],
-            'Déchets de bois' => [
-                'Bois traité',
-                'Bois naturel',
-                'Objets en bois'
+            'Wood' => [
+                'Treated Wood',
+                'Natural Wood',
+                'Wooden Objects'
             ],
-            'Déchets organiques' => [
-                'Restes alimentaires',
-                'Algues',
-                'Débris végétaux'
+            'Organic Waste' => [
+                'Food Waste',
+                'Algae',
+                'Plant Debris'
             ],
-            'Textiles' => [
-                'Vêtements',
-                'Morceaux de tissu',
-                'Articles textiles'
+            'Textile' => [
+                'Clothing',
+                'Fabric Pieces',
+                'Textile Items'
             ]
         ];
 

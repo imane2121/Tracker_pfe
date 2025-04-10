@@ -35,4 +35,9 @@ return [
         'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'ai' => [
+        'api_url' => env('AI_API_URL', 'http://localhost:5000'),
+        'confidence_threshold' => env('AI_CONFIDENCE_THRESHOLD', 0.25),
+    ],
+
 ];

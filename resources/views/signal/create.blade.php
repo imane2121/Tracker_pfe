@@ -32,40 +32,52 @@
                 <h10 class="mb-0">Please Select Waste Type</h10>
             </div>
             <div class="card-body">
-                <div class="wsf-buttons-container d-flex flex-wrap gap-2">
-                    @foreach($wasteTypes as $wasteType)
-                        <div class="wsf-type-group">
-                            <button type="button" class="wsf-btn-option wsf-general-type" data-waste-type="{{ $wasteType->id }}">
-                                {{ $wasteType->name }}
-                            </button>
-                            @if($wasteType->specificWasteTypes->isNotEmpty())
-                                <div class="wsf-subtypes" id="subTypes_{{ $wasteType->id }}">
+                <div class="waste-type-selection">
+                    <!-- Main Category Dropdown -->
+                    <div class="form-group mb-3">
+                        <label for="generalWasteType" class="form-label">Main Category</label>
+                        <select class="form-select main-category" id="generalWasteType">
+                            <option value="">Select a main category</option>
+                            @foreach($wasteTypes as $wasteType)
+                                <option value="{{ $wasteType->id }}">{{ $wasteType->name }}</option>
+                            @endforeach
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Specific Types Container -->
+                    <div class="specific-types-container mb-3" style="display: none;">
+                        <label class="form-label">Specific Types</label>
+                        <div class="specific-types-grid">
+                            @foreach($wasteTypes as $wasteType)
+                                <div class="specific-type-group" data-parent="{{ $wasteType->id }}" style="display: none;">
                                     @foreach($wasteType->specificWasteTypes as $specificType)
-                                        <div class="wsf-subtype-item">
-                                            <input type="hidden" class="wsf-specific-input" 
+                                        <div class="form-check specific-type-item">
+                                            <input type="checkbox" 
+                                                class="form-check-input specific-type-checkbox" 
                                                 name="waste_types[]" 
                                                 value="{{ $specificType->id }}" 
-                                                data-parent-id="{{ $wasteType->id }}"
-                                                disabled>
-                                            <button type="button" class="wsf-btn-option wsf-specific-type" 
-                                                data-specific-id="{{ $specificType->id }}"
-                                                data-parent-id="{{ $wasteType->id }}">
+                                                id="type_{{ $specificType->id }}">
+                                            <label class="form-check-label" for="type_{{ $specificType->id }}">
                                                 {{ $specificType->name }}
-                                            </button>
+                                            </label>
                                         </div>
                                     @endforeach
                                 </div>
-                            @endif
+                            @endforeach
                         </div>
-                    @endforeach
-                    
-                    <!-- Custom Waste Type -->
-                    <div class="wsf-type-group">
-                        <button type="button" class="wsf-btn-option wsf-general-type" id="autreBtn">Other</button>
-                        <div id="autreInputContainer" class="wsf-hidden">
-                            <input type="text" name="customType" id="autreInput" 
-                                class="form-control mt-2" placeholder="Enter waste type">
-                        </div>
+                    </div>
+
+                    <!-- Other Type Input -->
+                    <div class="form-group other-type-input" style="display: none;">
+                        <label for="customType" class="form-label">Specify Other Type</label>
+                        <input type="text" class="form-control" id="customType" name="customType" placeholder="Enter waste type">
+                    </div>
+
+                    <!-- Selected Types Preview -->
+                    <div class="selected-types-preview mt-3" style="display: none;">
+                        <label class="form-label">Selected Types:</label>
+                        <div class="selected-types-badges"></div>
                     </div>
                 </div>
             </div>
@@ -124,7 +136,7 @@
                         <i class="bi bi-cloud-upload"></i>
                         <p>Drag & drop files here or click to select</p>
                         <small class="text-muted">Supported formats: Images and Videos (max 10MB)</small>
-                        <input type="file" id="fileInput" accept="image/*,video/*" multiple class="d-none">
+                        <input type="file" id="fileInput" name="media[]" accept="image/*,video/*" multiple class="d-none">
                             </div>
                     
                     <div class="preview-container position-relative">
@@ -215,8 +227,8 @@
         </div>
 
         <!-- Submit Buttons -->
-        <div class="d-flex gap-3 justify-content-end w-100 align-items-center ">
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+        <div class="d-flex gap-3 justify-content-end w-100 align-items-center">
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-lg cancel-btn">
                 <i class="bi bi-x-circle"></i> Cancel
             </a>
             <button type="submit" class="btn btn-success btn-lg btn btn-primary w-50 use-location-btn ms-auto">
@@ -675,8 +687,8 @@
         background: rgba(130, 50, 50, 0.9);
         border: none;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        width: 30px !important;
+        height: 30px !important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -843,6 +855,120 @@
             font-size: 0.9rem;
         }
     }
+
+    /* Waste Type Selection Styles */
+    .waste-type-selection {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .main-category {
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .main-category:focus {
+        border-color: var(--primary-gradient-start);
+        box-shadow: 0 0 0 0.2rem rgba(32, 84, 144, 0.1);
+    }
+
+    .specific-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .specific-type-item {
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .specific-type-item:hover {
+        border-color: var(--primary-gradient-start);
+        background-color: #f8f9fa;
+    }
+
+    .form-check-input:checked + .form-check-label {
+        color: var(--primary-gradient-start);
+        font-weight: 500;
+    }
+
+    .selected-types-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .selected-type-badge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        gap: 0.5rem;
+    }
+
+    .remove-type {
+        background: none;
+        border: none;
+        color: white;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .remove-type:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .specific-types-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .specific-type-item {
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    /* Submit Button Styles */
+    .cancel-btn {
+        width: auto;
+        min-width: 120px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    @media (max-width: 768px) {
+        .cancel-btn {
+            min-width: 100px;
+            padding: 0.5rem 1rem;
+        }
+    }
 </style>
 @endpush
 
@@ -851,63 +977,79 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Waste Type Selection Handling
-    const generalTypeButtons = document.querySelectorAll('.wsf-general-type');
-    const specificTypeButtons = document.querySelectorAll('.wsf-specific-type');
-    const autreBtn = document.getElementById('autreBtn');
-    const autreInputContainer = document.getElementById('autreInputContainer');
+    const generalSelect = document.getElementById('generalWasteType');
+    const specificTypesContainer = document.querySelector('.specific-types-container');
+    const otherTypeInput = document.querySelector('.other-type-input');
+    const selectedTypesPreview = document.querySelector('.selected-types-preview');
+    const selectedTypesBadges = document.querySelector('.selected-types-badges');
+    const specificTypeGroups = document.querySelectorAll('.specific-type-group');
+    const checkboxes = document.querySelectorAll('.specific-type-checkbox');
 
-    // Handle general type button clicks
-    generalTypeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const wasteTypeId = this.getAttribute('data-waste-type');
-            const subtypesContainer = document.getElementById(`subTypes_${wasteTypeId}`);
+    // Handle main category selection
+    generalSelect.addEventListener('change', function() {
+        const selectedValue = this.value;
+        
+        // Hide all specific type groups first
+        specificTypeGroups.forEach(group => group.style.display = 'none');
+        
+        if (selectedValue === 'other') {
+            specificTypesContainer.style.display = 'none';
+            otherTypeInput.style.display = 'block';
+        } else if (selectedValue) {
+            specificTypesContainer.style.display = 'block';
+            otherTypeInput.style.display = 'none';
             
-            // Close all other subtype containers
-            document.querySelectorAll('.wsf-subtypes').forEach(container => {
-                if (container !== subtypesContainer) {
-                    container.classList.remove('show');
-                }
+            // Show specific types for selected category
+            const selectedGroup = document.querySelector(`.specific-type-group[data-parent="${selectedValue}"]`);
+            if (selectedGroup) {
+                selectedGroup.style.display = 'block';
+            }
+        } else {
+            specificTypesContainer.style.display = 'none';
+            otherTypeInput.style.display = 'none';
+        }
+        
+        updateSelectedTypesPreview();
+    });
+
+    // Handle checkbox changes
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedTypesPreview);
+    });
+
+    function updateSelectedTypesPreview() {
+        const selectedTypes = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => ({
+                id: cb.value,
+                name: cb.nextElementSibling.textContent.trim()
+            }));
+
+        if (selectedTypes.length > 0) {
+            selectedTypesPreview.style.display = 'block';
+            selectedTypesBadges.innerHTML = selectedTypes.map(type => `
+                <div class="selected-type-badge">
+                    ${type.name}
+                    <button type="button" class="remove-type" data-id="${type.id}">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            // Add click handlers for remove buttons
+            document.querySelectorAll('.remove-type').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const typeId = this.dataset.id;
+                    const checkbox = document.querySelector(`input[value="${typeId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        updateSelectedTypesPreview();
+                    }
+                });
             });
-
-            // Toggle the clicked subtype container
-            if (subtypesContainer) {
-                subtypesContainer.classList.toggle('show');
-                this.classList.toggle('active');
-            }
-        });
-    });
-
-    // Handle specific type button clicks
-    specificTypeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const parentId = this.getAttribute('data-parent-id');
-            const parentButton = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
-            const input = this.closest('.wsf-subtype-item').querySelector('.wsf-specific-input');
-            
-            // Toggle active state
-            this.classList.toggle('active');
-            
-            // Enable/disable the hidden input based on selection
-            if (this.classList.contains('active')) {
-                input.disabled = false;
-            } else {
-                input.disabled = true;
-            }
-            
-            // Update parent button state
-            if (parentButton) {
-                const hasActiveSubtypes = this.closest('.wsf-subtypes').querySelectorAll('.wsf-specific-type.active').length > 0;
-                parentButton.classList.toggle('has-selected', hasActiveSubtypes);
-            }
-        });
-    });
-
-    // Handle "Other" button click
-    if (autreBtn) {
-        autreBtn.addEventListener('click', function() {
-            autreInputContainer.classList.toggle('wsf-hidden');
-            this.classList.toggle('active');
-        });
+        } else {
+            selectedTypesPreview.style.display = 'none';
+        }
     }
 
     // Initialize map with Morocco center coordinates
@@ -917,9 +1059,84 @@ document.addEventListener('DOMContentLoaded', function() {
     }).addTo(map);
 
     var marker;
+    
+    // Define Morocco's coastal boundaries (rough approximation)
+    const coastalBoundaries = [
+        // Atlantic Coast (North to South)
+        { lat: 35.9191, lng: -5.8659 },  // Tangier
+        { lat: 34.0531, lng: -6.7988 },  // Rabat
+        { lat: 33.5992, lng: -7.6338 },  // Casablanca
+        { lat: 32.2994, lng: -9.2372 },  // El Jadida
+        { lat: 31.5085, lng: -9.7595 },  // Essaouira
+        { lat: 30.4278, lng: -9.5981 },  // Agadir
+        { lat: 28.4520, lng: -11.1514 }, // Sidi Ifni
+        { lat: 27.9397, lng: -12.9264 }, // Laayoune
+        { lat: 23.7141, lng: -15.9369 }, // Dakhla
+        
+        // Mediterranean Coast (East to West)
+        { lat: 35.1736, lng: -2.9287 },  // Nador
+        { lat: 35.2540, lng: -3.9375 },  // Al Hoceima
+        { lat: 35.5689, lng: -5.3565 }   // Tetouan
+    ];
 
-    // Function to update marker position
+    // Maximum distance from coast in kilometers
+    const MAX_DISTANCE_FROM_COAST = 5;
+
+    // Function to calculate distance between two points using Haversine formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // Function to check if location is near the coast
+    function isNearCoast(lat, lng) {
+        let minDistance = Infinity;
+        let nearestPoint = null;
+
+        // Convert coordinates to numbers to ensure proper comparison
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+
+        coastalBoundaries.forEach(point => {
+            const distance = calculateDistance(lat, lng, point.lat, point.lng);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestPoint = point;
+            }
+        });
+
+        return {
+            isValid: minDistance <= MAX_DISTANCE_FROM_COAST,
+            distance: minDistance,
+            nearestPoint: nearestPoint
+        };
+    }
+
+    // Function to update marker position with coastal validation
     function updateMarkerPosition(lat, lng, shouldZoom = true) {
+        // Convert coordinates to numbers
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+        
+        const coastalCheck = isNearCoast(lat, lng);
+        
+        if (!coastalCheck.isValid) {
+            Swal.fire({
+                title: 'Invalid Location',
+                html: `This location is too far from the coast.<br>
+                      Please select a location within ${MAX_DISTANCE_FROM_COAST}km of the coastline.<br>
+                      Current distance: ${coastalCheck.distance.toFixed(2)}km`,
+                icon: 'error'
+            });
+            return false;
+        }
+
         if (marker) {
             map.removeLayer(marker);
         }
@@ -942,14 +1159,50 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error getting location name:', error);
             });
+
+        return true;
     }
 
-    // Handle map clicks
-    map.on('click', function(e) {
-        updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+    // Add coastal boundaries visualization
+    const coastalLine = L.polyline(coastalBoundaries.map(point => [point.lat, point.lng]), {
+        color: '#0e346a',
+        weight: 3,
+        opacity: 0.7,
+        dashArray: '5, 10'
+    }).addTo(map);
+
+    // Add buffer zone visualization
+    coastalBoundaries.forEach(point => {
+        L.circle([point.lat, point.lng], {
+            radius: MAX_DISTANCE_FROM_COAST * 1000, // Convert km to meters
+            color: '#0e346a',
+            fillColor: '#0e346a',
+            fillOpacity: 0.1,
+            weight: 1
+        }).addTo(map);
     });
 
-    // Handle "Use My Location" button click
+    // Handle map clicks with validation
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        const coastalCheck = isNearCoast(lat, lng);
+        if (!coastalCheck.isValid) {
+            Swal.fire({
+                title: 'Invalid Location',
+                html: `This location is too far from the coast.<br>
+                      Please select a location within ${MAX_DISTANCE_FROM_COAST}km of the coastline.<br>
+                      Current distance: ${coastalCheck.distance.toFixed(2)}km`,
+                icon: 'error'
+            });
+            return;
+        }
+        
+        updateMarkerPosition(lat, lng);
+    });
+
+    // Update location validation in the existing click handler
     document.getElementById('useLocationBtn').addEventListener('click', function() {
         if (!navigator.geolocation) {
             Swal.fire({
@@ -971,20 +1224,21 @@ document.addEventListener('DOMContentLoaded', function() {
             function(position) {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                updateMarkerPosition(lat, lng);
+                
+                if (updateMarkerPosition(lat, lng)) {
+                    // Show success message only if location is valid
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Your location has been found',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
                 
                 // Reset button
                 button.disabled = false;
                 button.innerHTML = originalText;
-
-                // Show success message
-                Swal.fire({
-                    title: 'Success',
-                    text: 'Your location has been found',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
             },
             // Error callback
             function(error) {
@@ -1020,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     });
 
-    // Handle location validation
+    // Update location validation button handler
     document.getElementById('validateLocationBtn').addEventListener('click', function() {
         const locationInput = document.getElementById('location').value;
         if (!locationInput) {
@@ -1044,34 +1298,31 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.length > 0) {
                     const location = data[0];
-                    updateMarkerPosition(location.lat, location.lon);
-                    
-                    // Reset button
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-
-                    // Show success message
-                    Swal.fire({
-                        title: 'Success',
-                        text: 'Location validated successfully',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                    if (updateMarkerPosition(location.lat, location.lon)) {
+                        // Show success message only if location is valid
+                        Swal.fire({
+                            title: 'Success',
+                            text: 'Location validated successfully',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
                 } else {
                     throw new Error('Location not found');
                 }
             })
             .catch(error => {
-                // Reset button
-                button.disabled = false;
-                button.innerHTML = originalText;
-
                 Swal.fire({
                     title: 'Error',
                     text: 'Could not find the specified location',
                     icon: 'error'
                 });
+            })
+            .finally(() => {
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalText;
             });
     });
 
@@ -1278,9 +1529,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Form submission
+    // Form submission with validation
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Validate location before submission
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+
+        if (!lat || !lng) {
+            Swal.fire({
+                title: 'Invalid Location',
+                text: 'Please select a valid location on the map',
+                icon: 'error'
+            });
+            return;
+        }
+
+        const coastalCheck = isNearCoast(lat, lng);
+        if (!coastalCheck.isValid) {
+            Swal.fire({
+                title: 'Invalid Location',
+                html: `This location is too far from the coast.<br>
+                      Please select a location within ${MAX_DISTANCE_FROM_COAST}km of the coastline.<br>
+                      Current distance: ${coastalCheck.distance.toFixed(2)}km`,
+                icon: 'error'
+            });
+            return;
+        }
         
         const formData = new FormData(this);
         

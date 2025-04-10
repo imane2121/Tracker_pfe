@@ -103,42 +103,55 @@ class SignalController extends Controller
                             return [
                                 'name' => $file->getClientOriginalName(),
                                 'mime' => $file->getMimeType(),
-                                'size' => $file->getSize()
+                                'size' => $file->getSize(),
+                                'error' => $file->getError(),
+                                'is_valid' => $file->isValid()
                             ];
                         }, $request->file('media'))
                     ]);
 
                     foreach ($request->file('media') as $file) {
                         try {
+                            Log::info('Processing individual file:', [
+                                'name' => $file->getClientOriginalName(),
+                                'mime' => $file->getMimeType(),
+                                'size' => $file->getSize(),
+                                'error' => $file->getError(),
+                                'is_valid' => $file->isValid()
+                            ]);
+
                             // Store the file in storage/app/signals_media directory
-                            $filePath = $file->storeAs('signals_media', $file->getClientOriginalName());
+                            $filePath = $file->storeAs('signals_media', $file->getClientOriginalName(), 'public');
                             
                             // Get the full storage path
-                            $fullPath = Storage::path($filePath);
+                            $fullPath = Storage::path('public/' . $filePath);
                             Log::info('Attempting to store file:', [
                                 'original_name' => $file->getClientOriginalName(),
                                 'storage_path' => $filePath,
-                                'full_path' => $fullPath
+                                'full_path' => $fullPath,
+                                'disk' => config('filesystems.default'),
+                                'exists_before' => Storage::disk('public')->exists($filePath)
                             ]);
                             
                             // Verify file exists after storage
-                            if (!Storage::exists($filePath)) {
+                            if (!Storage::disk('public')->exists($filePath)) {
                                 throw new \Exception("File was not stored successfully at path: {$filePath}");
                             }
                             
                             // Create media record
                             $media = Media::create([
-                            'signal_id' => $signal->id,
-                            'media_type' => $file->getMimeType(),
-                            'file_path' => $filePath,
-                        ]);
+                                'signal_id' => $signal->id,
+                                'media_type' => $file->getMimeType(),
+                                'file_path' => $filePath,
+                            ]);
                             
                             Log::info('Media file stored successfully:', [
                                 'signal_id' => $signal->id,
                                 'media_id' => $media->id,
                                 'file_path' => $filePath,
                                 'mime_type' => $file->getMimeType(),
-                                'storage_path' => $fullPath
+                                'storage_path' => $fullPath,
+                                'media_record' => $media->toArray()
                             ]);
                         } catch (\Exception $e) {
                             Log::error('Error storing media file:', [
@@ -151,6 +164,9 @@ class SignalController extends Controller
                         }
                     }
                     Log::info('Media files processing completed for signal ID: ' . $signal->id);
+                    
+                    // Manually trigger AI analysis after all media has been attached
+                    $signal->triggerAiAnalysisAfterMediaAttached();
                 } else {
                     Log::info('No media files received in request');
                 }

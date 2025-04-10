@@ -376,6 +376,7 @@ button {
   font-weight: bold;
   background: linear-gradient(45deg, #0e346a 0%, #205490 100%);
   color: white;
+  width: 80% !important;
   padding-block: 15px;
   margin: 20px auto;
   border-radius: 20px;
@@ -493,7 +494,7 @@ button:active {
 
 .form .login-button {
     display: block;
-    width: 80%;
+    width: 80% !important;
     font-weight: bold;
     background: linear-gradient(45deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
     color: var(--contrast-color);

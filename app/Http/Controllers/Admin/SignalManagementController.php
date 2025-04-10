@@ -115,7 +115,7 @@ class SignalManagementController extends Controller
 
     public function show(Signal $signal)
     {
-        $signal->load(['creator', 'wasteTypes', 'media']);
+        $signal->load(['creator', 'wasteTypes', 'media', 'aiAnalysis']);
         
         // Get nearby signals within 5km radius
         $nearbySignals = Signal::select(
@@ -300,7 +300,7 @@ class SignalManagementController extends Controller
     public function showBatchValidate()
     {
         $pendingSignals = Signal::where('status', 'pending')
-            ->with(['creator', 'wasteTypes'])
+            ->with(['creator', 'wasteTypes', 'aiAnalysis'])
             ->latest()
             ->paginate(10);
             
@@ -317,10 +317,25 @@ class SignalManagementController extends Controller
         DB::beginTransaction();
         try {
             foreach ($validated['signals'] as $signalId) {
-                $signal = Signal::findOrFail($signalId);
+                $signal = Signal::with('aiAnalysis')->findOrFail($signalId);
+                
+                // Check if AI analysis exists and matches reporter selection
+                $aiValidationNote = '';
+                if ($signal->aiAnalysis) {
+                    if ($signal->aiAnalysis->debris_detected) {
+                        if ($signal->aiAnalysis->matches_reporter_selection) {
+                            $aiValidationNote = 'AI analysis confirms reporter selection.';
+                        } else {
+                            $aiValidationNote = 'AI analysis detected different waste types than reported.';
+                        }
+                    } else {
+                        $aiValidationNote = 'AI analysis did not detect debris in the media.';
+                    }
+                }
+                
                 $signal->update([
                     'status' => 'validated',
-                    'admin_note' => 'Batch validated'
+                    'admin_note' => 'Batch validated. ' . $aiValidationNote
                 ]);
 
                 // Update user's credibility score
