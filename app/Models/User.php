@@ -91,7 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if the user is an admin.
      */
-    public function isAdmin()
+    public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
@@ -112,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if the user is a supervisor.
      */
-    public function isSupervisor()
+    public function isSupervisor(): bool
     {
         return $this->role === 'supervisor';
     }

@@ -18,6 +18,7 @@ use App\Http\Controllers\Messaging\ChatRoomController;
 use App\Models\RegionSubscription;
 use App\Notifications\NewCollectionInRegion;
 use App\Models\City;
+use App\Models\User;
 
 /**
  * @modified Added automatic chat room creation for non-urgent collectes
@@ -186,10 +187,10 @@ class CollecteController extends Controller
             }
 
             return redirect()->route('collecte.show', $collecte)
-                ->with('success', 'Collection created successfully!');
+                /*->with('success', 'Collection created successfully!')*/;
 
         } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage())->withInput();
+            return back()/*->with('error', $e->getMessage())->withInput();*/;
         }
     }
 
@@ -206,7 +207,7 @@ class CollecteController extends Controller
     {
         $user = auth()->user();
         if ($user->role !== 'admin' && $collecte->user_id !== auth()->id()) {
-            return redirect()->back()->with('error', 'You can only edit your own collections.');
+            return redirect()/*->back()->with('error', 'You can only edit your own collections.');*/;
         }
 
         $wasteTypes = WasteTypes::all();
@@ -217,7 +218,7 @@ class CollecteController extends Controller
     {
         $user = auth()->user();
         if ($user->role !== 'admin' && $collecte->user_id !== auth()->id()) {
-            return redirect()->back()->with('error', 'You can only update your own collections.');
+            return redirect()->back()/*->with('error', 'You can only update your own collections.');*/;
         }
 
         $validated = $request->validate([
@@ -255,14 +256,14 @@ class CollecteController extends Controller
         }
 
         return redirect()->route('collecte.show', $collecte)
-            ->with('success', 'Collection updated successfully.');
+            /*->with('success', 'Collection updated successfully.')*/;
     }
 
     public function destroy(Collecte $collecte)
     {
         $user = auth()->user();
         if ($user->role !== 'admin' && $collecte->user_id !== auth()->id()) {
-            return redirect()->back()->with('error', 'You can only delete your own collections.');
+            return redirect()->back()/*->with('error', 'You can only delete your own collections.');*/;
         }
 
         foreach ($collecte->media as $media) {
@@ -272,7 +273,7 @@ class CollecteController extends Controller
         $collecte->delete();
 
         return redirect()->route('collecte.index')
-            ->with('success', 'Collection deleted successfully.');
+            /*->with('success', 'Collection deleted successfully.')*/;
     }
 
     /**
@@ -287,10 +288,17 @@ class CollecteController extends Controller
                     ->with('info', 'You are already a volunteer for this collection.');
             }
             
+            // Check if user has already requested to join
+            if ($collecte->contributors()->where('user_id', auth()->id())->wherePivot('status', 'pending')->exists()) {
+                return redirect()->route('collecte.show', $collecte)
+                    ->with('info', 'You have already requested to join this collection.');
+            }
+            
             DB::beginTransaction();
             
-            // Join the collecte
+            // Create join request
             $collecte->contributors()->attach(auth()->id(), [
+                'status' => 'pending',
                 'joined_at' => now()
             ]);
             
@@ -305,10 +313,10 @@ class CollecteController extends Controller
             DB::commit();
             
             return redirect()->route('collecte.show', $collecte)
-                ->with('success', 'Successfully joined the collection.');
+               /* ->with('success', 'Your request to join the collection has been sent to the supervisor.')*/;
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to join the collection. Please try again.');
+            return back()/*->with('error', 'Failed to send join request. Please try again.');*/;
         }
     }
 
@@ -331,10 +339,10 @@ class CollecteController extends Controller
             DB::commit();
             
             return redirect()->route('collecte.index')
-                ->with('success', 'Successfully left the collection.');
+                /*->with('success', 'Successfully left the collection.')*/;
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to leave the collection. Please try again.');
+            return back()/*->with('error', 'Failed to leave the collection. Please try again.');*/;
         }
     }
 
@@ -342,7 +350,7 @@ class CollecteController extends Controller
     {
         $user = auth()->user();
         if ($user->role !== 'admin' && $collecte->user_id !== auth()->id()) {
-            return redirect()->back()->with('error', 'You can only update the status of your own collections.');
+            return redirect()->back()/*->with('error', 'You can only update the status of your own collections.');*/;
         }
 
         $validated = $request->validate([
@@ -351,23 +359,23 @@ class CollecteController extends Controller
 
         // If moving to completed status, ensure it was in progress
         if ($validated['status'] === Collecte::STATUS_COMPLETED && $collecte->status !== Collecte::STATUS_IN_PROGRESS) {
-            return redirect()->back()->with('error', 'Collection must be in progress before being completed.');
+            return redirect()->back()/*->with('error', 'Collection must be in progress before being completed.')*/;
         }
 
         $collecte->update($validated);
 
-        return redirect()->back()->with('success', 'Collection status updated successfully.');
+        /*return redirect()->back()->with('success', 'Collection status updated successfully.')*/;
     }
 
     public function complete(Request $request, Collecte $collecte)
     {
         $user = auth()->user();
         if ($user->role !== 'admin' && $collecte->user_id !== auth()->id()) {
-            return redirect()->back()->with('error', 'You can only complete your own collections.');
+            return redirect()->back()/*->with('error', 'You can only complete your own collections.');*/;
         }
 
         if (!$collecte->canBeCompleted) {
-            return redirect()->back()->with('error', 'This collection cannot be completed at this time.');
+            return redirect()->back()/*->with('error', 'This collection cannot be completed at this time.');*/;
         }
 
         $validated = $request->validate([
@@ -423,7 +431,7 @@ class CollecteController extends Controller
             DB::commit();
 
             return redirect()->route('collecte.show', $collecte)
-                ->with('success', 'Collection completed successfully.');
+                /*->with('success', 'Collection completed successfully.')*/;
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()
@@ -451,11 +459,11 @@ class CollecteController extends Controller
     public function downloadReport(Collecte $collecte)
     {
         if (!$collecte->report_generated || !$collecte->report_path) {
-            return back()->with('error', 'Report not available for this collection.');
+            return back()/*->with('error', 'Report not available for this collection.');*/;
         }
 
         if (!Storage::exists($collecte->report_path)) {
-            return back()->with('error', 'Report file not found.');
+            return back()/*->with('error', 'Report file not found.');*/;
         }
 
         return Storage::download($collecte->report_path, 'collection_report_' . $collecte->id . '.pdf');
@@ -473,5 +481,69 @@ class CollecteController extends Controller
             ->get();
 
         return view('collectes.cluster', compact('signals'));
+    }
+
+    public function acceptRequest(Collecte $collecte, User $user)
+    {
+        try {
+            // Check if user is authorized (supervisor or admin)
+            if (!auth()->user()->isAdmin() && $collecte->user_id !== auth()->id()) {
+                return redirect()->back()->with('error', 'You are not authorized to accept join requests.');
+            }
+
+            // Check if request exists and is pending
+            if (!$collecte->contributors()->where('user_id', $user->id)->wherePivot('status', 'pending')->exists()) {
+                return redirect()->back()/*->with('error', 'No pending request found for this user.')*/;
+            }
+
+            DB::beginTransaction();
+
+            // Update request status to accepted
+            $collecte->contributors()->updateExistingPivot($user->id, [
+                'status' => 'accepted'
+            ]);
+
+            // Increment contributors count
+            $collecte->increment('current_contributors');
+
+            // If collecte has a chat room, add user as participant
+            if ($chatRoom = $collecte->chatRoom) {
+                $chatRoom->addParticipant($user, 'participant');
+            }
+
+            // Notify the user
+            $user->notify(new \App\Notifications\CollecteRequestAccepted($collecte));
+
+            DB::commit();
+
+            return redirect()->back()/*->with('success', 'Join request accepted successfully.')*/;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()/*->with('error', 'Failed to accept join request. Please try again.')*/;
+        }
+    }
+
+    public function rejectRequest(Collecte $collecte, User $user)
+    {
+        try {
+            // Check if user is authorized (supervisor or admin)
+            if (!auth()->user()->isAdmin() && $collecte->user_id !== auth()->id()) {
+                return redirect()->back()/*->with('error', 'You are not authorized to reject join requests.')*/;
+            }
+
+            // Check if request exists and is pending
+            if (!$collecte->contributors()->where('user_id', $user->id)->wherePivot('status', 'pending')->exists()) {
+                return redirect()->back()/*->with('error', 'No pending request found for this user.')*/;
+            }
+
+            // Update request status to rejected
+            $collecte->contributors()->updateExistingPivot($user->id, [
+                'status' => 'rejected'
+            ]);
+
+            return redirect()->back()/*->with('success', 'Join request rejected successfully.')*/;
+        } catch (\Exception $e) {
+            return back()  /*->with('error', 'Failed to reject join request. Please try again.')*/;
+        }
     }
 } 

@@ -673,24 +673,43 @@
                         <div class="list-group">
                             @forelse($collecte->contributors as $contributor)
                                 <div class="list-group-item d-flex align-items-center">
-                                    <img src="{{ $contributor->profile_photo_url }}" 
-                                         alt="{{ $contributor->first_name }}" 
-                                         class="rounded-circle me-2" 
-                                         width="32" 
-                                         height="32">
+                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                         style="width: 32px; height: 32px; background-color: #e9ecef; color: #495057; font-weight: 500;">
+                                        {{ strtoupper(substr($contributor->first_name, 0, 1)) }}
+                                    </div>
                                     <div>
                                         <h6 class="mb-0">{{ $contributor->first_name }} {{ $contributor->last_name }}</h6>
                                         <small class="text-muted">
-                                            @if($contributor->pivot && $contributor->pivot->joined_at)
-                                                Joined {{ \Carbon\Carbon::parse($contributor->pivot->joined_at)->diffForHumans() }}
+                                            @if($contributor->pivot->status === 'pending')
+                                                <span class="badge bg-warning">Pending</span>
+                                                @if(auth()->user()->isAdmin() || $collecte->user_id === auth()->id())
+                                                    <div class="mt-2">
+                                                        <form action="{{ route('collecte.accept-request', [$collecte, $contributor]) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-success">
+                                                                <i class="bi bi-check-lg"></i> Accept
+                                                            </button>
+                                                        </form>
+                                                        <form action="{{ route('collecte.reject-request', [$collecte, $contributor]) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                                <i class="bi bi-x-lg"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                @endif
+                                            @elseif($contributor->pivot->status === 'accepted')
+                                                <span class="badge bg-success">Accepted</span>
                                             @else
-                                                Joined recently
+                                                <span class="badge bg-danger">Rejected</span>
                                             @endif
                                         </small>
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-muted mb-0">No contributors yet.</p>
+                                <div class="list-group-item text-center text-muted">
+                                    No contributors yet
+                                </div>
                             @endforelse
                         </div>
                     </div>

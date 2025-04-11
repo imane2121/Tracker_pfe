@@ -137,6 +137,8 @@ Route::prefix('collectes')->middleware(['auth', 'verified'])->group(function () 
     Route::patch('/{collecte}/status', [CollecteController::class, 'updateStatus'])->name('collecte.update-status');
     Route::post('/{collecte}/join', [CollecteController::class, 'join'])->name('collecte.join');
     Route::post('/{collecte}/leave', [CollecteController::class, 'leave'])->name('collecte.leave');
+    Route::post('/{collecte}/accept-request/{user}', [CollecteController::class, 'acceptRequest'])->name('collecte.accept-request');
+    Route::post('/{collecte}/reject-request/{user}', [CollecteController::class, 'rejectRequest'])->name('collecte.reject-request');
     
     // Completion and report routes
     Route::post('/{collecte}/complete', [CollecteController::class, 'complete'])->name('collecte.complete');

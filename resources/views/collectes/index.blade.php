@@ -7,11 +7,12 @@
         background: #f8f9fa;
         min-height: 100vh;
         padding-bottom: 3rem;
+        margin-top: -3.5rem; /* Further increased negative margin to remove all gap */
     }
 
     .collecte-header {
         background: linear-gradient(135deg, #0e346a 0%, #1e56b0 100%);
-        padding: 2.5rem 0;
+        padding: 1.5rem 0; /* Reduced padding */
         color: white;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
@@ -138,6 +139,8 @@
         align-items: center;
         gap: 0.5rem;
         transition: all 0.2s;
+        min-width: 100px;
+        justify-content: center;
     }
 
     .btn-outline-primary {
@@ -273,7 +276,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="mb-0">Collections</h1>
+                    <h1 style="color: white !important;">Collections</h1><!--intysar-->
                     <p class="mb-0 mt-2">Participate in waste collection events</p>
                 </div>
                 <div class="col-md-4 text-md-end">
@@ -400,6 +403,13 @@
                                             @csrf
                                             <button type="submit" class="btn btn-danger">
                                                 <i class="bi bi-person-x"></i> Leave
+                                            </button>
+                                        </form>
+                                    @elseif(auth()->user()->role !== 'admin' && auth()->user()->role !== 'supervisor')
+                                        <form action="{{ route('collecte.join', $collecte) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-person-plus"></i> Join
                                             </button>
                                         </form>
                                     @endif
