@@ -38,6 +38,7 @@ return [
     'ai' => [
         'api_url' => env('AI_API_URL', 'http://localhost:5000'),
         'confidence_threshold' => env('AI_CONFIDENCE_THRESHOLD', 0.25),
+        'api_key' => env('AI_API_KEY', '134145500'),
     ],
 
 ];

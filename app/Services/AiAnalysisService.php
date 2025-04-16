@@ -11,11 +11,13 @@ class AiAnalysisService
 {
     protected $apiUrl;
     protected $confidenceThreshold;
+    protected $apiKey;
 
     public function __construct()
     {
         $this->apiUrl = config('services.ai.api_url', 'http://localhost:5000');
         $this->confidenceThreshold = config('services.ai.confidence_threshold', 0.25);
+        $this->apiKey = config('services.ai.api_key', '134145500');
     }
 
     public function analyzeSignal(Signal $signal)
@@ -60,14 +62,16 @@ class AiAnalysisService
 
                 // Send the image to the AI API
                 try {
-                    $response = Http::timeout(30)->attach(
-                        'file', 
-                        file_get_contents($filePath), 
-                        basename($filePath)
-                    )->post($this->apiUrl . '/detect', [
-                        'confidence' => $this->confidenceThreshold,
-                        'reported_types' => json_encode($wasteTypeNames)
-                    ]);
+                    $response = Http::timeout(30)
+                        ->withHeaders(['X-API-Key' => $this->apiKey])
+                        ->attach(
+                            'file', 
+                            file_get_contents($filePath), 
+                            basename($filePath)
+                        )->post($this->apiUrl . '/detect', [
+                            'confidence' => $this->confidenceThreshold,
+                            'reported_types' => json_encode($wasteTypeNames)
+                        ]);
                     
                     Log::info('API response received', [
                         'status' => $response->status(),
