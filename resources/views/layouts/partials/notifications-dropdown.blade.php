@@ -30,6 +30,8 @@
                         <div class="notification-icon">
                             @if($notification->type === 'App\Notifications\NewCollectionInRegion')
                                 <i class="bi bi-calendar-event text-primary"></i>
+                            @elseif($notification->type === 'App\Notifications\ContributorRequest')
+                                <i class="bi bi-person-plus text-info"></i>
                             @else
                                 <i class="bi bi-info-circle text-info"></i>
                             @endif
@@ -47,11 +49,10 @@
                                 </div>
                             </div>
                             <div class="notification-text">{{ $notification->data['message'] ?? '' }}</div>
-                            @if(isset($notification->data['details']))
+                            @if(isset($notification->data['collecte_location']))
                                 <div class="notification-details">
-                                    <div class="detail-item"><i class="bi bi-geo-alt"></i> {{ $notification->data['details']['location'] }}</div>
-                                    <div class="detail-item"><i class="bi bi-calendar"></i> {{ $notification->data['details']['date'] }}</div>
-                                    <div class="detail-item"><i class="bi bi-people"></i> {{ $notification->data['details']['current_contributors'] }}/{{ $notification->data['details']['contributors_needed'] }} contributors</div>
+                                    <div class="detail-item"><i class="bi bi-geo-alt"></i> {{ $notification->data['collecte_location'] }}</div>
+                                    <div class="detail-item"><i class="bi bi-calendar"></i> {{ $notification->data['collecte_date'] }}</div>
                                 </div>
                             @endif
                             <div class="notification-footer">

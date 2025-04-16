@@ -18,6 +18,8 @@ use App\Http\Controllers\Messaging\ChatRoomController;
 use App\Models\RegionSubscription;
 use App\Notifications\NewCollectionInRegion;
 use App\Models\City;
+use App\Models\User;
+use App\Notifications\ContributorRequest;
 
 /**
  * @modified Added automatic chat room creation for non-urgent collectes
@@ -198,7 +200,9 @@ class CollecteController extends Controller
         // Get all waste types
         $wasteTypes = WasteTypes::all();
         
-        $collecte->load(['signal', 'creator', 'contributors', 'media']);
+        // Load relationships
+        $collecte->load(['creator', 'contributors', 'media']);
+        
         return view('collectes.show', compact('collecte', 'wasteTypes'));
     }
 
@@ -281,34 +285,90 @@ class CollecteController extends Controller
     public function join(Collecte $collecte)
     {
         try {
-            // Check if user has already joined this collecte
+            // Check if user has already joined
             if ($collecte->contributors()->where('user_id', auth()->id())->exists()) {
-                return redirect()->route('collecte.show', $collecte)
-                    ->with('info', 'You are already a volunteer for this collection.');
+                return back()->with('error', 'You have already joined this collection.');
+            }
+
+            // Check if collecte is full
+            if ($collecte->current_contributors >= $collecte->nbrContributors) {
+                return back()->with('error', 'This collection is full.');
+            }
+
+            // Check if collecte is still accepting volunteers
+            if ($collecte->status !== 'planned' /*|| !$collecte->accepting_volunteers*/) {
+                return back()->with('error', 'This collection is no longer accepting volunteers.');
+            }
+
+            // Attach the contributor with pending status
+            $collecte->contributors()->attach(auth()->id(), ['status' => 'pending']);
+
+            // Notify supervisor and admins
+            if ($collecte->supervisor) {
+                $collecte->supervisor->notify(new ContributorRequest($collecte, 'pending', auth()->user()));
             }
             
-            DB::beginTransaction();
-            
-            // Join the collecte
-            $collecte->contributors()->attach(auth()->id(), [
+            // Notify admins
+            User::where('role', 'admin')->get()->each(function ($admin) use ($collecte) {
+                $admin->notify(new ContributorRequest($collecte, 'pending', auth()->user()));
+            });
+
+            return back()->with('success', 'Your request to join has been sent. You will be notified when it is accepted.');
+        } catch (\Exception $e) {
+            \Log::error('Join request failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send join request. Please try again later.');
+        }
+    }
+
+    public function approveRequest(Collecte $collecte, User $contributor)
+    {
+        // Check if user is admin or supervisor of this collecte
+        if (!auth()->user()->isAdmin() && 
+            !(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())) {
+            return back()->with('error', 'You are not authorized to approve requests.');
+        }
+
+        try {
+            // Update the contributor's status to accepted
+            $collecte->contributors()->updateExistingPivot($contributor->id, [
+                'status' => 'accepted',
                 'joined_at' => now()
             ]);
-            
-            // Increment contributors count
+
+            // Increment current contributors count
             $collecte->increment('current_contributors');
-            
-            // If collecte has a chat room, add user as participant
-            if ($chatRoom = $collecte->chatRoom) {
-                $chatRoom->addParticipant(auth()->user(), 'participant');
-            }
-            
-            DB::commit();
-            
-            return redirect()->route('collecte.show', $collecte)
-                ->with('success', 'Successfully joined the collection.');
+
+            // Notify the contributor
+            $contributor->notify(new ContributorRequest($collecte, 'accepted', $contributor));
+
+            return back()->with('success', 'Contributor request approved successfully.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Failed to join the collection. Please try again.');
+            \Log::error('Failed to approve contributor request: ' . $e->getMessage());
+            return back()->with('error', 'Failed to approve request. Please try again.');
+        }
+    }
+
+    public function rejectRequest(Collecte $collecte, User $contributor)
+    {
+        // Check if user is admin or supervisor of this collecte
+        if (!auth()->user()->isAdmin() && 
+            !(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())) {
+            return back()->with('error', 'You are not authorized to reject requests.');
+        }
+
+        try {
+            // Update the contributor's status to rejected
+            $collecte->contributors()->updateExistingPivot($contributor->id, [
+                'status' => 'rejected'
+            ]);
+
+            // Notify the contributor
+            $contributor->notify(new ContributorRequest($collecte, 'rejected', $contributor));
+
+            return back()->with('success', 'Contributor request rejected successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to reject contributor request: ' . $e->getMessage());
+            return back()->with('error', 'Failed to reject request. Please try again.');
         }
     }
 

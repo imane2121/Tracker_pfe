@@ -7,6 +7,7 @@
         background: #f8f9fa;
         min-height: 100vh;
         padding-bottom: 3rem;
+        margin-top: -3.5rem;
     }
 
     .collecte-header {
@@ -273,7 +274,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="mb-0">Collections</h1>
+                    <h1 style="color: white !important;">Collections</h1>
                     <p class="mb-0 mt-2">Participate in waste collection events</p>
                 </div>
                 <div class="col-md-4 text-md-end">

@@ -3,6 +3,10 @@
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
+    .title{
+        color: #ffffff !important; 
+    }
+
     .mb-7 { margin-bottom: 7rem !important; }
 
     .waste-signal-form .card {
@@ -196,7 +200,7 @@
                 <!-- Description Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Description</h5>
+                        <h5 class="title">Description</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -208,7 +212,7 @@
                 <!-- Collection Details Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Collection Details</h5>
+                        <h5 class="title">Collection Details</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -231,7 +235,7 @@
                 <!-- Contributors Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Mark Present Contributors</h5>
+                        <h5 class="title">Mark Present Contributors</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -262,7 +266,7 @@
                 <!-- Waste Types Card -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Please Select Waste Type</h5>
+                        <h5 class="title">Please Select Waste Type</h5>
                     </div>
                     <div class="card-body">
                         <div class="wsf-buttons-container d-flex flex-wrap gap-3">
@@ -304,7 +308,7 @@
                 <!-- Location Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Location Information</h5>
+                        <h5 class="title">Location Information</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -331,7 +335,7 @@
                 <!-- Dates Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Collection Dates</h5>
+                        <h5 class="title">Collection Dates</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">

@@ -504,72 +504,17 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize waste type select with Select2
-        $('.waste-type-select').select2({
-            placeholder: "Select waste types",
-            allowClear: true,
-            width: '100%'
+        // Initialize the collection location map
+        const locationMap = L.map('map', {
+            center: [{{ $centerLat }}, {{ $centerLng }}],
+            zoom: 13,
+            zoomControl: true
         });
 
-        // Handle waste type selection
-        $('#waste_type_selector').on('change', function() {
-            const selectedOptions = $(this).find(':selected');
-            const container = $('#selected_waste_types_container');
-            const badgesContainer = $('#selected_badges_container');
-            
-            // Clear current inputs and badges
-            container.empty();
-            badgesContainer.empty();
-            
-            if (selectedOptions.length === 0) {
-                $('#no_types_message').show();
-                return;
-            }
-            
-            $('#no_types_message').hide();
-            
-            // Add hidden inputs and visual badges for each selected option
-            selectedOptions.each(function() {
-                const typeId = $(this).val();
-                const typeName = $(this).text();
-                
-                // Add hidden input for form submission
-                container.append(`<input type="hidden" name="waste_types[]" value="${typeId}">`);
-                
-                // Add visual badge
-                badgesContainer.append(`
-                    <span class="waste-type-badge" data-type-id="${typeId}">
-                        ${typeName}
-                        <span class="badge-remove ms-2" onclick="removeWasteType(${typeId})">
-                            <i class="bi bi-x"></i>
-                        </span>
-                    </span>
-                `);
-            });
-        });
-        
-        // Reset waste types selection
-        $('#resetWasteTypes').click(function() {
-            $('#waste_type_selector').val(null).trigger('change');
-            $('#selected_waste_types_container').empty();
-            $('#selected_badges_container').empty();
-            $('#no_types_message').show();
-        });
-
-        // Add to global scope for onclick handler
-        window.removeWasteType = function(typeId) {
-            const select = $('#waste_type_selector');
-            
-            // Remove from select2
-            const currentValues = select.val() || [];
-            const newValues = currentValues.filter(value => value != typeId);
-            select.val(newValues).trigger('change');
-        };
-        
-        // Initialize the collection location map separately
-        const locationMap = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+        // Add the OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
         }).addTo(locationMap);
 
         // Create draggable marker
@@ -577,39 +522,14 @@
             draggable: true
         }).addTo(locationMap);
 
-        // Update form inputs immediately when marker is dragged
+        // Update form inputs when marker is dragged
         locationMarker.on('dragend', function(event) {
             const position = locationMarker.getLatLng();
-            
-            // Update hidden inputs
             document.getElementById('latitude').value = position.lat;
             document.getElementById('longitude').value = position.lng;
-            
-            // Debug log
-            console.log('New marker position:', {
-                lat: position.lat,
-                lng: position.lng,
-                formLat: document.getElementById('latitude').value,
-                formLng: document.getElementById('longitude').value
-            });
         });
 
-        // Form submission validation
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(e) {
-            // Get final coordinates
-            const finalLat = document.getElementById('latitude').value;
-            const finalLng = document.getElementById('longitude').value;
-            
-            // Debug log before submission
-            console.log('Submitting coordinates:', {
-                lat: finalLat,
-                lng: finalLng,
-                markerPosition: locationMarker.getLatLng()
-            });
-        });
-
-        // Reset Map Pin Handler with proper coordinate update
+        // Reset Map Pin Handler
         document.getElementById('resetMapPin').addEventListener('click', function() {
             const initialLat = {{ $centerLat }};
             const initialLng = {{ $centerLng }};
@@ -617,107 +537,22 @@
             locationMarker.setLatLng([initialLat, initialLng]);
             locationMap.setView([initialLat, initialLng], 13);
             
-            // Update form inputs
             document.getElementById('latitude').value = initialLat;
             document.getElementById('longitude').value = initialLng;
-            
-            // Debug log
-            console.log('Reset to initial coordinates:', {
-                lat: initialLat,
-                lng: initialLng
-            });
         });
 
-        // Set minimum date for starting_date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('starting_date').min = today;
-
-        // Update end_date minimum when starting_date changes
-        document.getElementById('starting_date').addEventListener('change', function() {
-            document.getElementById('end_date').min = this.value;
-        });
-
-        // Media Upload Handling
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const mediaContainer = document.getElementById('mediaContainer');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            handleFiles({ target: { files } });
-        });
-
-        fileInput.addEventListener('change', handleFiles);
-
-        function handleFiles(e) {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                    alert('File size should not exceed 2MB');
-                    return;
-                }
-
-                if (!file.type.match('image.*') && !file.type.match('video.*')) {
-                    alert('Only image and video files are allowed');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => createPreviewItem(e.target.result, file.type);
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function createPreviewItem(src, type) {
-            const col = document.createElement('div');
-            col.className = 'col-md-4 mb-3';
-            
-            const previewItem = document.createElement('div');
-            previewItem.className = 'preview-item';
-
-            const media = type.startsWith('image/') ? 
-                document.createElement('img') : 
-                document.createElement('video');
-
-            media.src = src;
-            if (type.startsWith('video/')) {
-                media.controls = true;
-            }
-            previewItem.appendChild(media);
-
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-btn';
-            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
-            removeBtn.onclick = () => col.remove();
-
-            previewItem.appendChild(removeBtn);
-            col.appendChild(previewItem);
-            mediaContainer.appendChild(col);
-        }
-
-        // Replace the signals map initialization section with:
-        @if(!$isUrgent)
+        @unless($isUrgent)
             // Initialize signals map
-            const signalsMap = L.map('signalsMap').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
+            const signalsMap = L.map('signalsMap', {
+                center: [{{ $centerLat }}, {{ $centerLng }}],
+                zoom: 13,
+                zoomControl: true
+            });
+
+            // Add the OpenStreetMap tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
             }).addTo(signalsMap);
 
             // Store markers and selected signals
@@ -765,12 +600,17 @@
 
                     markers[{{ $signal->id }}] = marker{{ $signal->id }};
                 @endforeach
+
+                // Fit map bounds to show all signals
+                const bounds = L.featureGroup(Object.values(markers)).getBounds();
+                signalsMap.fitBounds(bounds);
             @endif
-        @else
-            // For urgent collectes
-            const markers = {};
-            let selectedSignals = new Set([]);
-        @endif
+        @endunless
+
+        // Helper function to get status color
+        function getStatusColor(status) {
+            return status === 'validated' ? 'success' : 'warning';
+        }
 
         // Function to toggle signal selection
         window.toggleSignal = function(signalId) {
@@ -798,527 +638,7 @@
                 selectedSignals.has(signalId) ? 'Remove' : 'Add'
             ));
         }
-
-        // Helper function to get status color
-        function getStatusColor(status) {
-            return status === 'validated' ? 'success' : 'warning';
-        }
-
-        // Fit map bounds to show all signals
-        @if(!$isUrgent && $signals && $signals->count() > 0)
-            const bounds = L.featureGroup(Object.values(markers)).getBounds();
-            signalsMap.fitBounds(bounds);
-        @endif
-
-        // Add form submission validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            @if(!$isUrgent)
-                if (selectedSignals.size === 0) {
-                    e.preventDefault();
-                    alert('Please select at least one signal for the collection.');
-                }
-            @endif
-        });
-
-        // Get waste types from selected signals
-        @if(!$isUrgent && $signals)
-            const signalWasteTypes = @json($signals->pluck('waste_types')->flatten()->unique());
-
-            // Pre-select waste types from signals
-            signalWasteTypes.forEach(wasteTypeId => {
-                // Find the specific type button
-                const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
-                if (specificTypeBtn) {
-                    // Get parent type button and container
-                    const parentId = specificTypeBtn.dataset.parentId;
-                    const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
-                    const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
-
-                    // Show subtypes container
-                    if (subtypesContainer) {
-                        subtypesContainer.classList.add('show');
-                        parentBtn.classList.add('expanded');
-                    }
-
-                    // Activate the specific type
-                    specificTypeBtn.classList.add('active');
-                    const input = specificTypeBtn.previousElementSibling;
-                    if (input) {
-                        input.disabled = false;
-                    }
-
-                    // Update parent button state
-                    if (parentBtn) {
-                        parentBtn.classList.add('has-selected');
-                    }
-
-                    // Add to selected types set
-                    selectedTypes.add(wasteTypeId.toString());
-                }
-            });
-        @else
-            const signalWasteTypes = [];
-        @endif
-
-        // Store initial coordinates
-        const initialLat = {{ $centerLat }};
-        const initialLng = {{ $centerLng }};
-
-        // Reset Waste Types Handler
-        document.getElementById('resetWasteTypes').addEventListener('click', function() {
-            // Reset all specific types
-            document.querySelectorAll('.wsf-specific-type.active').forEach(button => {
-                button.classList.remove('active');
-                const input = button.previousElementSibling;
-                if (input) {
-                    input.disabled = true;
-                }
-            });
-
-            // Reset all parent buttons
-            document.querySelectorAll('.wsf-general-type.has-selected').forEach(button => {
-                button.classList.remove('has-selected');
-            });
-
-            // Clear selected types set
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the collection location map separately
-    const locationMap = L.map('map').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(locationMap);
-
-    // Create draggable marker
-    let locationMarker = L.marker([{{ $centerLat }}, {{ $centerLng }}], {
-        draggable: true
-    }).addTo(locationMap);
-
-    // Update form inputs immediately when marker is dragged
-    locationMarker.on('dragend', function(event) {
-        const position = locationMarker.getLatLng();
-        
-        // Update hidden inputs
-        document.getElementById('latitude').value = position.lat;
-        document.getElementById('longitude').value = position.lng;
-        
-        // Debug log
-        console.log('New marker position:', {
-            lat: position.lat,
-            lng: position.lng,
-            formLat: document.getElementById('latitude').value,
-            formLng: document.getElementById('longitude').value
-        });
     });
-
-    // Form submission validation
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        // Get final coordinates
-        const finalLat = document.getElementById('latitude').value;
-        const finalLng = document.getElementById('longitude').value;
-        
-        // Debug log before submission
-        console.log('Submitting coordinates:', {
-            lat: finalLat,
-            lng: finalLng,
-            markerPosition: locationMarker.getLatLng()
-        });
-    });
-
-    // Reset Map Pin Handler with proper coordinate update
-    document.getElementById('resetMapPin').addEventListener('click', function() {
-        const initialLat = {{ $centerLat }};
-        const initialLng = {{ $centerLng }};
-        
-        locationMarker.setLatLng([initialLat, initialLng]);
-        locationMap.setView([initialLat, initialLng], 13);
-        
-        // Update form inputs
-        document.getElementById('latitude').value = initialLat;
-        document.getElementById('longitude').value = initialLng;
-        
-        // Debug log
-        console.log('Reset to initial coordinates:', {
-            lat: initialLat,
-            lng: initialLng
-        });
-    });
-
-    // Set minimum date for starting_date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('starting_date').min = today;
-
-    // Update end_date minimum when starting_date changes
-    document.getElementById('starting_date').addEventListener('change', function() {
-        document.getElementById('end_date').min = this.value;
-    });
-
-    // Media Upload Handling
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const mediaContainer = document.getElementById('mediaContainer');
-
-    uploadArea.addEventListener('click', () => fileInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadArea.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadArea.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadArea.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        handleFiles({ target: { files } });
-    });
-
-    fileInput.addEventListener('change', handleFiles);
-
-    function handleFiles(e) {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                alert('File size should not exceed 2MB');
-                return;
-            }
-
-            if (!file.type.match('image.*') && !file.type.match('video.*')) {
-                alert('Only image and video files are allowed');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => createPreviewItem(e.target.result, file.type);
-            reader.readAsDataURL(file);
-        });
-    }
-
-    function createPreviewItem(src, type) {
-        const col = document.createElement('div');
-        col.className = 'col-md-4 mb-3';
-        
-        const previewItem = document.createElement('div');
-        previewItem.className = 'preview-item';
-
-        const media = type.startsWith('image/') ? 
-            document.createElement('img') : 
-            document.createElement('video');
-
-        media.src = src;
-        if (type.startsWith('video/')) {
-            media.controls = true;
-        }
-        previewItem.appendChild(media);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.innerHTML = '<i class="bi bi-x"></i>';
-        removeBtn.onclick = () => col.remove();
-
-        previewItem.appendChild(removeBtn);
-        col.appendChild(previewItem);
-        mediaContainer.appendChild(col);
-    }
-
-    const generalTypes = document.querySelectorAll('.wsf-general-type');
-    let selectedTypes = new Set();
-
-    // Handle parent type clicks
-    generalTypes.forEach(button => {
-        button.addEventListener('click', function() {
-            if (this.id === 'autreBtn') {
-                handleAutreButton();
-                return;
-            }
-
-            const wasteTypeId = this.dataset.wasteType;
-            const subtypes = document.getElementById(`subTypes_${wasteTypeId}`);
-            
-            if (subtypes) {
-                // Toggle subtypes visibility
-                subtypes.classList.toggle('show');
-                this.classList.toggle('expanded');
-                
-                // Update other buttons if needed
-                if (this.id !== 'autreBtn') {
-                    document.getElementById('autreInputContainer').classList.remove('show');
-                    document.getElementById('autreBtn').classList.remove('expanded');
-                }
-            }
-        });
-    });
-    
-    // Handle specific type selection
-    const specificTypes = document.querySelectorAll('.wsf-specific-type');
-    specificTypes.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent event bubbling
-            
-            const parentId = this.dataset.parentId;
-            const input = this.previousElementSibling;
-            const parentButton = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
-            
-            // Toggle selection
-            this.classList.toggle('active');
-            input.disabled = !this.classList.contains('active');
-
-            // Update selected types set
-            if (this.classList.contains('active')) {
-                selectedTypes.add(this.dataset.specificId);
-            } else {
-                selectedTypes.delete(this.dataset.specificId);
-            }
-
-            // Update parent button state
-            const hasSelected = document.querySelectorAll(
-                `.wsf-specific-type[data-parent-id="${parentId}"].active`
-            ).length > 0;
-            parentButton.classList.toggle('has-selected', hasSelected);
-        });
-    });
-
-    function handleAutreButton() {
-        const autreBtn = document.getElementById('autreBtn');
-        const autreInputContainer = document.getElementById('autreInputContainer');
-        
-        // Toggle autre input
-        autreInputContainer.classList.toggle('show');
-        autreBtn.classList.toggle('expanded');
-        
-        if (autreInputContainer.classList.contains('show')) {
-            document.getElementById('autreInput').focus();
-        }
-    }
-
-    // Close other expanded items when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.wsf-type-group')) {
-            document.querySelectorAll('.wsf-subtypes.show').forEach(subtypes => {
-                if (subtypes.id !== 'autreInputContainer') {
-                    subtypes.classList.remove('show');
-                    subtypes.previousElementSibling.classList.remove('expanded');
-                }
-            });
-        }
-    });
-
-    // Replace the signals map initialization section with:
-    @if(!$isUrgent)
-        // Initialize signals map
-        const signalsMap = L.map('signalsMap').setView([{{ $centerLat }}, {{ $centerLng }}], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(signalsMap);
-
-        // Store markers and selected signals
-        const markers = {};
-        let selectedSignals = new Set({{ json_encode($signals ? $signals->pluck('id') : []) }});
-
-        // Define marker colors
-        const markerColors = {
-            selected: '#0d6efd',   // blue for selected
-            unselected: '#dc3545', // red for unselected
-            validated: '#198754',  // green for validated status
-            pending: '#ffc107'     // yellow for pending status
-        };
-
-        // Create markers for all signals
-        @if($signals)
-            @foreach($signals as $signal)
-                const marker{{ $signal->id }} = L.circleMarker(
-                    [{{ $signal->latitude }}, {{ $signal->longitude }}],
-                    {
-                        radius: 8,
-                        fillColor: markerColors.selected,
-                        color: '#fff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }
-                ).addTo(signalsMap);
-
-                // Add popup with signal info and toggle button
-                marker{{ $signal->id }}.bindPopup(`
-                    <div class="text-center">
-                        <strong>{{ $signal->location }}</strong><br>
-                        Volume: {{ $signal->volume }}m³<br>
-                        Status: <span class="badge bg-${getStatusColor('{{ $signal->status }}')}">
-                            {{ ucfirst($signal->status) }}
-                        </span><br>
-                        <button type="button" 
-                                class="btn btn-sm btn-toggle mt-2 ${selectedSignals.has({{ $signal->id }}) ? 'btn-danger' : 'btn-primary'}"
-                                onclick="toggleSignal({{ $signal->id }})">
-                            ${selectedSignals.has({{ $signal->id }}) ? 'Remove' : 'Add'} Signal
-                        </button>
-                    </div>
-                `);
-
-                markers[{{ $signal->id }}] = marker{{ $signal->id }};
-            @endforeach
-        @endif
-    @else
-        // For urgent collectes
-        const markers = {};
-        let selectedSignals = new Set([]);
-    @endif
-
-    // Function to toggle signal selection
-    window.toggleSignal = function(signalId) {
-        if (selectedSignals.has(signalId)) {
-            selectedSignals.delete(signalId);
-            markers[signalId].setStyle({ fillColor: markerColors.unselected });
-        } else {
-            selectedSignals.add(signalId);
-            markers[signalId].setStyle({ fillColor: markerColors.selected });
-        }
-
-        // Update hidden input and counter
-        document.getElementById('finalSignalIds').value = JSON.stringify(Array.from(selectedSignals));
-        document.getElementById('selectedCount').textContent = `${selectedSignals.size} signals selected`;
-        
-        // Update popup content
-        const marker = markers[signalId];
-        const popup = marker.getPopup();
-        const content = popup.getContent();
-        popup.setContent(content.replace(
-            selectedSignals.has(signalId) ? 'btn-primary' : 'btn-danger',
-            selectedSignals.has(signalId) ? 'btn-danger' : 'btn-primary'
-        ).replace(
-            selectedSignals.has(signalId) ? 'Add' : 'Remove',
-            selectedSignals.has(signalId) ? 'Remove' : 'Add'
-        ));
-    }
-
-    // Helper function to get status color
-    function getStatusColor(status) {
-        return status === 'validated' ? 'success' : 'warning';
-    }
-
-    // Fit map bounds to show all signals
-    @if(!$isUrgent && $signals && $signals->count() > 0)
-        const bounds = L.featureGroup(Object.values(markers)).getBounds();
-        signalsMap.fitBounds(bounds);
-    @endif
-
-    // Add form submission validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        @if(!$isUrgent)
-            if (selectedSignals.size === 0) {
-                e.preventDefault();
-                alert('Please select at least one signal for the collection.');
-            }
-        @endif
-    });
-
-    // Get waste types from selected signals
-    @if(!$isUrgent && $signals)
-        const signalWasteTypes = @json($signals->pluck('waste_types')->flatten()->unique());
-
-        // Pre-select waste types from signals
-        signalWasteTypes.forEach(wasteTypeId => {
-            // Find the specific type button
-            const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
-            if (specificTypeBtn) {
-                // Get parent type button and container
-                const parentId = specificTypeBtn.dataset.parentId;
-                const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
-                const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
-
-                // Show subtypes container
-                if (subtypesContainer) {
-                    subtypesContainer.classList.add('show');
-                    parentBtn.classList.add('expanded');
-                }
-
-                // Activate the specific type
-                specificTypeBtn.classList.add('active');
-                const input = specificTypeBtn.previousElementSibling;
-                if (input) {
-                    input.disabled = false;
-                }
-
-                // Update parent button state
-                if (parentBtn) {
-                    parentBtn.classList.add('has-selected');
-                }
-
-                // Add to selected types set
-                selectedTypes.add(wasteTypeId.toString());
-            }
-        });
-    @else
-        const signalWasteTypes = [];
-    @endif
-
-    // Store initial coordinates
-    const initialLat = {{ $centerLat }};
-    const initialLng = {{ $centerLng }};
-
-    // Reset Waste Types Handler
-    document.getElementById('resetWasteTypes').addEventListener('click', function() {
-        // Reset all specific types
-        document.querySelectorAll('.wsf-specific-type.active').forEach(button => {
-            button.classList.remove('active');
-            const input = button.previousElementSibling;
-            if (input) {
-                input.disabled = true;
-            }
-        });
-
-        // Reset all parent buttons
-        document.querySelectorAll('.wsf-general-type.has-selected').forEach(button => {
-            button.classList.remove('has-selected');
-        });
-
-        // Clear selected types set
-        selectedTypes.clear();
-
-        // Hide all expanded subtype containers
-        document.querySelectorAll('.wsf-subtypes.show').forEach(container => {
-            container.classList.remove('show');
-        });
-
-        // Remove expanded state from parent buttons
-        document.querySelectorAll('.wsf-general-type.expanded').forEach(button => {
-            button.classList.remove('expanded');
-        });
-
-        // Re-initialize with signal waste types
-        signalWasteTypes.forEach(wasteTypeId => {
-            const specificTypeBtn = document.querySelector(`.wsf-specific-type[data-specific-id="${wasteTypeId}"]`);
-            if (specificTypeBtn) {
-                const parentId = specificTypeBtn.dataset.parentId;
-                const parentBtn = document.querySelector(`.wsf-general-type[data-waste-type="${parentId}"]`);
-                const subtypesContainer = document.getElementById(`subTypes_${parentId}`);
-
-                if (subtypesContainer) {
-                    subtypesContainer.classList.add('show');
-                    parentBtn.classList.add('expanded');
-                }
-
-                specificTypeBtn.classList.add('active');
-                const input = specificTypeBtn.previousElementSibling;
-                if (input) {
-                    input.disabled = false;
-                }
-
-                if (parentBtn) {
-                    parentBtn.classList.add('has-selected');
-                }
-
-                selectedTypes.add(wasteTypeId.toString());
-            }
-        });
-    });
-});
 </script>
 @endpush
 @endsection 

@@ -631,7 +631,8 @@
                                 </form>
                             @endif
                         @endif
-                        @if(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id() && $collecte->status === 'completed')
+                        @if(($collecte->status === 'completed') && 
+                            (auth()->user()->isAdmin() || (auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())))
                             @php
                                 $rapport = \App\Models\Rapport::where('collecte_id', $collecte->id)->first();
                             @endphp
@@ -672,22 +673,49 @@
                     <div class="card-body">
                         <div class="list-group">
                             @forelse($collecte->contributors as $contributor)
-                                <div class="list-group-item d-flex align-items-center">
-                                    <img src="{{ $contributor->profile_photo_url }}" 
-                                         alt="{{ $contributor->first_name }}" 
-                                         class="rounded-circle me-2" 
-                                         width="32" 
-                                         height="32">
-                                    <div>
-                                        <h6 class="mb-0">{{ $contributor->first_name }} {{ $contributor->last_name }}</h6>
-                                        <small class="text-muted">
-                                            @if($contributor->pivot && $contributor->pivot->joined_at)
-                                                Joined {{ \Carbon\Carbon::parse($contributor->pivot->joined_at)->diffForHumans() }}
-                                            @else
-                                                Joined recently
-                                            @endif
-                                        </small>
+                                <div class="list-group-item d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ $contributor->profile_photo_url }}" 
+                                             alt="{{ $contributor->first_name }}" 
+                                             class="rounded-circle me-2" 
+                                             width="32" 
+                                             height="32">
+                                        <div>
+                                            <h6 class="mb-0">{{ $contributor->first_name }} {{ $contributor->last_name }}</h6>
+                                            <small class="text-muted">
+                                                @if($contributor->pivot && $contributor->pivot->status === 'accepted')
+                                                    Joined {{ \Carbon\Carbon::parse($contributor->pivot->joined_at)->diffForHumans() }}
+                                                @elseif($contributor->pivot && $contributor->pivot->status === 'pending')
+                                                    <span class="text-warning">Pending approval</span>
+                                                @elseif($contributor->pivot && $contributor->pivot->status === 'rejected')
+                                                    <span class="text-danger">Request rejected</span>
+                                                @else
+                                                    Joined recently
+                                                @endif
+                                            </small>
+                                        </div>
                                     </div>
+                                    @if($contributor->pivot && $contributor->pivot->status === 'pending' && 
+                                        (auth()->user()->isAdmin() || (auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())))
+                                        <div class="btn-group">
+                                            <form action="{{ route('collecte.approve-request', ['collecte' => $collecte, 'contributor' => $contributor]) }}" 
+                                                  method="POST" 
+                                                  class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-lg"></i> Accept
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('collecte.reject-request', ['collecte' => $collecte, 'contributor' => $contributor]) }}" 
+                                                  method="POST" 
+                                                  class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-x-lg"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
                                 </div>
                             @empty
                                 <p class="text-muted mb-0">No contributors yet.</p>
@@ -731,7 +759,29 @@
                         window.location.href = '{{ route('rapport.generate', $collecte) }}';
                     } else if (currentStatus !== 'completed') {
                         e.preventDefault();
-                        alert('Collection must be in progress before it can be marked as completed.');
+                        // First update status to in_progress
+                        fetch('{{ route('collecte.update-status', $collecte) }}', {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                status: 'in_progress'
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '{{ route('rapport.generate', $collecte) }}';
+                            } else {
+                                alert('Failed to update status. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        });
                     }
                 }
             });

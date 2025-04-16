@@ -138,6 +138,10 @@ Route::prefix('collectes')->middleware(['auth', 'verified'])->group(function () 
     Route::post('/{collecte}/join', [CollecteController::class, 'join'])->name('collecte.join');
     Route::post('/{collecte}/leave', [CollecteController::class, 'leave'])->name('collecte.leave');
     
+    // Contributor request management
+    Route::post('/{collecte}/approve-request/{contributor}', [CollecteController::class, 'approveRequest'])->name('collecte.approve-request');
+    Route::post('/{collecte}/reject-request/{contributor}', [CollecteController::class, 'rejectRequest'])->name('collecte.reject-request');
+    
     // Completion and report routes
     Route::post('/{collecte}/complete', [CollecteController::class, 'complete'])->name('collecte.complete');
     Route::get('/{collecte}/report', [CollecteController::class, 'downloadReport'])->name('collecte.report.download');

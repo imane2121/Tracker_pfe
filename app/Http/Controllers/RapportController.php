@@ -24,20 +24,20 @@ class RapportController extends Controller
     {
         // Check if user is authorized (supervisor of this collecte or admin)
         if (!auth()->user()->isAdmin() && !(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())) {
-            return redirect()->back()->with('error', 'You are not authorized to generate a report.');
+            return redirect()->back()/*->with('error', 'You are not authorized to generate a report.')*/;
         }
 
         // Check if rapport already exists
         $existingRapport = Rapport::where('collecte_id', $collecte->id)->first();
         if ($existingRapport) {
             return redirect()->route('rapport.edit', $collecte)
-                ->with('info', 'A rapport already exists for this collection.');
+                /*->with('info', 'A rapport already exists for this collection.')*/;
         }
 
         // Check if the status is being changed from in_progress
         if ($collecte->status !== 'in_progress') {
             return redirect()->back()
-                ->with('error', 'Collection must be in progress before completing and generating a report.');
+                /*->with('error', 'Collection must be in progress before completing and generating a report.')*/;
         }
 
         // Get all waste types for the form
@@ -50,7 +50,7 @@ class RapportController extends Controller
     {
         // Simplified authorization check
         if (!auth()->user()->isAdmin() && !(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())) {
-            return redirect()->back()->with('error', 'You are not authorized to generate a report.');
+            return redirect()->back()/*->with('error', 'You are not authorized to generate a report.')*/;
         }
 
         // Add debugging information
@@ -102,26 +102,26 @@ class RapportController extends Controller
 
                 DB::commit();
                 return redirect()->route('collecte.show', $collecte)
-                    ->with('success', 'Rapport generated and collection marked as completed successfully.');
+                    /*->with('success', 'Rapport generated and collection marked as completed successfully.')*/;
             }
 
             DB::rollBack();
             return redirect()->back()
-                ->with('error', 'Failed to generate rapport. Please try again.');
+                /*->with('error', 'Failed to generate rapport. Please try again.')*/;
 
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Rapport creation failed: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'An error occurred while generating the rapport: ' . $e->getMessage());
+                /*->with('error', 'An error occurred while generating the rapport: ' . $e->getMessage())*/;
         }
     }
 
     public function edit(Collecte $collecte)
     {
         // Check if user is authorized to edit rapport
-        if (!Auth::user()->isSupervisor() || Auth::id() !== $collecte->user_id) {
-            return redirect()->back()->with('error', 'Unauthorized action.');
+        if (!Auth::user()->isAdmin() && (!Auth::user()->isSupervisor() || Auth::id() !== $collecte->user_id)) {
+            return redirect()->back()/*->with('error', 'Unauthorized action.')*/;
         }
 
         // Get the rapport for this collecte
@@ -158,7 +158,7 @@ class RapportController extends Controller
             if (!$rapport) {
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'Rapport not found for this collecte.');
+                    /*->with('error', 'Rapport not found for this collecte.')*/;
             }
 
             // Ensure participants is an array, even if empty
@@ -172,7 +172,7 @@ class RapportController extends Controller
             $rapport->update($validated);
 
             return redirect()->route('collecte.show', $collecte)
-                ->with('success', 'Report updated successfully.');
+                /*->with('success', 'Report updated successfully.')*/;
 
         } catch (\Exception $e) {
             \Log::error('Failed to update report: ' . $e->getMessage());
@@ -180,7 +180,7 @@ class RapportController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to update report: ' . $e->getMessage());
+                /*->with('error', 'Failed to update report: ' . $e->getMessage())*/;
         }
     }
 
@@ -194,7 +194,7 @@ class RapportController extends Controller
 
         // Authorization check
         if (!auth()->user()->isAdmin() && !(auth()->user()->isSupervisor() && $collecte->user_id === auth()->id())) {
-            return redirect()->back()->with('error', 'You are not authorized to export this rapport.');
+            return redirect()->back()/*->with('error', 'You are not authorized to export this rapport.')*/;
         }
 
         $format = $request->query('format', 'pdf');
